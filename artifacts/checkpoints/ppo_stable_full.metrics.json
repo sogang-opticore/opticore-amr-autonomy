@@ -1,0 +1,16 @@
+{
+  "checkpoint": "artifacts/checkpoints/ppo_stable_full.pt",
+  "training_log": "artifacts/checkpoints/ppo_stable_full.training.csv",
+  "total_timesteps": 100000,
+  "updates": 98,
+  "warm_start_dataset": "artifacts/datasets/teacher",
+  "warm_start_mse": 0.008792267180979252,
+  "best_checkpoint": "artifacts/checkpoints/ppo_stable_full_best.pt",
+  "best_evaluation": {
+    "eval_success_rate": 1.0,
+    "eval_collision_rate": 0.0,
+    "eval_mean_time": 8.249999999999869
+  },
+  "stable_architecture": true,
+  "note": "full config run"
+}
