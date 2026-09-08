@@ -183,7 +183,7 @@ artifacts/ppo_stable/      안정화 PPO final/best 평가와 데모
 
 저장소에는 최종 비교에 필요한 결과표·그래프·대표 데모와 Stable PPO best checkpoint만 선별해 포함한다. 데이터셋, smoke 결과, 중간 checkpoint는 위 명령으로 다시 생성하며 Git에서 제외한다. 자세한 기준은 [artifacts/README.md](artifacts/README.md)에 있다.
 
-측정 결과와 해석은 [docs/RESULTS.md](docs/RESULTS.md), 설계 결정은 [docs/DECISIONS.md](docs/DECISIONS.md), 한계는 [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)를 참고한다.
+측정 결과와 해석은 [docs/RESULTS.md](docs/RESULTS.md), 향후 마일스톤은 [docs/ROADMAP.md](docs/ROADMAP.md), 설계 결정은 [docs/DECISIONS.md](docs/DECISIONS.md), 한계는 [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)를 참고한다.
 
 ## 해석 시 주의
 

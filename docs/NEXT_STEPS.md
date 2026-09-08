@@ -40,13 +40,17 @@
 - 동일 warehouse 경로와 장애물 배치의 Lite ↔ Gazebo paired test
 - timing, sensor frame, footprint 차이 계측 후 Sim-to-Real 범위 결정
 
-## 6. 5인 역할 분담 후보
+## 6. 기술 영역
 
-1. 환경·ray casting·map/scenario 성능
-2. 동적 장애물·temporal observation/tracker
-3. BC·DAgger·PPO·SAC 학습
-4. Reward·Safety Shield·failure analysis
-5. ROS2/Gazebo adapter·실험 자동화·통계
+1. 시뮬레이션 환경·시나리오
+2. 관측·동적 장애물 인식
+3. 경로계획·Rule baseline·Teacher
+4. BC·DAgger·PPO 학습 정책
+5. Reward·Safety Shield·Recovery
+6. 평가·실험 자동화·통계
+7. ROS2·Gazebo·시스템 연결
+
+인원 배치는 고정하지 않는다. 각 영역의 입력·출력 계약과 완료 기준을 먼저 고정하고, 팀 상황에 맞춰 한 사람이 여러 영역을 맡거나 여러 사람이 같은 영역을 나눠 맡는다. 실행 순서와 gate는 [ROADMAP.md](ROADMAP.md)를 따른다.
 
 ## 팀 결정 질문
 
