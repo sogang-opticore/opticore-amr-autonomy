@@ -1,0 +1,14 @@
+.venv/
+.pytest_cache/
+artifacts/.matplotlib/
+artifacts/datasets/
+artifacts/smoke/
+artifacts/results/
+artifacts/videos/
+artifacts/bc_preserved/
+artifacts/bc_warm/
+artifacts/shield_v2/
+artifacts/checkpoints/*.pt
+!artifacts/checkpoints/ppo_stable_full_best.pt
+__pycache__/
+*.pyc
