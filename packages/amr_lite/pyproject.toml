@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opticore-amr-autonomy"
+name = "opticore-amr-lite"
 version = "0.1.0"
 description = "ROS-free 2D autonomy and local-planning spike for OptiCore AMR"
 requires-python = ">=3.10"

@@ -19,4 +19,4 @@
 - 중간·실패 실험 checkpoint
 - Stable PPO final checkpoint
 
-전체 pipeline과 각 학습 명령은 루트 `README.md`를 참고한다.
+전체 pipeline과 각 학습 명령은 `packages/amr_lite/README.md`를 참고한다.

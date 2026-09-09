@@ -1,4 +1,4 @@
-# OptiCore AMR Autonomy — AMR-Lite Phase 0
+# OptiCore AMR-Lite
 
 ROS2와 Gazebo 없이 실행되는 경량 2D AMR 로컬 플래닝 기술 스파이크다. 동일한 관측·행동 계약에서 `lite_rule_baseline`, Behavior Cloning(BC), PPO, BC+DAgger-lite를 실행하고, 공통 Safety Shield의 효과를 paired evaluation으로 비교한다.
 
@@ -25,6 +25,7 @@ ROS2와 Gazebo 없이 실행되는 경량 2D AMR 로컬 플래닝 기술 스파�
 현재 저장소에서 확인한 `python` 3.11 환경에는 위 패키지가 설치되어 있다. 새 환경에서는 다음과 같이 프로젝트 전용 가상환경을 사용할 수 있다.
 
 ```bash
+cd packages/amr_lite
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[test]'
@@ -181,9 +182,9 @@ artifacts/ppo_best/        BC warm-start PPO best-checkpoint 평가
 artifacts/ppo_stable/      안정화 PPO final/best 평가와 데모
 ```
 
-저장소에는 최종 비교에 필요한 결과표·그래프·대표 데모와 Stable PPO best checkpoint만 선별해 포함한다. 데이터셋, smoke 결과, 중간 checkpoint는 위 명령으로 다시 생성하며 Git에서 제외한다. 자세한 기준은 [artifacts/README.md](artifacts/README.md)에 있다.
+위 경로는 새 실험을 실행할 때 이 패키지 아래에 생성되며 Git에서 제외된다. Phase 0에서 선별한 결과표·그래프·대표 데모와 Stable PPO best checkpoint는 [Phase 0 artifacts](../../experiments/phase0_amr_lite/artifacts/README.md)에 보존한다.
 
-측정 결과와 해석은 [docs/RESULTS.md](docs/RESULTS.md), 향후 마일스톤은 [docs/ROADMAP.md](docs/ROADMAP.md), 설계 결정은 [docs/DECISIONS.md](docs/DECISIONS.md), 한계는 [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)를 참고한다.
+측정 결과와 해석은 [Phase 0 결과](../../experiments/phase0_amr_lite/RESULTS.md), 향후 마일스톤은 [ROADMAP.md](../../docs/ROADMAP.md), 설계 결정은 [DECISIONS.md](../../experiments/phase0_amr_lite/DECISIONS.md), 한계는 [KNOWN_LIMITATIONS.md](../../experiments/phase0_amr_lite/KNOWN_LIMITATIONS.md)를 참고한다.
 
 ## 해석 시 주의
 
