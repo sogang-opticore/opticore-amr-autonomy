@@ -184,7 +184,20 @@ artifacts/ppo_stable/      안정화 PPO final/best 평가와 데모
 
 위 경로는 새 실험을 실행할 때 이 패키지 아래에 생성되며 Git에서 제외된다. Phase 0에서 선별한 결과표·그래프·대표 데모와 Stable PPO best checkpoint는 [Phase 0 artifacts](../../experiments/phase0_amr_lite/artifacts/README.md)에 보존한다.
 
-측정 결과와 해석은 [Phase 0 결과](../../experiments/phase0_amr_lite/RESULTS.md), 향후 마일스톤은 [ROADMAP.md](../../docs/ROADMAP.md), 설계 결정은 [DECISIONS.md](../../experiments/phase0_amr_lite/DECISIONS.md), 한계는 [KNOWN_LIMITATIONS.md](../../experiments/phase0_amr_lite/KNOWN_LIMITATIONS.md)를 참고한다.
+측정 결과와 해석은 [Phase 0 결과](../../experiments/phase0_amr_lite/RESULTS.md), 향후 마일스톤은 [ROADMAP.md](../../docs/ROADMAP.md), 설계 결정은 [DECISIONS.md](../../experiments/phase0_amr_lite/DECISIONS.md), 한계는 [KNOWN_LIMITATIONS.md](../../experiments/phase0_amr_lite/KNOWN_LIMITATIONS.md)를 참고한다. M1 재현성 재평가는 [M1 결과](../../experiments/m1_amr_lite/RESULTS.md)에 정리했다.
+
+## M1 재현 가능한 기준선
+
+다음 명령은 Stable PPO를 학습 seed 5개로 반복하고, 분리된 selection/test
+seed에서 best와 final checkpoint를 평가한다.
+
+```bash
+PYTHONPATH=. MPLCONFIGDIR=artifacts/.matplotlib python -m amr_lite.cli.m1
+```
+
+결과는 `artifacts/m1/m1-reproducible-baseline-v1/` 아래에 episode 원자료,
+학습-seed·시나리오별 요약, 95% CI, paired comparison, manifest와 보고서로
+저장된다. 완료된 seed checkpoint는 config와 timestep을 검증한 뒤 재사용한다.
 
 ## 해석 시 주의
 

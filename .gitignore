@@ -9,5 +9,6 @@ packages/amr_lite/artifacts/bc_preserved/
 packages/amr_lite/artifacts/bc_warm/
 packages/amr_lite/artifacts/shield_v2/
 packages/amr_lite/artifacts/checkpoints/*.pt
+packages/amr_lite/artifacts/m1/
 __pycache__/
 *.pyc

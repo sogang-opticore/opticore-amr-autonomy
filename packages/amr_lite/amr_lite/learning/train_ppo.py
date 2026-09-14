@@ -13,7 +13,7 @@ import torch
 from torch.distributions import Normal
 from torch.utils.data import DataLoader, TensorDataset
 
-from amr_lite.config import ROOT, load_config
+from amr_lite.config import ROOT, deep_merge, load_config
 from amr_lite.envs import WarehouseEnv
 
 from .networks import ActorCritic, StableActorCritic
@@ -88,31 +88,60 @@ def _warm_start_actor(model: ActorCritic | StableActorCritic, dataset_dir: str |
 
 
 @torch.no_grad()
-def _evaluate_actor(model: ActorCritic | StableActorCritic, env_config: dict, seed: int,
-                    scenarios: list[str]) -> dict[str, float]:
+def _evaluate_actor(model: ActorCritic | StableActorCritic, env_config: dict,
+                    evaluation_config: dict) -> dict[str, float]:
     was_training = model.training
     model.eval()
-    successes = collisions = 0
-    elapsed_times = []
-    for index, scenario in enumerate(scenarios):
-        env = WarehouseEnv(env_config, scenario)
-        observation, _ = env.reset(seed=seed + index, options={"scenario_id": scenario})
-        info = {}
-        for _ in range(int(env_config["episode_timeout"] / env_config["policy_dt"])):
-            tensor = torch.as_tensor(observation, dtype=torch.float32).unsqueeze(0)
-            mean, _, _ = model(tensor)
-            observation, _, terminated, truncated, info = env.step(torch.tanh(mean).squeeze(0).numpy())
-            if terminated or truncated:
-                break
-        successes += int(info.get("success", False))
-        collisions += int(info.get("collision", False))
-        elapsed_times.append(float(info.get("elapsed_time", env_config["episode_timeout"])))
-        env.close()
+    local_env_config = deep_merge(env_config, evaluation_config.get("environment_overrides"))
+    seeds = ([int(value) for value in evaluation_config["seeds"]]
+             if evaluation_config.get("seeds") is not None
+             else [int(evaluation_config["seed"]) + index
+                   for index in range(int(evaluation_config.get("episodes_per_scenario", 1)))])
+    successes = collisions = timeouts = 0
+    elapsed_times, clearances = [], []
+    for scenario in evaluation_config["scenarios"]:
+        for seed in seeds:
+            env = WarehouseEnv(local_env_config, scenario)
+            observation, _ = env.reset(seed=seed, options={"scenario_id": scenario})
+            info = {}
+            truncated = False
+            for _ in range(int(evaluation_config.get(
+                    "max_steps", local_env_config["episode_timeout"] / local_env_config["policy_dt"]))):
+                tensor = torch.as_tensor(observation, dtype=torch.float32).unsqueeze(0)
+                mean, _, _ = model(tensor)
+                observation, _, terminated, truncated, info = env.step(
+                    torch.tanh(mean).squeeze(0).numpy()
+                )
+                if terminated or truncated:
+                    break
+            successes += int(info.get("success", False))
+            collisions += int(info.get("collision", False))
+            timeouts += int(truncated)
+            elapsed_times.append(float(info.get("elapsed_time", local_env_config["episode_timeout"])))
+            clearances.append(float(info.get("minimum_clearance_episode", 0.0)))
+            env.close()
     if was_training:
         model.train()
-    count = max(1, len(scenarios))
+    count = max(1, len(evaluation_config["scenarios"]) * len(seeds))
     return {"eval_success_rate": successes / count, "eval_collision_rate": collisions / count,
-            "eval_mean_time": float(np.mean(elapsed_times))}
+            "eval_timeout_rate": timeouts / count,
+            "eval_mean_clearance": float(np.mean(clearances)),
+            "eval_mean_time": float(np.mean(elapsed_times)),
+            "eval_episodes": count,
+            "eval_split": str(evaluation_config.get("split", "selection"))}
+
+
+def _selection_config(cfg: dict, training_seed: int) -> dict:
+    name = cfg.get("selection_config")
+    if name:
+        return load_config(str(name))
+    return {
+        "split": "legacy-selection",
+        "seed": training_seed + 50_000,
+        "episodes_per_scenario": int(cfg.get("best_eval_episodes_per_scenario", 1)),
+        "scenarios": list(cfg.get("best_eval_scenarios", ["S0", "S1", "S3"])),
+        "max_steps": 360,
+    }
 
 
 def _save_checkpoint(path: Path, model: ActorCritic | StableActorCritic, cfg: dict, timesteps: int,
@@ -134,7 +163,8 @@ def train(output: str | Path, smoke: bool = True, config: dict | None = None,
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    env_config = load_config("env")
+    env_config = deep_merge(load_config("env"), cfg.get("environment_overrides"))
+    selection_config = _selection_config(cfg, seed)
     env = WarehouseEnv(env_config, "S0")
     observation, _ = env.reset(seed=seed)
     model: ActorCritic | StableActorCritic = (StableActorCritic(hidden_size=cfg["hidden_size"])
@@ -166,12 +196,12 @@ def train(output: str | Path, smoke: bool = True, config: dict | None = None,
     total_timesteps = cfg["total_timesteps_smoke"] if smoke else cfg["total_timesteps_full"]
     logs: list[dict] = []
     best_path = target.with_name(f"{target.stem}_best{target.suffix}")
-    best_score = (-1.0, -1.0, -math.inf)
+    best_score = (-1.0, -1.0, -1.0, -math.inf, -math.inf)
     best_evaluation = None
     if warm_start_dataset is not None and not smoke:
-        best_evaluation = _evaluate_actor(model, env_config, seed + 50_000,
-                                          list(cfg.get("best_eval_scenarios", ["S0", "S1", "S3"])))
+        best_evaluation = _evaluate_actor(model, env_config, selection_config)
         best_score = (best_evaluation["eval_success_rate"], -best_evaluation["eval_collision_rate"],
+                      -best_evaluation["eval_timeout_rate"], best_evaluation["eval_mean_clearance"],
                       -best_evaluation["eval_mean_time"])
         _save_checkpoint(best_path, model, cfg, 0, warm_start_dataset, best_evaluation, value_stats)
         if verbose:
@@ -300,12 +330,14 @@ def train(output: str | Path, smoke: bool = True, config: dict | None = None,
                                                           "success": 0, "collision": 0, "safety_cost": 0.0,
                                                           "minimum_clearance": math.nan, "shield_interventions": 0}
         completed_steps = min(total_timesteps, rollout_start + len(rewards))
-        evaluation = {"eval_success_rate": math.nan, "eval_collision_rate": math.nan, "eval_mean_time": math.nan}
+        evaluation = {"eval_success_rate": math.nan, "eval_collision_rate": math.nan,
+                      "eval_timeout_rate": math.nan, "eval_mean_clearance": math.nan,
+                      "eval_mean_time": math.nan, "eval_episodes": 0, "eval_split": "selection"}
         interval = int(cfg.get("evaluation_interval_updates", 0))
         if not smoke and interval > 0 and (update_index % interval == 0 or update_index == update_total):
-            evaluation = _evaluate_actor(model, env_config, seed + 50_000,
-                                         list(cfg.get("best_eval_scenarios", ["S0", "S1", "S3"])))
+            evaluation = _evaluate_actor(model, env_config, selection_config)
             score = (evaluation["eval_success_rate"], -evaluation["eval_collision_rate"],
+                     -evaluation["eval_timeout_rate"], evaluation["eval_mean_clearance"],
                      -evaluation["eval_mean_time"])
             if score > best_score:
                 best_score, best_evaluation = score, evaluation
@@ -327,6 +359,7 @@ def train(output: str | Path, smoke: bool = True, config: dict | None = None,
               "warm_start_mse": warm_start_mse,
               "best_checkpoint": str(best_path) if best_path.exists() else None,
               "best_evaluation": best_evaluation,
+              "selection_config": selection_config,
               "stable_architecture": stable_architecture,
               "note": "smoke run validates execution; it is not a convergence claim" if smoke else "full config run"}
     target.with_suffix(".metrics.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

@@ -22,7 +22,7 @@ critic_only_steps: 10000
 fine_tune_learning_rate: 0.00005
 bc_anchor_coef: 0.5
 fine_tune_entropy_coef: 0.0
-evaluation_interval_updates: 5
-best_eval_scenarios: [S0, S1, S3]
+evaluation_interval_updates: 10
+selection_config: evaluation_selection
 value_normalization: true
 target_kl: 0.01

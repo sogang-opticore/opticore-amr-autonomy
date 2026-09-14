@@ -11,6 +11,7 @@ dependencies = ["numpy>=1.24", "PyYAML>=6", "torch>=2", "matplotlib>=3.7"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
+reference-rl = ["gymnasium>=0.29", "stable-baselines3>=2.3"]
 
 [tool.setuptools.packages.find]
 include = ["amr_lite*"]

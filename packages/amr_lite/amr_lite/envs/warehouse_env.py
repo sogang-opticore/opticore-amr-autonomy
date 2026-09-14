@@ -21,6 +21,9 @@ from .raycast import lidar_scan
 from .scenarios import DynamicObstacle, Scenario, make_scenario
 
 
+_PATH_CACHE: dict[tuple, tuple[tuple[float, float], ...]] = {}
+
+
 class Box:
     """Small gymnasium.spaces.Box-compatible fallback."""
 
@@ -83,7 +86,7 @@ class WarehouseEnv:
         self.np_random = np.random.default_rng(seed)
         self._python_random.seed(seed)
         requested = (options or {}).get("scenario_id", self.scenario_id)
-        self.scenario = make_scenario(requested, seed)
+        self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"))
         self.robot = copy.deepcopy(self.scenario.start)
         if options and "pose_perturbation" in options:
             amount = float(options["pose_perturbation"])
@@ -91,8 +94,22 @@ class WarehouseEnv:
             self.robot.y += float(self.np_random.uniform(-amount, amount))
             self.robot.theta += float(self.np_random.uniform(-amount, amount))
         inflation = self.config["robot_radius"] + self.config["obstacle_inflation"]
-        self.global_path = astar(self.scenario.warehouse_map, (self.robot.x, self.robot.y),
-                                 self.scenario.goal, self.config["grid_resolution"], inflation)
+        path_key = (
+            self.scenario.instance_id,
+            float(self.config["grid_resolution"]),
+            float(inflation),
+            tuple((rect.x_min, rect.y_min, rect.x_max, rect.y_max)
+                  for rect in self.scenario.warehouse_map.obstacles),
+        )
+        if path_key not in _PATH_CACHE:
+            _PATH_CACHE[path_key] = tuple(astar(
+                self.scenario.warehouse_map,
+                (self.robot.x, self.robot.y),
+                self.scenario.goal,
+                self.config["grid_resolution"],
+                inflation,
+            ))
+        self.global_path = list(_PATH_CACHE[path_key])
         self.elapsed = 0.0
         self.step_count = 0
         self.collision = False
@@ -240,6 +257,7 @@ class WarehouseEnv:
         info = {
             "seed": seed,
             "scenario_id": self.scenario.scenario_id,
+            "scenario_instance_id": self.scenario.instance_id,
             "robot_pose": (self.robot.x, self.robot.y, self.robot.theta),
             "goal_distance": math.dist((self.robot.x, self.robot.y), self.scenario.goal),
             "success": self.success,
