@@ -16,14 +16,19 @@ opticore-amr-autonomy/
 │       ├── README.md
 │       └── pyproject.toml
 ├── experiments/
-│   └── phase0_amr_lite/
+│   ├── phase0_amr_lite/
 │       ├── README.md
 │       ├── RESULTS.md
 │       ├── DECISIONS.md
 │       ├── KNOWN_LIMITATIONS.md
 │       └── artifacts/
+│   └── m1_reproducibility/
+│       ├── README.md
+│       ├── RESULTS.md
+│       └── artifacts/
 ├── docs/
 │   ├── ROADMAP.md
+│   ├── RUNBOOK.md
 │   ├── NEXT_STEPS.md
 │   └── REPOSITORY_STRUCTURE.md
 ├── README.md
@@ -46,6 +51,7 @@ opticore-amr-autonomy/
 마일스톤별 실험 정의와 검토 가능한 근거를 둔다.
 
 - Phase 0 결과는 `phase0_amr_lite/`에 보존한다.
+- M1 재현성 결과는 `m1_reproducibility/`에 보존한다.
 - 새 마일스톤은 기존 폴더를 덮어쓰지 않고 새 폴더를 만든다.
 - 예: `m1_reproducibility/`, `m2_dynamic_safety/`
 - 결과표, 사용 config, 대표 그래프와 실패 분석을 함께 남긴다.

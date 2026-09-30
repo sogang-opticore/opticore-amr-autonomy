@@ -4,26 +4,32 @@
 
 Phase 0에서 확인한 AMR-Lite의 실행 가능성을 반복 가능한 실험, 동적 장애물 안전성, 안정적인 학습 정책, ROS2/Gazebo 연결 순으로 확장한다. 이 문서는 인원별 업무가 아니라 기술 영역과 마일스톤의 완료 조건을 정의한다.
 
-일정은 팀 가용 인원에 따라 달라질 수 있으므로 날짜 대신 sprint 단위의 상대 규모를 사용한다. 아래 수치 기준은 최초 제안값이며 M1 시작 시 팀 합의로 확정한다.
+일정은 팀 가용 인원에 따라 달라질 수 있으므로 날짜 대신 sprint 단위의 상대 규모를 사용한다.
 
-## 현재 기준선 — M0 완료
+## 현재 기준선 — M1 완료, M2 진행 중
 
-Phase 0 기술 스파이크는 완료 상태다.
+Phase 0 기술 스파이크와 M1 재현성 평가는 완료 상태다.
 
 - ROS 없이 실행되는 2D differential-drive 환경
 - 정적·동적 시나리오와 4-frame LiDAR 관측
 - A*와 Rule baseline
 - BC, DAgger-lite, PPO, Stable PPO
 - 공통 Safety Shield와 ON/OFF paired evaluation
-- 20개 자동 테스트
-- Stable PPO best: 51,200 timestep, Shield OFF 성공률 87.5%
-- 주요 잔여 위험: `D1` 정면 접근 충돌, `S4` Shield saturation, final checkpoint 성능 저하
+- 28개 자동 테스트
+- M1: 학습 seed 5개, test 4,160 episode, 계층적 bootstrap 95% CI
+- Custom Stable PPO best: Shield OFF 성공률 85.4% (95% CI 84.0–86.5%)
+- Rule baseline: Shield OFF 성공률 86.2% (95% CI 84.4–87.5%)
+- predictive Safety Shield의 tracker, CPA/TTC, 회피·후진 후보 코어 구현
+- 주요 잔여 위험: `D1` 정면 접근 충돌, `S3` Shield saturation, final checkpoint 성능 저하
 
-현재 수치는 8개 시나리오와 각 2개 평가 seed에서 나온 결과이므로 일반화 성능으로 해석하지 않는다.
+Phase 0의 87.5% 단일 checkpoint 수치는 일반화 성능으로 사용하지 않는다. 현재 공식
+기준은 M1의 분리된 selection/test protocol과 신뢰구간을 포함한 결과다.
 
 ## M1 — 재현 가능한 평가 기준선
 
 예상 규모: 1 sprint
+
+상태: **완료**. 결과와 선별 산출물은 `experiments/m1_reproducibility/`에 보존한다.
 
 목표:
 
@@ -58,11 +64,14 @@ Phase 0 기술 스파이크는 완료 상태다.
 
 예상 규모: 1–2 sprints
 
+상태: **진행 중**. 예측·회피 코어와 단위테스트는 구현됐지만 기본 전략은 아직
+`legacy`이며 D0–D4 stress test와 승인 gate는 남아 있다.
+
 선행조건: M1 평가 protocol 고정
 
 목표:
 
-- `D1` 정면 접근 충돌과 `S4` Shield saturation을 재현하고 직접 해결한다.
+- `D1` 정면 접근 충돌과 `S3` Shield saturation을 재현하고 직접 해결한다.
 - 단순 거리 임계값을 넘어 장애물의 상대 운동을 안전 판단에 사용한다.
 
 주요 작업:
@@ -85,7 +94,7 @@ Phase 0 기술 스파이크는 완료 상태다.
 완료 기준 제안:
 
 - `D1` 충돌률 10% 이하: 최소 20 episode 기준
-- `S4` Shield saturation/timeout 비율 5% 이하
+- `S3` Shield saturation/timeout 비율 5% 이하
 - Shield ON이 정적 시나리오 성공률을 OFF 대비 5%p 넘게 낮추지 않는다.
 - 모든 intervention에 원인과 지속 시간이 기록된다.
 

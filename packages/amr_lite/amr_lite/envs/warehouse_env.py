@@ -21,6 +21,9 @@ from .raycast import lidar_scan
 from .scenarios import DynamicObstacle, Scenario, make_scenario
 
 
+_PATH_CACHE: dict[tuple, tuple[tuple[float, float], ...]] = {}
+
+
 class Box:
     """Small gymnasium.spaces.Box-compatible fallback."""
 
@@ -60,7 +63,18 @@ class WarehouseEnv:
         self.collision = False
         self.success = False
         self.shield_counts = {"PASS": 0, "CLAMP": 0, "STOP": 0}
+        self.shield_action_counts = {
+            "PASS": 0, "SLOW": 0, "EVADE": 0, "REVERSE": 0, "STOP": 0
+        }
         self.unsafe_without_shield = 0
+        self.shield_false_positive = 0
+        self.shield_false_negative = 0
+        self.shield_actual_false_negative = 0
+        self.shield_ineffective_intervention = 0
+        self.shield_risk_counts: dict[str, int] = {}
+        self.tracking_speed_errors: list[float] = []
+        self.minimum_predicted_ttc = math.inf
+        self.shield_trace: list[dict[str, Any]] = []
         self.shield_streak = 0
         self.max_shield_streak = 0
         self.cumulative_reward = 0.0
@@ -83,7 +97,8 @@ class WarehouseEnv:
         self.np_random = np.random.default_rng(seed)
         self._python_random.seed(seed)
         requested = (options or {}).get("scenario_id", self.scenario_id)
-        self.scenario = make_scenario(requested, seed)
+        self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"))
+        self.shield.reset()
         self.robot = copy.deepcopy(self.scenario.start)
         if options and "pose_perturbation" in options:
             amount = float(options["pose_perturbation"])
@@ -91,14 +106,39 @@ class WarehouseEnv:
             self.robot.y += float(self.np_random.uniform(-amount, amount))
             self.robot.theta += float(self.np_random.uniform(-amount, amount))
         inflation = self.config["robot_radius"] + self.config["obstacle_inflation"]
-        self.global_path = astar(self.scenario.warehouse_map, (self.robot.x, self.robot.y),
-                                 self.scenario.goal, self.config["grid_resolution"], inflation)
+        path_key = (
+            self.scenario.instance_id,
+            float(self.config["grid_resolution"]),
+            float(inflation),
+            tuple((rect.x_min, rect.y_min, rect.x_max, rect.y_max)
+                  for rect in self.scenario.warehouse_map.obstacles),
+        )
+        if path_key not in _PATH_CACHE:
+            _PATH_CACHE[path_key] = tuple(astar(
+                self.scenario.warehouse_map,
+                (self.robot.x, self.robot.y),
+                self.scenario.goal,
+                self.config["grid_resolution"],
+                inflation,
+            ))
+        self.global_path = list(_PATH_CACHE[path_key])
         self.elapsed = 0.0
         self.step_count = 0
         self.collision = False
         self.success = False
         self.shield_counts = {"PASS": 0, "CLAMP": 0, "STOP": 0}
+        self.shield_action_counts = {
+            "PASS": 0, "SLOW": 0, "EVADE": 0, "REVERSE": 0, "STOP": 0
+        }
         self.unsafe_without_shield = 0
+        self.shield_false_positive = 0
+        self.shield_false_negative = 0
+        self.shield_actual_false_negative = 0
+        self.shield_ineffective_intervention = 0
+        self.shield_risk_counts = {}
+        self.tracking_speed_errors = []
+        self.minimum_predicted_ttc = math.inf
+        self.shield_trace = []
         self.shield_streak = 0
         self.max_shield_streak = 0
         self.cumulative_reward = 0.0
@@ -124,10 +164,25 @@ class WarehouseEnv:
         if invalid:
             action_array = np.zeros(2, dtype=np.float32)
         target_v, target_w = scale_action(action_array, self.config["v_max"], self.config["w_max"])
+        before_state = RobotState(
+            self.robot.x, self.robot.y, self.robot.theta, self.robot.v, self.robot.w
+        )
         result = self.shield.apply(self.robot, target_v, target_w, self.scenario.warehouse_map,
                                    self.dynamic_obstacles, bool(self.config["shield_enabled"]), self.elapsed)
         self.shield_counts[result.mode] += 1
+        self.shield_action_counts[result.action_type] += 1
         self.unsafe_without_shield += int(result.unsafe_without_shield)
+        self.shield_false_positive += int(result.false_positive)
+        self.shield_false_negative += int(result.false_negative)
+        self.shield_risk_counts[result.risk_source] = (
+            self.shield_risk_counts.get(result.risk_source, 0) + 1
+        )
+        if math.isfinite(result.tracking_speed_error):
+            self.tracking_speed_errors.append(result.tracking_speed_error)
+        if math.isfinite(result.predicted_ttc):
+            self.minimum_predicted_ttc = min(
+                self.minimum_predicted_ttc, result.predicted_ttc
+            )
         self.shield_streak = self.shield_streak + 1 if result.mode != "PASS" else 0
         self.max_shield_streak = max(self.max_shield_streak, self.shield_streak)
         before = (self.robot.x, self.robot.y)
@@ -142,6 +197,30 @@ class WarehouseEnv:
                 self.collision = True
                 break
             self.robot = next_state
+        if self.collision and bool(self.config["shield_enabled"]):
+            if result.mode == "PASS":
+                self.shield_actual_false_negative += 1
+            else:
+                self.shield_ineffective_intervention += 1
+        if bool(self.config.get("record_shield_trace", False)):
+            self.shield_trace.append({
+                "time": self.elapsed,
+                "before_pose": [before_state.x, before_state.y, before_state.theta],
+                "before_velocity": [before_state.v, before_state.w],
+                "target_velocity": [target_v, target_w],
+                "executed_velocity": [result.v, result.w],
+                "mode": result.mode,
+                "action_type": result.action_type,
+                "risk_source": result.risk_source,
+                "predicted_ttc": result.predicted_ttc,
+                "cpa_distance": result.cpa_distance,
+                "predicted_minimum_clearance": result.predicted_minimum_clearance,
+                "false_positive": result.false_positive,
+                "false_negative": result.false_negative,
+                "tracking_speed_error": result.tracking_speed_error,
+                "after_pose": [self.robot.x, self.robot.y, self.robot.theta],
+                "collision": self.collision,
+            })
         moved = math.dist(before, (self.robot.x, self.robot.y))
         self.path_length += moved
         self.trajectory.append((self.robot.x, self.robot.y))
@@ -240,6 +319,7 @@ class WarehouseEnv:
         info = {
             "seed": seed,
             "scenario_id": self.scenario.scenario_id,
+            "scenario_instance_id": self.scenario.instance_id,
             "robot_pose": (self.robot.x, self.robot.y, self.robot.theta),
             "goal_distance": math.dist((self.robot.x, self.robot.y), self.scenario.goal),
             "success": self.success,
@@ -258,8 +338,22 @@ class WarehouseEnv:
             "total_abs_rotation": self.total_abs_rotation,
             "path_remaining_distance": getattr(self, "previous_path_remaining", shortest),
             "shield_counts": dict(self.shield_counts),
+            "shield_action_counts": dict(self.shield_action_counts),
             "unsafe_without_shield": self.unsafe_without_shield,
             "shield_sustained_time": self.max_shield_streak * self.config["policy_dt"],
+            "shield_false_positive": self.shield_false_positive,
+            "shield_false_negative": self.shield_false_negative,
+            "shield_actual_false_negative": self.shield_actual_false_negative,
+            "shield_ineffective_intervention": self.shield_ineffective_intervention,
+            "shield_risk_counts": dict(self.shield_risk_counts),
+            "tracking_speed_error_mean": (
+                float(np.mean(self.tracking_speed_errors))
+                if self.tracking_speed_errors else 0.0
+            ),
+            "tracking_speed_error_max": (
+                max(self.tracking_speed_errors) if self.tracking_speed_errors else 0.0
+            ),
+            "minimum_predicted_ttc": self.minimum_predicted_ttc,
             "reward_components": reward_components or {},
         }
         info.update(extra)

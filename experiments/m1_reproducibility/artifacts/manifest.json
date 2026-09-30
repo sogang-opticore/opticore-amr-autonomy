@@ -1,0 +1,767 @@
+{
+  "checkpoints": [
+    {
+      "bytes": 445027,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final_best.pt",
+      "sha256": "d78565cff45f7cb2dae3c3078cd7154d1f5e470b32ad261910515145331c9f18"
+    },
+    {
+      "bytes": 445008,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final_best.pt",
+      "sha256": "d24fcf3db93131e9429f8c82f47f4d7c598abfee2e8d7284329ff24d18f25f76"
+    },
+    {
+      "bytes": 445027,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final_best.pt",
+      "sha256": "92583cbd682588313a4c0df62f27b20caadb0f584a306d185b2577f170b4016c"
+    },
+    {
+      "bytes": 445027,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final_best.pt",
+      "sha256": "516463ec6629291ac95564bb677a53fa2f878a72805676b83fd873e22074ddcc"
+    },
+    {
+      "bytes": 445027,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final_best.pt",
+      "sha256": "5f6439d68e6b8f6e69939375e872c55eee977729c584c37f7aab7988f5b0a783"
+    },
+    {
+      "bytes": 444676,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final.pt",
+      "sha256": "e8f1232ecf9a905e93e794526b9ce90c65600056147b86a3424c807dc06d158f"
+    },
+    {
+      "bytes": 444676,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final.pt",
+      "sha256": "69dbacd3f734c47cf5a23d3376555f2c061b288523e6e476c7e35837267261e6"
+    },
+    {
+      "bytes": 444676,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final.pt",
+      "sha256": "c4ee7a5bd3c87b30b4c307b677457985c537ee7d26e22ef68181507a5c6fdb82"
+    },
+    {
+      "bytes": 444657,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final.pt",
+      "sha256": "b495a41454c06942c39c3e678dd19b0b1694dd3c1596368fde3c8c04cc02df18"
+    },
+    {
+      "bytes": 444676,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final.pt",
+      "sha256": "1b768cf06f7b093c917dbde3c04e7c083c1b60f73ff93690bd1b8161069e5ad8"
+    },
+    {
+      "bytes": 572501,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/checkpoints/bc_full.pt",
+      "sha256": "b1b2c6df940a282da4ea1b4517d5f3407057982a3a2008c33b0452cc8553379d"
+    },
+    {
+      "bytes": 444403,
+      "path": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/checkpoints/ppo_stable_full_best.pt",
+      "sha256": "629e91e69a65659db555de2ae3907b9aea7526087a4a8f1efccc7528d706ab2c"
+    }
+  ],
+  "created_at_utc": "2026-09-14T04:41:18.744291+00:00",
+  "dataset": {
+    "files": [
+      {
+        "bytes": 55027,
+        "path": "episode_0000_S0.npz",
+        "sha256": "98c6b9ca8c48b198dabce05888ea47119eccac559cc90fbc88898e4b4617fb4a"
+      },
+      {
+        "bytes": 67061,
+        "path": "episode_0001_S1.npz",
+        "sha256": "3b1571bc3e89073772e07c45e8c5b89c5b114b3314e5d1a5f9b6db1fd0f80283"
+      },
+      {
+        "bytes": 58712,
+        "path": "episode_0002_S2.npz",
+        "sha256": "36f841d6cf180e0d5766c0b5b9f462f7502bf6bc01a1b68c089699238869e53b"
+      },
+      {
+        "bytes": 63150,
+        "path": "episode_0003_S3.npz",
+        "sha256": "00d384925bf42b968c7122142325093d25c58c95c9a42a99f91051a8a4e46ebd"
+      },
+      {
+        "bytes": 50519,
+        "path": "episode_0004_S4.npz",
+        "sha256": "d1227abd124600980ecd91c096959a1e9e8bea49a34ef9d3d4247202e0c83f85"
+      },
+      {
+        "bytes": 64057,
+        "path": "episode_0005_S5.npz",
+        "sha256": "49f527555c97da85129a71041da6d5de208b2d659de2b2e2419adac6fb7c7f37"
+      }
+    ],
+    "root": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+    "sha256": "343468310c6b58aa9dd9e7870310b07eaf2530043df19e3b5c15b167b6ec6653",
+    "version": "teacher-phase0-v1"
+  },
+  "evaluation": {
+    "selection": {
+      "bootstrap_resamples": 2000,
+      "bootstrap_seed": 20260914,
+      "environment_overrides": {
+        "scenario_randomization": {
+          "enabled": true
+        }
+      },
+      "episodes_per_scenario": 5,
+      "max_steps": 360,
+      "scenarios": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "D0",
+        "D1"
+      ],
+      "seed": 20000,
+      "shield_modes": [
+        false
+      ],
+      "split": "selection"
+    },
+    "test": {
+      "bootstrap_resamples": 2000,
+      "bootstrap_seed": 20260914,
+      "environment_overrides": {
+        "scenario_randomization": {
+          "enabled": true
+        }
+      },
+      "episodes_per_scenario": 20,
+      "max_steps": 360,
+      "scenarios": [
+        "S0",
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "D0",
+        "D1"
+      ],
+      "seed": 30000,
+      "shield_modes": [
+        false,
+        true
+      ],
+      "split": "test"
+    }
+  },
+  "experiment": {
+    "bc_checkpoint": "artifacts/checkpoints/bc_full.pt",
+    "dataset": {
+      "path": "artifacts/datasets/teacher",
+      "version": "teacher-phase0-v1"
+    },
+    "experiment_version": "m1-reproducible-baseline-v1",
+    "legacy_ppo_checkpoint": "artifacts/checkpoints/ppo_stable_full_best.pt",
+    "mode": "full",
+    "output": "artifacts/m1/m1-reproducible-baseline-v1",
+    "ppo_config": "ppo",
+    "selection_config": "evaluation_selection",
+    "test_config": "evaluation_test",
+    "training_results": [
+      {
+        "best_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final_best.pt",
+        "best_evaluation": {
+          "eval_collision_rate": 0.125,
+          "eval_episodes": 40,
+          "eval_mean_clearance": 0.21428076112002198,
+          "eval_mean_time": 8.475749999999872,
+          "eval_split": "selection",
+          "eval_success_rate": 0.85,
+          "eval_timeout_rate": 0.025
+        },
+        "checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final.pt",
+        "final_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final.pt",
+        "note": "full config run",
+        "selection_config": {
+          "bootstrap_resamples": 2000,
+          "bootstrap_seed": 20260914,
+          "environment_overrides": {
+            "scenario_randomization": {
+              "enabled": true
+            }
+          },
+          "episodes_per_scenario": 5,
+          "max_steps": 360,
+          "scenarios": [
+            "S0",
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "D0",
+            "D1"
+          ],
+          "seed": 20000,
+          "shield_modes": [
+            false
+          ],
+          "split": "selection"
+        },
+        "stable_architecture": true,
+        "total_timesteps": 100000,
+        "training_log": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final.training.csv",
+        "training_seed": 7,
+        "updates": 98,
+        "warm_start_dataset": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+        "warm_start_mse": 0.008792267180979252
+      },
+      {
+        "best_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final_best.pt",
+        "best_evaluation": {
+          "eval_collision_rate": 0.125,
+          "eval_episodes": 40,
+          "eval_mean_clearance": 0.21808356608882856,
+          "eval_mean_time": 8.185749999999869,
+          "eval_split": "selection",
+          "eval_success_rate": 0.875,
+          "eval_timeout_rate": 0.0
+        },
+        "checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final.pt",
+        "final_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final.pt",
+        "note": "full config run",
+        "selection_config": {
+          "bootstrap_resamples": 2000,
+          "bootstrap_seed": 20260914,
+          "environment_overrides": {
+            "scenario_randomization": {
+              "enabled": true
+            }
+          },
+          "episodes_per_scenario": 5,
+          "max_steps": 360,
+          "scenarios": [
+            "S0",
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "D0",
+            "D1"
+          ],
+          "seed": 20000,
+          "shield_modes": [
+            false
+          ],
+          "split": "selection"
+        },
+        "stable_architecture": true,
+        "total_timesteps": 100000,
+        "training_log": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final.training.csv",
+        "training_seed": 17,
+        "updates": 98,
+        "warm_start_dataset": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+        "warm_start_mse": 0.014336816966533661
+      },
+      {
+        "best_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final_best.pt",
+        "best_evaluation": {
+          "eval_collision_rate": 0.125,
+          "eval_episodes": 40,
+          "eval_mean_clearance": 0.21330721359241928,
+          "eval_mean_time": 8.18574999999988,
+          "eval_split": "selection",
+          "eval_success_rate": 0.85,
+          "eval_timeout_rate": 0.025
+        },
+        "checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final.pt",
+        "final_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final.pt",
+        "note": "full config run",
+        "selection_config": {
+          "bootstrap_resamples": 2000,
+          "bootstrap_seed": 20260914,
+          "environment_overrides": {
+            "scenario_randomization": {
+              "enabled": true
+            }
+          },
+          "episodes_per_scenario": 5,
+          "max_steps": 360,
+          "scenarios": [
+            "S0",
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "D0",
+            "D1"
+          ],
+          "seed": 20000,
+          "shield_modes": [
+            false
+          ],
+          "split": "selection"
+        },
+        "stable_architecture": true,
+        "total_timesteps": 100000,
+        "training_log": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final.training.csv",
+        "training_seed": 29,
+        "updates": 98,
+        "warm_start_dataset": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+        "warm_start_mse": 0.007462441921234131
+      },
+      {
+        "best_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final_best.pt",
+        "best_evaluation": {
+          "eval_collision_rate": 0.125,
+          "eval_episodes": 40,
+          "eval_mean_clearance": 0.20710382999131016,
+          "eval_mean_time": 8.206499999999878,
+          "eval_split": "selection",
+          "eval_success_rate": 0.85,
+          "eval_timeout_rate": 0.025
+        },
+        "checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final.pt",
+        "final_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final.pt",
+        "note": "full config run",
+        "selection_config": {
+          "bootstrap_resamples": 2000,
+          "bootstrap_seed": 20260914,
+          "environment_overrides": {
+            "scenario_randomization": {
+              "enabled": true
+            }
+          },
+          "episodes_per_scenario": 5,
+          "max_steps": 360,
+          "scenarios": [
+            "S0",
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "D0",
+            "D1"
+          ],
+          "seed": 20000,
+          "shield_modes": [
+            false
+          ],
+          "split": "selection"
+        },
+        "stable_architecture": true,
+        "total_timesteps": 100000,
+        "training_log": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final.training.csv",
+        "training_seed": 43,
+        "updates": 98,
+        "warm_start_dataset": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+        "warm_start_mse": 0.0047776959836483
+      },
+      {
+        "best_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final_best.pt",
+        "best_evaluation": {
+          "eval_collision_rate": 0.125,
+          "eval_episodes": 40,
+          "eval_mean_clearance": 0.2296045655052536,
+          "eval_mean_time": 8.416499999999866,
+          "eval_split": "selection",
+          "eval_success_rate": 0.875,
+          "eval_timeout_rate": 0.0
+        },
+        "checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final.pt",
+        "final_checkpoint": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final.pt",
+        "note": "full config run",
+        "selection_config": {
+          "bootstrap_resamples": 2000,
+          "bootstrap_seed": 20260914,
+          "environment_overrides": {
+            "scenario_randomization": {
+              "enabled": true
+            }
+          },
+          "episodes_per_scenario": 5,
+          "max_steps": 360,
+          "scenarios": [
+            "S0",
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "D0",
+            "D1"
+          ],
+          "seed": 20000,
+          "shield_modes": [
+            false
+          ],
+          "split": "selection"
+        },
+        "stable_architecture": true,
+        "total_timesteps": 100000,
+        "training_log": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final.training.csv",
+        "training_seed": 59,
+        "updates": 98,
+        "warm_start_dataset": "/Users/macbookair/Library/Mobile Documents/com~apple~CloudDocs/sogang/1 AIAI/projects/opticore-amr_meta/opticore-amr/amr_lite_spike/artifacts/datasets/teacher",
+        "warm_start_mse": 0.004754106514155865
+      }
+    ],
+    "training_seeds": [
+      7,
+      17,
+      29,
+      43,
+      59
+    ]
+  },
+  "git": {
+    "branch": "codex/amr-lite-m1-reproducible-baseline",
+    "commit": "6a102ee4b22bd9f657ea21cd92f032f28cc085f9",
+    "dirty": true,
+    "scope": "amr_lite_spike",
+    "scope_dirty": false,
+    "scope_status": [],
+    "status": [
+      "?? docs/amr-lite-advanced.html",
+      "?? docs/amr-lite-learning.html"
+    ]
+  },
+  "runtime": {
+    "command": [
+      "python",
+      "-m",
+      "amr_lite.cli.m1"
+    ],
+    "dependencies": {
+      "PyYAML": "6.0.2",
+      "gymnasium": "not-installed",
+      "matplotlib": "3.10.6",
+      "numpy": "2.3.2",
+      "pytest": "9.1.1",
+      "stable-baselines3": "not-installed",
+      "torch": "2.8.0"
+    },
+    "platform": "macOS-26.5.1-arm64-arm-64bit",
+    "python": "3.11.9 (main, Sep  8 2025, 11:14:57) [Clang 17.0.0 (clang-1700.0.13.5)]",
+    "python_executable": "/Users/macbookair/.pyenv/versions/3.11.9/bin/python"
+  },
+  "schema_version": 1,
+  "source": {
+    "files": [
+      {
+        "bytes": 8451,
+        "path": "README.md",
+        "sha256": "301d5a8c0158d7b3dce1561200314fd4a243373abb454be4f371dc1ec5e62720"
+      },
+      {
+        "bytes": 57,
+        "path": "amr_lite/__init__.py",
+        "sha256": "13d606c23e77e7ba08db70c61ed5cfe5263bdc5d0dedda53bc4be9e931d2a598"
+      },
+      {
+        "bytes": 35,
+        "path": "amr_lite/cli/__init__.py",
+        "sha256": "1275042832d6427ab52be14f999bf553b2948b931145562ccb226e8ecfc5ca30"
+      },
+      {
+        "bytes": 1918,
+        "path": "amr_lite/cli/demo.py",
+        "sha256": "527dfb7257417b64a16bc3b53de59b4550f23ebf07b4f4df3349622abb297877"
+      },
+      {
+        "bytes": 1344,
+        "path": "amr_lite/cli/evaluate.py",
+        "sha256": "47cdffe440f2b31c6842bd4c963b0c4e81f4494726aa951d20de98c6bb032dab"
+      },
+      {
+        "bytes": 10425,
+        "path": "amr_lite/cli/m1.py",
+        "sha256": "b3b020f8b8ef4db487b05bfef7fd22fac1e382f95290a4cf041387bf7aa2fdae"
+      },
+      {
+        "bytes": 2422,
+        "path": "amr_lite/cli/train.py",
+        "sha256": "bf23d03c1d2f9368a910801341b18463a12d5f4f2a69dcf7b62aac0e51026b5e"
+      },
+      {
+        "bytes": 980,
+        "path": "amr_lite/config.py",
+        "sha256": "ffffcddc42f82a05883e7ec17f12816385c44f4fcd4285d8e5eaffe4c59858a5"
+      },
+      {
+        "bytes": 69,
+        "path": "amr_lite/envs/__init__.py",
+        "sha256": "8be6e9bcb148e2adf385ba15b7c0e89ba0a382670a1057735918d14b9148da31"
+      },
+      {
+        "bytes": 1337,
+        "path": "amr_lite/envs/dynamics.py",
+        "sha256": "53601161020e37043ea44af9cdc43fb2dd9607f8f9e5d4401dadcace0b15bf00"
+      },
+      {
+        "bytes": 2571,
+        "path": "amr_lite/envs/geometry.py",
+        "sha256": "342070f2de6e2afda95948fc4e4e747d6b5aae994074fd87ad4391c3a86ff7e9"
+      },
+      {
+        "bytes": 1587,
+        "path": "amr_lite/envs/gymnasium_adapter.py",
+        "sha256": "c0b58b022e07ec49ad13624d67ae46b7b37585ac18c299debd0de8801a39ebda"
+      },
+      {
+        "bytes": 1409,
+        "path": "amr_lite/envs/map.py",
+        "sha256": "84db683320eeab7814b38300a908ea6461bfcd6043706c93889878043fc8693f"
+      },
+      {
+        "bytes": 1247,
+        "path": "amr_lite/envs/raycast.py",
+        "sha256": "4590bfa5d9333930df7c6c052b776330ba482c05dd078c2c69e804680c2dc0d8"
+      },
+      {
+        "bytes": 6763,
+        "path": "amr_lite/envs/scenarios.py",
+        "sha256": "a27d734d42639f07ec37871c605aa030c420ba8485d26389c95688cb449c619c"
+      },
+      {
+        "bytes": 17903,
+        "path": "amr_lite/envs/warehouse_env.py",
+        "sha256": "285529a98fd5be33ba3aa29c77b77367a2a3a544a120b76da4a5100b00f3b30c"
+      },
+      {
+        "bytes": 57,
+        "path": "amr_lite/evaluation/__init__.py",
+        "sha256": "29304394746e5e380d0adc0de30fe23dab3403f5f333fa9f70c43348f218d694"
+      },
+      {
+        "bytes": 6708,
+        "path": "amr_lite/evaluation/evaluator.py",
+        "sha256": "9630cc667b6791558d14c153b407117078ac287fadd49f16d711522f634ee478"
+      },
+      {
+        "bytes": 200,
+        "path": "amr_lite/evaluation/failure_types.py",
+        "sha256": "786944f3be5cd01220221fe090a04bde9318b5af95f3a7f8fdbb46f7277b47a5"
+      },
+      {
+        "bytes": 13100,
+        "path": "amr_lite/evaluation/metrics.py",
+        "sha256": "68540781f53402047f9bd224d6ff5da39183dbe7acdc0cfd7e8eebd9d8ac50b9"
+      },
+      {
+        "bytes": 2242,
+        "path": "amr_lite/evaluation/plots.py",
+        "sha256": "c671292a58676fbb3945d615fe52286d912e7dbde0c971f7b8eac640909e79b9"
+      },
+      {
+        "bytes": 96,
+        "path": "amr_lite/experiments/__init__.py",
+        "sha256": "f0af925d25b34931ffe5077b73ee11e032a760e0b7a3c7f5bccc58b27acef1e9"
+      },
+      {
+        "bytes": 4379,
+        "path": "amr_lite/experiments/manifest.py",
+        "sha256": "f0e9d6803f6669b500b6fae2024e48eed00390ea385488ea08a32d25a67045e3"
+      },
+      {
+        "bytes": 40,
+        "path": "amr_lite/learning/__init__.py",
+        "sha256": "4db85442723a6e0963aed371c881c1ab47bfe339f442c1227d5b21560ba2c18d"
+      },
+      {
+        "bytes": 628,
+        "path": "amr_lite/learning/action.py",
+        "sha256": "035752454461d035800d167bb30241978f9812a77360149ecd36672dccd184db"
+      },
+      {
+        "bytes": 839,
+        "path": "amr_lite/learning/collect_dagger.py",
+        "sha256": "e2b5f302c0d0e6d6148608acccaae0d531f23f079564d1ce872ab59d4eff3d15"
+      },
+      {
+        "bytes": 3228,
+        "path": "amr_lite/learning/collect_teacher.py",
+        "sha256": "2208eb79f2c12bb3ab478bd3ba95eb04d0931cb01adea9c619328327ac638ba4"
+      },
+      {
+        "bytes": 1967,
+        "path": "amr_lite/learning/dataset.py",
+        "sha256": "9d0cb6a65aab460444b5004ab892c792fa25d1417ad0ab6f31f4bfae14bf0b02"
+      },
+      {
+        "bytes": 3572,
+        "path": "amr_lite/learning/networks.py",
+        "sha256": "9bc68a07cc85d5a68100302c3ca43ed2c80d3d88e67e97bc45e3d478a88e0727"
+      },
+      {
+        "bytes": 1366,
+        "path": "amr_lite/learning/observation.py",
+        "sha256": "0094e34354c128a845f3c83b49fc4b79524b784c73e5bdba3bd4ab24557b4785"
+      },
+      {
+        "bytes": 3246,
+        "path": "amr_lite/learning/train_bc.py",
+        "sha256": "fa16a7296c0b9d3686dcfab890decbdcb996ae6f62e1b952a412fdd5e1391cb2"
+      },
+      {
+        "bytes": 21424,
+        "path": "amr_lite/learning/train_ppo.py",
+        "sha256": "9be76c351aca529c7435f7148c20de2da9e098c6ba774c224f52ac6e12a691cb"
+      },
+      {
+        "bytes": 167,
+        "path": "amr_lite/planning/__init__.py",
+        "sha256": "e676ff05d9869042e2a51ed48db94e62c2b58b0e24ba1de3f802faeaa605799d"
+      },
+      {
+        "bytes": 3095,
+        "path": "amr_lite/planning/astar.py",
+        "sha256": "a56999711c253d73b70e50f9378f1ed9ab26899ea4c00d80cc42522255ecf80e"
+      },
+      {
+        "bytes": 3000,
+        "path": "amr_lite/planning/path_utils.py",
+        "sha256": "ecb0a842f9ee3c31b3da89ec5190367c072dd87e65629d3956b5434c941161f8"
+      },
+      {
+        "bytes": 2247,
+        "path": "amr_lite/planning/rule_baseline.py",
+        "sha256": "b3a95da9bd579e3f4532bf41c57889f3e71097a948ffbf541bd36db7c0d30115"
+      },
+      {
+        "bytes": 3373,
+        "path": "amr_lite/planning/safety_shield.py",
+        "sha256": "b204e11424870e5ae017f47bda450bca87c33cb95a3fca216a28c918f21af7ed"
+      },
+      {
+        "bytes": 141,
+        "path": "configs/baseline.yaml",
+        "sha256": "e06f79185836504665cbe20c2e7bc52ded8d7cc089b2cf2535f4085f8f6f0f74"
+      },
+      {
+        "bytes": 120,
+        "path": "configs/bc.yaml",
+        "sha256": "628e747adfe6fee4dcd38b9183c7c8e375bc9e4cb903472eb633cab8877d0f0b"
+      },
+      {
+        "bytes": 872,
+        "path": "configs/env.yaml",
+        "sha256": "e234728f4145339b2244402b345d70d1d83be5cdcabaab2168d6d3b44545269a"
+      },
+      {
+        "bytes": 123,
+        "path": "configs/evaluation.yaml",
+        "sha256": "47bd5825c10b4c398e421f116813890940890a81e65a3054ccf893b2372e40a7"
+      },
+      {
+        "bytes": 271,
+        "path": "configs/evaluation_selection.yaml",
+        "sha256": "c374e57b4b038d2502725e7200be86e8d20b3a1f9f4926c3c6f01f1aff6a22e2"
+      },
+      {
+        "bytes": 275,
+        "path": "configs/evaluation_test.yaml",
+        "sha256": "1583297ce88690e1adfa1781fd1259ed31432ab8e6123aff5fc99b6186316dfa"
+      },
+      {
+        "bytes": 408,
+        "path": "configs/m1.yaml",
+        "sha256": "eeefc37c2e944fd83b7719f597750fae22ce4e3baeb1c8c633219a75a4a7a89e"
+      },
+      {
+        "bytes": 654,
+        "path": "configs/ppo.yaml",
+        "sha256": "34a99f7f67e6a2f259545b13e3f3fcdbc1c92c7a544af55c567e18cdfd36f9bd"
+      },
+      {
+        "bytes": 5176,
+        "path": "docs/DECISIONS.md",
+        "sha256": "b266789e1a2975e1f183ce5a57583c55557b9d2f4370e70759ad24b3d02bd67d"
+      },
+      {
+        "bytes": 3246,
+        "path": "docs/KNOWN_LIMITATIONS.md",
+        "sha256": "1a9307c67c4c80bb67981964205ecc15b69a6a3d0f3a33aa80e8d1d206eb7553"
+      },
+      {
+        "bytes": 3722,
+        "path": "docs/M1_RESULTS.md",
+        "sha256": "47c6fbbfa966eece4461ad84b10392241dea2fe2cf65559da9da15b72757b90a"
+      },
+      {
+        "bytes": 2779,
+        "path": "docs/NEXT_STEPS.md",
+        "sha256": "39913e856ed7fd23e68243d9d5b07f3857f390d9f94614b891207e66bfd64456"
+      },
+      {
+        "bytes": 6642,
+        "path": "docs/RESULTS.md",
+        "sha256": "78f511645fcc5814e46b4f70552eee54a45a0f9734c9b9724c2a81969e319afd"
+      },
+      {
+        "bytes": 543,
+        "path": "pyproject.toml",
+        "sha256": "7a4bcae3721cb8e19c0c27df93bec77c1a26fffef0681cabe0c76fe89154f64f"
+      },
+      {
+        "bytes": 638,
+        "path": "tests/test_action.py",
+        "sha256": "cb809eb34a8c6c254995a7afd5bab2135e647ca49d3c63520a688f5f0d4dc732"
+      },
+      {
+        "bytes": 1170,
+        "path": "tests/test_astar.py",
+        "sha256": "02bb5d55c5ea2b8ca16976e841c8c35000bace83f291a96cf366f13a63831e63"
+      },
+      {
+        "bytes": 919,
+        "path": "tests/test_collision.py",
+        "sha256": "bc48290292549f8872fa8f22d8761825391d71e237f162a37bf7b29330c708c6"
+      },
+      {
+        "bytes": 733,
+        "path": "tests/test_dynamics.py",
+        "sha256": "bc00be21c3f8384fe476b82b0926a40d08d7a98e92bfe9714b0711d7b84830e1"
+      },
+      {
+        "bytes": 1088,
+        "path": "tests/test_environment.py",
+        "sha256": "9265b49b6e67a5885ce95ca430d49bcac82400c643726463ef972862ee0f37a9"
+      },
+      {
+        "bytes": 1893,
+        "path": "tests/test_metrics.py",
+        "sha256": "7fbfc1cc726ec62255e6d7b28e63308d2af0d3747093c298b5ee4a7b3929d5c2"
+      },
+      {
+        "bytes": 570,
+        "path": "tests/test_observation.py",
+        "sha256": "858c6ed20584a6cefc73fbcbea5a444475884a5e6a2238636f2a73f4bba650f2"
+      },
+      {
+        "bytes": 1243,
+        "path": "tests/test_raycast.py",
+        "sha256": "38059f96eea837480c8452ff23c2d935c454550dc055f9feaa8fba53d55af8fd"
+      },
+      {
+        "bytes": 1727,
+        "path": "tests/test_reproducibility.py",
+        "sha256": "c6ffc2cf2c6ddec1e17eabff7c994c917fc0732875a7bb6d2e36902dd271a379"
+      },
+      {
+        "bytes": 1290,
+        "path": "tests/test_safety_shield.py",
+        "sha256": "be504b0e49b5de8d3ac3efde21261355c40fe3573d38ac59966695a52929cbb2"
+      },
+      {
+        "bytes": 2541,
+        "path": "tests/test_smoke_pipeline.py",
+        "sha256": "35bb96cfd983f7427cd50afc13273b1e2bbf19533dc4c22d9e97a5ba741f2970"
+      }
+    ],
+    "sha256": "2292bf0001d7f6d2c0bfa42c5db2928619618a356ffeb91b22c3cbdd5446879b"
+  }
+}

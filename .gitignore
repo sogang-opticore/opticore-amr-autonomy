@@ -1,13 +1,5 @@
 **/.venv/
 **/.pytest_cache/
-packages/amr_lite/artifacts/.matplotlib/
-packages/amr_lite/artifacts/datasets/
-packages/amr_lite/artifacts/smoke/
-packages/amr_lite/artifacts/results/
-packages/amr_lite/artifacts/videos/
-packages/amr_lite/artifacts/bc_preserved/
-packages/amr_lite/artifacts/bc_warm/
-packages/amr_lite/artifacts/shield_v2/
-packages/amr_lite/artifacts/checkpoints/*.pt
+packages/amr_lite/artifacts/
 __pycache__/
 *.pyc

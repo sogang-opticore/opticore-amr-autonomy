@@ -1,0 +1,105 @@
+{
+  "experiment": {
+    "bc_checkpoint": "artifacts/checkpoints/bc_full.pt",
+    "dataset": {
+      "path": "artifacts/datasets/teacher",
+      "version": "teacher-phase0-v1"
+    },
+    "experiment_version": "m1-reproducible-baseline-v1",
+    "legacy_ppo_checkpoint": "artifacts/checkpoints/ppo_stable_full_best.pt",
+    "output": "artifacts/m1/m1-reproducible-baseline-v1",
+    "ppo_config": "ppo",
+    "selection_config": "evaluation_selection",
+    "test_config": "evaluation_test",
+    "training_seeds": [
+      7,
+      17,
+      29,
+      43,
+      59
+    ]
+  },
+  "ppo": {
+    "bc_anchor_coef": 0.5,
+    "clip_ratio": 0.2,
+    "critic_only_steps": 10000,
+    "curriculum_corner_fraction": 0.6,
+    "curriculum_enabled": true,
+    "curriculum_straight_fraction": 0.3,
+    "entropy_coef": 0.005,
+    "epochs": 4,
+    "evaluation_interval_updates": 10,
+    "fine_tune_entropy_coef": 0.0,
+    "fine_tune_learning_rate": 5e-05,
+    "gae_lambda": 0.95,
+    "gamma": 0.99,
+    "hidden_size": 128,
+    "learning_rate": 0.0003,
+    "minibatch_size": 64,
+    "rollout_steps_full": 1024,
+    "rollout_steps_smoke": 128,
+    "seed": 7,
+    "selection_config": "evaluation_selection",
+    "target_kl": 0.01,
+    "total_timesteps_full": 100000,
+    "total_timesteps_smoke": 256,
+    "value_coef": 0.5,
+    "value_normalization": true,
+    "warm_start_epochs": 15,
+    "warm_start_learning_rate": 0.001,
+    "warm_start_log_std": -1.5
+  },
+  "selection": {
+    "bootstrap_resamples": 2000,
+    "bootstrap_seed": 20260914,
+    "environment_overrides": {
+      "scenario_randomization": {
+        "enabled": true
+      }
+    },
+    "episodes_per_scenario": 5,
+    "max_steps": 360,
+    "scenarios": [
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "D0",
+      "D1"
+    ],
+    "seed": 20000,
+    "shield_modes": [
+      false
+    ],
+    "split": "selection"
+  },
+  "test": {
+    "bootstrap_resamples": 2000,
+    "bootstrap_seed": 20260914,
+    "environment_overrides": {
+      "scenario_randomization": {
+        "enabled": true
+      }
+    },
+    "episodes_per_scenario": 20,
+    "max_steps": 360,
+    "scenarios": [
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "D0",
+      "D1"
+    ],
+    "seed": 30000,
+    "shield_modes": [
+      false,
+      true
+    ],
+    "split": "test"
+  }
+}
