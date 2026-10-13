@@ -1,0 +1,34 @@
+# BC -> DAgger rounds (amr_lite.learning.dagger_loop), ROADMAP experiment E1.
+seed: 7
+robot_profile: opticore_gazebo
+environment_overrides:
+  shield_strategy: scan
+  scenario_randomization:
+    enabled: true
+  procedural:
+    split: train
+rounds: 3
+teacher:
+  episodes: 48
+  max_steps: 1500
+  scenarios: [S0, S1, S2, S3, S4, S5, P-AISLE, P-HALL, P-PINCH, P-JUNCTION, WH-RANDOM]
+dagger:
+  episodes: 32
+  max_steps: 1500
+  beta: 0.5                 # probability of executing the teacher action in round 1
+  beta_decay: 0.5           # beta for round k = beta * beta_decay ** (k - 1)
+  risk_only: false          # true keeps only states near obstacles or off the path
+  scenarios: [S1, S2, S3, S4, S5, D0, D2, D4, P-MIXED, PD-MIXED, WH-RANDOM]
+bc:
+  hidden_size: 256
+  batch_size: 128
+  learning_rate: 0.001
+  epochs_full: 30
+  validation_fraction: 0.2
+  risk_weight: 2.0          # loss weight of samples with clearance < risk_clearance
+  risk_clearance: 0.7
+evaluation:
+  protocol: evaluation_selection_v2
+  episodes_per_scenario: 2
+  workers: 4
+  backend: subprocess

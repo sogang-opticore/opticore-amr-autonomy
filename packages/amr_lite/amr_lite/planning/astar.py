@@ -49,6 +49,26 @@ def _clearance_cost_fn(warehouse_map, inflation: float,
     return lambda x, y: clearance_preference_cost(query(x, y), inflation=inflation, **params)
 
 
+def _raster_occupancy(warehouse_map, inflation: float) -> Callable[[float, float], bool]:
+    query = getattr(warehouse_map, "planning_clearance", None)
+    if query is None:
+        return lambda x, y: warehouse_map.occupied(x, y, inflation)
+    return lambda x, y: query(x, y) <= inflation
+
+
+class _RasterView:
+    """``occupied`` answered from the planning clearance raster (cost-enabled A*)."""
+
+    def __init__(self, warehouse_map):
+        self._occupied = getattr(warehouse_map, "planning_clearance", None)
+        self._map = warehouse_map
+
+    def occupied(self, x: float, y: float, inflation: float = 0.0) -> bool:
+        if self._occupied is None:
+            return self._map.occupied(x, y, inflation)
+        return self._occupied(x, y) <= inflation
+
+
 def astar(warehouse_map: WarehouseMap, start: tuple[float, float], goal: tuple[float, float],
           resolution: float = 0.2, inflation: float = 0.4,
           clearance: dict[str, Any] | None = None) -> list[tuple[float, float]]:
@@ -66,6 +86,8 @@ def astar(warehouse_map: WarehouseMap, start: tuple[float, float], goal: tuple[f
         return []
     extra = (_clearance_cost_fn(warehouse_map, inflation, clearance)
              if clearance and clearance.get("enabled", False) else None)
+    blocked = (_raster_occupancy(warehouse_map, inflation) if extra is not None
+               else lambda x, y: warehouse_map.occupied(x, y, inflation))
     frontier: list[tuple[float, tuple[int, int]]] = [(0.0, source)]
     came_from: dict[tuple[int, int], tuple[int, int] | None] = {source: None}
     cost = {source: 0.0}
@@ -81,7 +103,7 @@ def astar(warehouse_map: WarehouseMap, start: tuple[float, float], goal: tuple[f
             if not (0 <= nxt[0] < cols and 0 <= nxt[1] < rows):
                 continue
             wx, wy = warehouse_map.grid_to_world(*nxt, resolution)
-            if warehouse_map.occupied(wx, wy, inflation):
+            if blocked(wx, wy):
                 continue
             if extra is None:
                 tentative = cost[current] + step_cost
@@ -101,10 +123,10 @@ def astar(warehouse_map: WarehouseMap, start: tuple[float, float], goal: tuple[f
         cursor = came_from[cursor]
     points = [warehouse_map.grid_to_world(*cell, resolution) for cell in reversed(cells)]
     points[0], points[-1] = start, goal
-    visibility = inflation
-    if extra is not None:
-        visibility = max(inflation, float(clearance.get("simplify_min_clearance", inflation)))
-    return simplify_path(points, warehouse_map, visibility)
+    if extra is None:
+        return simplify_path(points, warehouse_map, inflation)
+    visibility = max(inflation, float(clearance.get("simplify_min_clearance", inflation)))
+    return simplify_path(points, _RasterView(warehouse_map), visibility)
 
 
 def simplify_path(path: list[tuple[float, float]], warehouse_map: WarehouseMap,

@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+import numpy as np
+
 
 def wrap_angle(angle: float) -> float:
     return (angle + math.pi) % (2.0 * math.pi) - math.pi
@@ -72,3 +74,19 @@ def ray_circle_distance(ox: float, oy: float, dx: float, dy: float,
     candidates = [t for t in ((-b - root) / 2.0, (-b + root) / 2.0) if t >= 0.0]
     return min(candidates, default=max_range)
 
+
+
+def bilinear_centres(field: np.ndarray, step: float, x: float, y: float) -> float:
+    """Bilinear interpolation of a field sampled at cell centres ``(i + 0.5) * step``.
+
+    Queries outside the centre lattice are clamped to the border values.
+    """
+    rows, cols = field.shape
+    fx = min(max(x / step - 0.5, 0.0), cols - 1.0)
+    fy = min(max(y / step - 0.5, 0.0), rows - 1.0)
+    c0, r0 = min(int(fx), cols - 2) if cols > 1 else 0, min(int(fy), rows - 2) if rows > 1 else 0
+    tx, ty = fx - c0, fy - r0
+    c1, r1 = min(c0 + 1, cols - 1), min(r0 + 1, rows - 1)
+    top = field[r0, c0] * (1.0 - tx) + field[r0, c1] * tx
+    bottom = field[r1, c0] * (1.0 - tx) + field[r1, c1] * tx
+    return float(top * (1.0 - ty) + bottom * ty)

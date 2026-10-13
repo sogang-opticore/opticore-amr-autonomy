@@ -1,0 +1,77 @@
+# PPO v2 (amr_lite.rl.ppo) - M3 trainer. The M1 trainer (ppo.yaml,
+# learning/train_ppo.py) stays frozen for baseline reproduction.
+seed: 7
+robot_profile: opticore_gazebo
+environment_overrides:
+  shield_strategy: scan
+  shield_enabled: true
+  scenario_randomization:
+    enabled: true
+  procedural:
+    split: train
+policy:
+  mode: residual            # direct | residual (a = clip(rule + scale * pi, -1, 1))
+  residual_scale: 0.5
+network:
+  encoder: mlp              # mlp | cnn
+  hidden_sizes: [256, 256]
+  activation: tanh
+  log_std_init: -1.0
+  cnn: {channels: [16, 32], kernel_sizes: [5, 5], strides: [2, 2], state_hidden: 64}
+vector_env:
+  num_envs: 8
+  backend: subprocess       # sync | subprocess
+rollout_steps: 256          # per environment; batch = num_envs * rollout_steps
+total_timesteps: 2000000
+total_timesteps_smoke: 512
+gamma: 0.99
+gae_lambda: 0.95
+learning_rate: 0.0003
+learning_rate_final: 0.00003
+clip_ratio: 0.2
+epochs: 10
+minibatch_size: 256
+entropy_coef: 0.001
+entropy_coef_final: 0.0
+value_coef: 0.5
+max_grad_norm: 0.5
+target_kl: 0.02
+value_normalization: true
+torch_threads: 1
+lagrangian:
+  enabled: false
+  cost_limit: 0.02          # target mean safety cost per step (collision + near-miss)
+  lambda_init: 0.0
+  lambda_lr: 0.05
+  lambda_max: 10.0
+warm_start:
+  dataset: null             # teacher/DAgger dataset directories (direct mode only)
+  epochs: 15
+  learning_rate: 0.001
+  log_std: -1.5
+  anchor_coef: 0.0          # > 0 keeps the actor near its BC initialisation
+curriculum:
+  stages:
+    - name: static_basics
+      until: 0.2
+      scenarios: {S0: 1, S1: 1, S3: 1, S4: 1, P-AISLE: 2, P-PINCH: 1}
+      environment_overrides:
+        domain_randomization: {enabled: true, probability: 0.0}
+    - name: static_mixed
+      until: 0.5
+      scenarios: {S1: 1, S2: 1, S3: 1, S4: 1, S5: 1, P-MIXED: 4, WH-RANDOM: 1}
+      environment_overrides:
+        domain_randomization: {enabled: true, probability: 0.5}
+    - name: dynamic
+      until: 1.0
+      scenarios: {S2: 1, S3: 1, S4: 1, D0: 1, D1: 1, D2: 1, D3: 1, D4: 1,
+                  P-MIXED: 3, PD-MIXED: 4, WH-RANDOM: 1, WHD-RANDOM: 1}
+      environment_overrides:
+        domain_randomization: {enabled: true, probability: 1.0}
+evaluation:
+  protocol: evaluation_selection_v2
+  interval_updates: 20      # 0 disables in-training selection
+  episodes_per_scenario: 2  # cheaper than the full selection split
+  workers: 4
+  backend: subprocess
+checkpoint_interval_updates: 25

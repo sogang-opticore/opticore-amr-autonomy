@@ -21,6 +21,8 @@ import yaml
 
 from amr_lite.config import ROOT
 
+from .geometry import bilinear_centres
+
 _SQRT2 = math.sqrt(2.0)
 
 
@@ -177,11 +179,12 @@ class GridMap:
         return (self._distance[row, col] - 0.5) * self.resolution <= inflation
 
     def planning_clearance(self, x: float, y: float) -> float:
-        """Cell-centre obstacle clearance for planner costs (0 outside the map)."""
+        """Obstacle clearance for planner costs: bilinear cell-centre field (0 outside)."""
         row, col = self.cell(x, y)
         if not self._inside(row, col):
             return 0.0
-        return max(0.0, (self._distance[row, col] - 0.5) * self.resolution)
+        distance = bilinear_centres(self._distance, self.resolution, x, y)
+        return max(0.0, (distance - 0.5) * self.resolution)
 
     def world_to_grid(self, x: float, y: float, resolution: float) -> tuple[int, int]:
         return int(x / resolution), int(y / resolution)

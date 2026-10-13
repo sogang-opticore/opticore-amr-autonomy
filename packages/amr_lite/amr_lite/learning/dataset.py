@@ -11,6 +11,7 @@ class TeacherData:
     observations: np.ndarray
     actions: np.ndarray
     episode_ids: np.ndarray
+    minimum_clearance: np.ndarray | None = None
 
 
 def save_episode(path: str | Path, observations: list[np.ndarray], actions: list[np.ndarray],
@@ -29,13 +30,17 @@ def load_dataset(directory: str | Path | list[str | Path]) -> TeacherData:
     files = sorted(path for item in directories for path in Path(item).glob("*.npz"))
     if not files:
         raise FileNotFoundError(f"No dataset chunks in {directory}")
-    observations, actions, episodes = [], [], []
+    observations, actions, episodes, clearances = [], [], [], []
     for path in files:
         with np.load(path) as chunk:
             observations.append(chunk["observation"])
             actions.append(chunk["teacher_action"])
             episodes.append(chunk["episode_id"])
-    return TeacherData(np.concatenate(observations), np.concatenate(actions), np.concatenate(episodes))
+            if "minimum_clearance" in chunk:
+                clearances.append(np.asarray(chunk["minimum_clearance"], dtype=np.float32))
+    clearance = np.concatenate(clearances) if len(clearances) == len(files) else None
+    return TeacherData(np.concatenate(observations), np.concatenate(actions), np.concatenate(episodes),
+                       clearance)
 
 
 def episode_split(data: TeacherData, validation_fraction: float, seed: int) -> tuple[np.ndarray, np.ndarray]:

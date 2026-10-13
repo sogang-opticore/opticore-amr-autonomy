@@ -14,10 +14,18 @@ from .dataset import save_episode
 
 def collect(output_dir: str | Path, episodes: int = 8, max_steps: int = 360,
             seed: int = 7, scenarios: list[str] | None = None,
-            learner=None, dagger_risk_only: bool = False) -> list[Path]:
+            learner=None, dagger_risk_only: bool = False, env_config: dict | None = None,
+            beta: float = 0.0) -> list[Path]:
+    """Teacher episodes, or DAgger states visited by ``learner`` relabelled by the teacher.
+
+    ``beta`` is the per-step probability of executing the teacher action
+    instead of the learner's (DAgger beta-mixture); 0 keeps pure learner
+    rollouts. ``env_config`` selects the robot profile and scenario settings.
+    """
     output = Path(output_dir)
-    env_config = load_config("env")
+    env_config = env_config or load_config("env")
     teacher = RuleBasedPlanner(env_config)
+    mixture = np.random.default_rng(seed + 104729) if learner is not None and beta > 0.0 else None
     scenario_ids = scenarios or ["S0", "S1", "S2", "S3", "S4", "S5"]
     created = []
     for episode in range(episodes):
@@ -33,6 +41,8 @@ def collect(output_dir: str | Path, episodes: int = 8, max_steps: int = 360,
         for step in range(max_steps):
             teacher_action = teacher.predict(observation)
             execution_action = learner.predict(observation) if learner is not None else teacher_action
+            if mixture is not None and mixture.uniform() < beta:
+                execution_action = teacher_action
             next_observation, _, terminated, truncated, info = env.step(execution_action)
             risky = info["minimum_clearance"] < 0.7 or abs(info["mean_cross_track_error"]) > 0.25 or terminated or truncated
             if not dagger_risk_only or risky:

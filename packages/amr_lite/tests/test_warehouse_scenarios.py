@@ -55,13 +55,14 @@ def test_clearance_cost_matches_ros_formula_and_centres_paths():
     assert clearance_preference_cost(0.5, **params) == pytest.approx(3.0 * 0.25)
     # 0.45 m: ratio 0.1 -> 9 * 0.01; barrier 0.15 / 0.05 - 1 = 2 -> 3 * 4
     assert clearance_preference_cost(0.45, **params) == pytest.approx(9.0 * 0.01 + 3.0 * 4.0)
-    # 1.6 m corridor, endpoints 0.45 m from one wall: shortest path hugs that wall,
+    # 1.6 m corridor, endpoints 0.42 m from one wall: shortest path hugs that wall,
     # the cost moves the interior of the path out to the 0.55 m wall-avoid band.
     world = WarehouseMap(obstacles=[Rectangle(0.0, 0.0, 12.0, 3.2), Rectangle(0.0, 4.8, 12.0, 8.0)])
-    shortest = astar(world, (1.0, 3.65), (11.0, 3.65), 0.1, 0.4)
-    costed = astar(world, (1.0, 3.65), (11.0, 3.65), 0.1, 0.4,
+    shortest = astar(world, (1.0, 3.62), (11.0, 3.62), 0.1, 0.4)
+    costed = astar(world, (1.0, 3.62), (11.0, 3.62), 0.1, 0.4,
                    {"enabled": True, "simplify_min_clearance": 0.45, **{k: v for k, v in params.items()
                                                                      if k != "inflation"}})
-    assert shortest == [(1.0, 3.65), (11.0, 3.65)]
+    assert shortest == [(1.0, 3.62), (11.0, 3.62)]
     assert len(costed) > 2
     assert min(world.clearance(*point) for point in costed[1:-1]) >= 0.55 - 1e-9
+    assert abs(world.planning_clearance(5.0, 3.62) - 0.42) < 1e-9  # bilinear, not cell-quantized

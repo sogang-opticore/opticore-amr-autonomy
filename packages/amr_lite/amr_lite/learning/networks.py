@@ -70,10 +70,17 @@ class TorchPolicy:
             action = torch.tanh(latent)
         return action.squeeze(0).cpu().numpy().astype(np.float32)
 
+    def predict_batch(self, observations: np.ndarray, deterministic: bool = True) -> np.ndarray:
+        return np.stack([self.predict(item, deterministic) for item in observations])
 
-def load_policy(path: str) -> TorchPolicy:
+
+def load_policy(path: str):
+    """BC, M1 PPO (``ppo``, ``ppo_stable``) or PPO v2 checkpoint as a policy object."""
     checkpoint = torch.load(path, map_location="cpu", weights_only=False)
     kind = checkpoint["kind"]
+    if kind == "ppo_v2":
+        from amr_lite.rl.policy import build_policy
+        return build_policy(checkpoint)
     hidden = int(checkpoint["hidden_size"])
     if kind == "bc":
         model: nn.Module = ActorMLP(hidden_size=hidden)

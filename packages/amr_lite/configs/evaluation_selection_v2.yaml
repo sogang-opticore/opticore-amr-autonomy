@@ -1,0 +1,23 @@
+# Protocol v2 - checkpoint/candidate selection split (ROADMAP M4, gate G3).
+# Robot profile opticore_gazebo, LiDAR-only shield, procedural validation
+# rules and random warehouse pairs. Seeds 20000+ never appear in training
+# (training episode seeds start at 1,000,000). Changing this file requires a
+# protocol version bump.
+protocol: v2
+split: selection
+seed: 20000
+episodes_per_scenario: 5
+scenarios: [S1, S2, S3, S4, S5, D0, D1, D2, D3, D4,
+            P-AISLE, P-HALL, P-PINCH, P-JUNCTION, PD-MIXED, WH-RANDOM, WHD-RANDOM]
+max_steps: 2400
+shield_modes: [false]
+robot_profile: opticore_gazebo
+environment_overrides:
+  shield_strategy: scan
+  scenario_randomization:
+    enabled: true
+  procedural:
+    split: validation
+bootstrap_resamples: 2000
+bootstrap_seed: 20261013
+progress_every: 0

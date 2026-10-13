@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .geometry import Rectangle, circle_rectangle_clearance
+from .geometry import Rectangle, bilinear_centres, circle_rectangle_clearance
 
 
 @dataclass
@@ -14,6 +14,9 @@ class WarehouseMap:
     obstacles: list[Rectangle] = field(default_factory=list)
     _walls: tuple[tuple[float, float], list[Rectangle]] | None = field(
         default=None, init=False, repr=False, compare=False)
+    _raster: tuple[tuple, np.ndarray] | None = field(default=None, init=False, repr=False, compare=False)
+
+    PLANNING_RESOLUTION = 0.05
 
     def _boundary(self) -> list[Rectangle]:
         key = (self.width, self.height)
@@ -36,6 +39,32 @@ class WarehouseMap:
 
     def occupied(self, x: float, y: float, inflation: float = 0.0) -> bool:
         return self.collides(x, y, inflation)
+
+    def _clearance_raster(self) -> np.ndarray:
+        """Obstacle clearance at 5 cm cell centres, for planner cost lookups.
+
+        Cached per (size, obstacle list); replacing the map object or
+        appending obstacles invalidates it.
+        """
+        key = (self.width, self.height, len(self.obstacles), id(self.obstacles))
+        if self._raster is None or self._raster[0] != key:
+            step = self.PLANNING_RESOLUTION
+            xs = (np.arange(int(np.ceil(self.width / step))) + 0.5) * step
+            ys = (np.arange(int(np.ceil(self.height / step))) + 0.5) * step
+            rects = np.asarray([(r.x_min, r.y_min, r.x_max, r.y_max) for r in self.all_rectangles()])
+            dx = np.maximum(np.maximum(rects[:, 0][:, None] - xs[None, :], xs[None, :] - rects[:, 2][:, None]), 0.0)
+            dy = np.maximum(np.maximum(rects[:, 1][:, None] - ys[None, :], ys[None, :] - rects[:, 3][:, None]), 0.0)
+            field = np.full((ys.size, xs.size), np.inf)
+            for index in range(len(rects)):
+                np.minimum(field, np.hypot(dx[index][None, :], dy[index][:, None]), out=field)
+            self._raster = (key, field)
+        return self._raster[1]
+
+    def planning_clearance(self, x: float, y: float) -> float:
+        """Obstacle clearance for planner costs: bilinear on a 5 cm raster (0 outside)."""
+        if not (0.0 <= x <= self.width and 0.0 <= y <= self.height):
+            return 0.0
+        return bilinear_centres(self._clearance_raster(), self.PLANNING_RESOLUTION, x, y)
 
     def world_to_grid(self, x: float, y: float, resolution: float) -> tuple[int, int]:
         return int(x / resolution), int(y / resolution)

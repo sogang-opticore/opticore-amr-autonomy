@@ -78,6 +78,16 @@ class RawLidarSpec:
                 state.theta + self.mount_yaw)
 
 
+_BEAM_UNITS: dict[RawLidarSpec, tuple[np.ndarray, np.ndarray]] = {}
+
+
+def _beam_units(spec: RawLidarSpec) -> tuple[np.ndarray, np.ndarray]:
+    if spec not in _BEAM_UNITS:
+        angles = spec.beam_angles()
+        _BEAM_UNITS[spec] = (np.cos(angles), np.sin(angles))
+    return _BEAM_UNITS[spec]
+
+
 def simulate_raw_scan(state: RobotState, warehouse_map, dynamic_obstacles: Sequence,
                       spec: RawLidarSpec, *, cast_range: float | None = None,
                       angular_bias: float = 0.0) -> np.ndarray:
@@ -90,8 +100,10 @@ def simulate_raw_scan(state: RobotState, warehouse_map, dynamic_obstacles: Seque
     """
     ox, oy, yaw = spec.mount_pose(state)
     limit = spec.range_max if cast_range is None else min(spec.range_max, float(cast_range))
-    angles = [yaw + angular_bias + float(angle) for angle in spec.beam_angles()]
-    distance = cast_rays(ox, oy, angles, warehouse_map, dynamic_obstacles, limit)
+    cos_beam, sin_beam = _beam_units(spec)
+    c, s = math.cos(yaw + angular_bias), math.sin(yaw + angular_bias)
+    directions = (c * cos_beam - s * sin_beam, s * cos_beam + c * sin_beam)
+    distance = cast_rays(ox, oy, None, warehouse_map, dynamic_obstacles, limit, directions)
     ranges = distance.astype(np.float32)
     ranges[distance >= limit] = np.inf
     return ranges

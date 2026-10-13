@@ -44,15 +44,17 @@ def circle_ray_distances(ox: float, oy: float, dx: np.ndarray, dy: np.ndarray,
     return np.minimum(max_range, hit.min(axis=1))
 
 
-def cast_rays(ox: float, oy: float, angles: Sequence[float], warehouse_map,
-              dynamic_obstacles: Sequence[DynamicObstacle], max_range: float) -> np.ndarray:
+def cast_rays(ox: float, oy: float, angles: Sequence[float] | None, warehouse_map,
+              dynamic_obstacles: Sequence[DynamicObstacle], max_range: float,
+              directions: tuple[np.ndarray, np.ndarray] | None = None) -> np.ndarray:
     """Vectorized ray cast against static geometry and circular obstacles.
 
     Returns float64 distances clipped to ``[0, max_range]``. Static geometry is
     delegated to ``warehouse_map.ray_distances`` so rectangle and grid maps
-    share this entry point.
+    share this entry point. ``directions`` skips per-ray trigonometry when the
+    caller already has unit vectors (raw LiDAR model).
     """
-    dx, dy = ray_directions(angles)
+    dx, dy = directions if directions is not None else ray_directions(angles)
     static = warehouse_map.ray_distances(ox, oy, dx, dy, max_range)
     dynamic = circle_ray_distances(ox, oy, dx, dy, dynamic_obstacles, max_range)
     distance = np.minimum(static, dynamic)

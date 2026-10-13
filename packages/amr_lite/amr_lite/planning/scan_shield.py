@@ -200,7 +200,11 @@ class ScanSafetyShield:
         first_source, first_time, minimum = "NONE", math.inf, math.inf
         static_steps = int(np.sum(times <= static_horizon + 1e-9))
         if len(points) and static_steps:
-            near = points[np.hypot(points[:, 0], points[:, 1]) <= float(self.settings["max_point_range"])]
+            # Only returns the footprint can reach within the static horizon matter.
+            reach = (float(np.max(np.hypot(poses[:static_steps, 0], poses[:static_steps, 1])))
+                     + radius + float(self.settings["static_margin"]) + 0.05)
+            near = points[np.hypot(points[:, 0], points[:, 1])
+                          <= min(reach, float(self.settings["max_point_range"]))]
             if len(near):
                 distance = np.hypot(poses[:static_steps, None, 0] - near[None, :, 0],
                                     poses[:static_steps, None, 1] - near[None, :, 1]).min(axis=1) - radius

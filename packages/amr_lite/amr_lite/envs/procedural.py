@@ -268,6 +268,9 @@ class _WithBlocker:
     def clearance(self, x: float, y: float, radius: float = 0.0) -> float:
         return min(self.world.clearance(x, y, radius), circle_rectangle_clearance(x, y, radius, self.rect))
 
+    def planning_clearance(self, x: float, y: float) -> float:
+        return min(self.world.planning_clearance(x, y), circle_rectangle_clearance(x, y, 0.0, self.rect))
+
     def world_to_grid(self, x: float, y: float, resolution: float) -> tuple[int, int]:
         return self.world.world_to_grid(x, y, resolution)
 

@@ -1,0 +1,25 @@
+# Protocol v2 - final test split (ROADMAP M4, gate G4). Run once per
+# pre-registered candidate set; re-running after looking at results requires a
+# protocol version bump. Adds held-out procedural test rules and the paired
+# warehouse legs used for Lite <-> Gazebo comparison.
+protocol: v2
+split: test
+seed: 30000
+episodes_per_scenario: 20
+scenarios: [S1, S2, S3, S4, S5, D0, D1, D2, D3, D4,
+            P-AISLE, P-HALL, P-PINCH, P-JUNCTION, PD-AISLE, PD-HALL, PD-PINCH, PD-JUNCTION,
+            WH-RANDOM, WHD-RANDOM,
+            WH-warehouse_v1-00, WH-warehouse_v1-01, WH-warehouse_v1-02, WH-warehouse_v1-03,
+            WH-warehouse_v1-04, WH-warehouse_v1-05, WH-warehouse_v1-06, WH-warehouse_v1-07]
+max_steps: 2400
+shield_modes: [false, true]
+robot_profile: opticore_gazebo
+environment_overrides:
+  shield_strategy: scan
+  scenario_randomization:
+    enabled: true
+  procedural:
+    split: test
+bootstrap_resamples: 2000
+bootstrap_seed: 20261013
+progress_every: 500

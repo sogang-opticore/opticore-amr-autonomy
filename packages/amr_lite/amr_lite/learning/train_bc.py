@@ -27,8 +27,14 @@ def train(dataset_dir: str | Path | list[str | Path], output: str | Path, smoke:
     train_idx, validation_idx = episode_split(data, cfg["validation_fraction"], cfg["seed"])
     if not len(train_idx):
         train_idx = np.arange(len(data.observations))
-    loader = DataLoader(TensorDataset(torch.from_numpy(data.observations[train_idx]),
-                                      torch.from_numpy(data.actions[train_idx])),
+    risk_weight = float(cfg.get("risk_weight", 1.0))
+    weighted = risk_weight != 1.0 and data.minimum_clearance is not None
+    tensors = [torch.from_numpy(data.observations[train_idx]), torch.from_numpy(data.actions[train_idx])]
+    if weighted:
+        # Up-weight states close to obstacles (DAgger risk states) in the loss.
+        risky = data.minimum_clearance[train_idx] < float(cfg.get("risk_clearance", 0.7))
+        tensors.append(torch.from_numpy(np.where(risky, risk_weight, 1.0).astype(np.float32)))
+    loader = DataLoader(TensorDataset(*tensors),
                         batch_size=cfg["batch_size"], shuffle=True,
                         generator=torch.Generator().manual_seed(cfg["seed"]))
     model = ActorMLP(hidden_size=cfg["hidden_size"])
@@ -38,9 +44,14 @@ def train(dataset_dir: str | Path | list[str | Path], output: str | Path, smoke:
     training_loss = 0.0
     model.train()
     for _ in range(epochs):
-        for observations, actions in loader:
+        for batch in loader:
+            observations, actions = batch[0], batch[1]
             prediction = model(observations)
-            loss = loss_fn(prediction, actions)
+            if weighted:
+                weights = batch[2][:, None]
+                loss = torch.sum(weights * (prediction - actions) ** 2) / (2.0 * torch.sum(weights))
+            else:
+                loss = loss_fn(prediction, actions)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
