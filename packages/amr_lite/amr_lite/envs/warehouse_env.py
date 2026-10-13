@@ -14,8 +14,16 @@ from amr_lite.learning.action import scale_action
 from amr_lite.learning.observation import build_observation
 from amr_lite.planning.astar import astar, clearance_key
 from amr_lite.planning.path_utils import path_state, remaining_path_distance
-from amr_lite.planning.safety_shield import SafetyShield
-from amr_lite.sensors.lidar import ContractScanSpec, RawLidarSpec, resample_scan, simulate_raw_scan
+from amr_lite.planning.safety_shield import SafetyShield, ShieldResult
+from amr_lite.planning.scan_shield import ScanObstacleTracker, ScanSafetyShield, transform_points
+from amr_lite.sensors.lidar import (
+    ContractScanSpec,
+    RawLidarSpec,
+    contract_scan_points,
+    resample_scan,
+    scan_points,
+    simulate_raw_scan,
+)
 from amr_lite.sensors.randomization import (
     SensorDynamicsModel,
     episode_sensor_model,
@@ -64,6 +72,9 @@ class WarehouseEnv:
         self.action_space = Box(-1.0, 1.0, (2,))
         self.observation_space = Box(-1.0, 1.0, (296,))
         self.shield = SafetyShield(self.config)
+        self.scan_shield = ScanSafetyShield(self.config)
+        self.scan_tracker = ScanObstacleTracker(self.config.get("scan_tracker"))
+        self._scan_points = np.zeros((0, 2), dtype=np.float64)
         self.np_random = np.random.default_rng(self.config["seed"])
         self._python_random = random.Random(self.config["seed"])
         self.scan_history: deque[np.ndarray] = deque(maxlen=4)
@@ -126,6 +137,7 @@ class WarehouseEnv:
         requested = (options or {}).get("scenario_id", self.scenario_id)
         self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"), self.config)
         self.shield.reset()
+        self.scan_tracker.reset()
         self.sensor_model, self._noise_rng = episode_sensor_model(self.config, seed)
         self.robot = copy.deepcopy(self.scenario.start)
         if options and "pose_perturbation" in options:
@@ -230,8 +242,11 @@ class WarehouseEnv:
         before_state = RobotState(
             self.robot.x, self.robot.y, self.robot.theta, self.robot.v, self.robot.w
         )
-        result = self.shield.apply(self.robot, target_v, target_w, self.scenario.warehouse_map,
-                                   self.dynamic_obstacles, bool(self.config["shield_enabled"]), self.elapsed)
+        if self.config.get("shield_strategy", "legacy") == "scan":
+            result = self._apply_scan_shield(target_v, target_w)
+        else:
+            result = self.shield.apply(self.robot, target_v, target_w, self.scenario.warehouse_map,
+                                       self.dynamic_obstacles, bool(self.config["shield_enabled"]), self.elapsed)
         self.shield_counts[result.mode] += 1
         self.shield_action_counts[result.action_type] += 1
         self.unsafe_without_shield += int(result.unsafe_without_shield)
@@ -352,6 +367,10 @@ class WarehouseEnv:
             raw = noisy_raw_ranges(raw, model, self._noise_rng)
             self.last_raw_scan = raw
             spec = self._raw_spec
+            if self.config.get("shield_strategy", "legacy") == "scan":
+                self._update_scan_obstacles(scan_points(
+                    raw, spec.angle_min, spec.angle_increment, spec.range_min, spec.range_max,
+                    mount_x=spec.mount_x, mount_y=spec.mount_y, mount_yaw=spec.mount_yaw))
             return resample_scan(raw, spec.angle_min, spec.angle_increment, spec.range_min,
                                  spec.range_max, mount_x=spec.mount_x, mount_y=spec.mount_y,
                                  mount_yaw=spec.mount_yaw, contract=self._contract_spec)
@@ -366,7 +385,31 @@ class WarehouseEnv:
             scan = self._scan()
         if model.scan_noise:
             scan = noisy_contract_scan(scan, model, self._noise_rng, self._contract_spec.max_range)
+        if self.config.get("shield_strategy", "legacy") == "scan":
+            self._update_scan_obstacles(contract_scan_points(scan, self._contract_spec))
         return scan
+
+    def _update_scan_obstacles(self, points: np.ndarray) -> None:
+        """Keep the latest returns and feed the tracker (scan shield only)."""
+        self._scan_points = points
+        distance = float((self.config.get("scan_tracker") or {}).get("static_filter_distance", 0.0))
+        static_filter = None
+        if distance > 0.0:
+            world = self.scenario.warehouse_map
+
+            def static_filter(x: float, y: float) -> bool:
+                return world.clearance(x, y, 0.0) < distance
+        self.scan_tracker.update(points, self.last_scan_pose, self.elapsed, static_filter)
+
+    def _apply_scan_shield(self, target_v: float, target_w: float) -> ShieldResult:
+        """LiDAR-only shield: no ground-truth map or obstacle list is used."""
+        pose = (self.robot.x, self.robot.y, self.robot.theta)
+        points = transform_points(self._scan_points, self.last_scan_pose, pose)
+        settings = self.scan_shield.settings
+        tracks = (self.scan_tracker.relative_tracks(pose, self.elapsed, float(settings["track_min_speed"]))
+                  if bool(settings["use_tracks"]) else [])
+        return self.scan_shield.apply(self.robot, target_v, target_w, points, tracks,
+                                      bool(self.config["shield_enabled"]))
 
     def _actuate(self, command_v: float, command_w: float, dt: float) -> tuple[float, float]:
         """Velocity the wheels actually achieve for a commanded velocity."""
