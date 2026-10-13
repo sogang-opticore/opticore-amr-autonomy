@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import math
 import random
-from collections import deque
+from collections import OrderedDict, deque
 from pathlib import Path
 from typing import Any
 
@@ -15,13 +15,26 @@ from amr_lite.learning.observation import build_observation
 from amr_lite.planning.astar import astar
 from amr_lite.planning.path_utils import path_state, remaining_path_distance
 from amr_lite.planning.safety_shield import SafetyShield
+from amr_lite.sensors.lidar import ContractScanSpec, RawLidarSpec, resample_scan, simulate_raw_scan
+from amr_lite.sensors.randomization import (
+    SensorDynamicsModel,
+    episode_sensor_model,
+    noisy_contract_scan,
+    noisy_raw_ranges,
+    perturb_path,
+)
 
 from .dynamics import RobotState, integrate
 from .raycast import lidar_scan
 from .scenarios import DynamicObstacle, Scenario, make_scenario
 
 
-_PATH_CACHE: dict[tuple, tuple[tuple[float, float], ...]] = {}
+# A* results keyed by scenario instance. Bounded because procedural scenarios
+# create a new instance per training episode.
+_PATH_CACHE: OrderedDict[tuple, tuple[tuple[float, float], ...]] = OrderedDict()
+_PATH_CACHE_LIMIT = 4096
+# The stop command: (a_v + 1) / 2 * v_max == 0. Pending delayed actions start here.
+_STOP_ACTION = np.asarray([-1.0, 0.0], dtype=np.float32)
 
 
 class Box:
@@ -86,6 +99,19 @@ class WarehouseEnv:
         self.previous_w_sign = 0
         self.min_clearance_seen = math.inf
         self.cross_track_samples: list[float] = []
+        self.sensor_model = SensorDynamicsModel()
+        self._noise_rng = np.random.default_rng(0)
+        self._raw_spec = RawLidarSpec.from_env_config(self.config)
+        self._contract_spec = ContractScanSpec.from_env_config(self.config)
+        # Raw returns only reach the contract within max_range + mount offset.
+        self._raw_cast_range = (self._contract_spec.max_range
+                                + math.hypot(self._raw_spec.mount_x, self._raw_spec.mount_y) + 0.25)
+        self.last_raw_scan: np.ndarray | None = None
+        self.last_scan_pose: tuple[float, float, float] = (0.0, 0.0, 0.0)
+        self._held_scan: np.ndarray | None = None
+        self._next_scan_time = 0.0
+        self._action_queue: deque[np.ndarray] | None = None
+        self._observation_queue: deque[np.ndarray] | None = None
         self.reset(seed=self.config["seed"])
 
     @property
@@ -99,6 +125,7 @@ class WarehouseEnv:
         requested = (options or {}).get("scenario_id", self.scenario_id)
         self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"))
         self.shield.reset()
+        self.sensor_model, self._noise_rng = episode_sensor_model(self.config, seed)
         self.robot = copy.deepcopy(self.scenario.start)
         if options and "pose_perturbation" in options:
             amount = float(options["pose_perturbation"])
@@ -113,7 +140,9 @@ class WarehouseEnv:
             tuple((rect.x_min, rect.y_min, rect.x_max, rect.y_max)
                   for rect in self.scenario.warehouse_map.obstacles),
         )
-        if path_key not in _PATH_CACHE:
+        if path_key in _PATH_CACHE:
+            _PATH_CACHE.move_to_end(path_key)
+        else:
             _PATH_CACHE[path_key] = tuple(astar(
                 self.scenario.warehouse_map,
                 (self.robot.x, self.robot.y),
@@ -121,7 +150,12 @@ class WarehouseEnv:
                 self.config["grid_resolution"],
                 inflation,
             ))
+            if len(_PATH_CACHE) > _PATH_CACHE_LIMIT:
+                _PATH_CACHE.popitem(last=False)
         self.global_path = list(_PATH_CACHE[path_key])
+        if self.sensor_model.perturbs_path and self.global_path:
+            self.global_path = perturb_path(self.global_path, self.sensor_model.path_resample_spacing,
+                                            self.sensor_model.path_lateral_noise, self._noise_rng)
         self.elapsed = 0.0
         self.step_count = 0
         self.collision = False
@@ -153,17 +187,29 @@ class WarehouseEnv:
         self.trajectory = [(self.robot.x, self.robot.y)]
         initial_path_state = path_state(self.global_path, self.robot, self.config["lookahead_distance"])
         self.previous_path_remaining = remaining_path_distance(self.global_path, initial_path_state)
-        scan = self._scan()
+        model = self.sensor_model
+        self._action_queue = (deque(_STOP_ACTION.copy() for _ in range(model.action_delay_steps))
+                              if model.action_delay_steps > 0 else None)
+        self._next_scan_time = model.scan_phase if model.scan_phase > 1e-9 else model.scan_period
+        scan = self._sensor_scan(force=True)
         self.scan_history = deque((scan.copy() for _ in range(4)), maxlen=4)
         observation = self._observation()
-        return observation, self._info(seed=seed, reward_components={})
+        self._observation_queue = (deque(observation.copy() for _ in range(model.observation_delay_steps))
+                                   if model.observation_delay_steps > 0 else None)
+        info = self._info(seed=seed, reward_components={})
+        info["sensor_model"] = model.as_dict()
+        return observation, info
 
     def step(self, action: np.ndarray | list[float]) -> tuple[np.ndarray, float, bool, bool, dict]:
         action_array = np.asarray(action, dtype=np.float32)
         invalid = action_array.shape != (2,) or not np.isfinite(action_array).all()
         if invalid:
             action_array = np.zeros(2, dtype=np.float32)
-        target_v, target_w = scale_action(action_array, self.config["v_max"], self.config["w_max"])
+        executed_action = action_array
+        if self._action_queue is not None:
+            self._action_queue.append(action_array.copy())
+            executed_action = self._action_queue.popleft()
+        target_v, target_w = scale_action(executed_action, self.config["v_max"], self.config["w_max"])
         before_state = RobotState(
             self.robot.x, self.robot.y, self.robot.theta, self.robot.v, self.robot.w
         )
@@ -190,7 +236,8 @@ class WarehouseEnv:
         for _ in range(int(self.config["physics_substeps"])):
             for obstacle in self.dynamic_obstacles:
                 obstacle.update(self.elapsed, sub_dt)
-            next_state = integrate(self.robot, result.v, result.w, sub_dt)
+            command_v, command_w = self._actuate(result.v, result.w, sub_dt)
+            next_state = integrate(self.robot, command_v, command_w, sub_dt)
             self.elapsed += sub_dt
             if self._collides(next_state):
                 self.robot = next_state
@@ -234,7 +281,7 @@ class WarehouseEnv:
             self.previous_w_sign = sign
         current_goal_distance = math.dist((self.robot.x, self.robot.y), self.scenario.goal)
         self.success = current_goal_distance <= self.config["goal_tolerance"] and not self.collision
-        self.scan_history.append(self._scan())
+        self.scan_history.append(self._sensor_scan())
         path = path_state(self.global_path, self.robot, self.config["lookahead_distance"])
         current_path_remaining = remaining_path_distance(self.global_path, path)
         self.cross_track_samples.append(abs(path.cross_track_error))
@@ -251,22 +298,99 @@ class WarehouseEnv:
         self.previous_path_remaining = current_path_remaining
         info = self._info(reward_components=reward_components, invalid_action=invalid,
                           shield_mode=result.mode, safety_cost=float(self.collision) + max(0.0, self.config["safety_distance"] - clearance))
-        return self._observation(), reward, terminated, truncated, info
+        observation = self._observation()
+        if self._observation_queue is not None:
+            self._observation_queue.append(observation)
+            observation = self._observation_queue.popleft()
+        return observation, reward, terminated, truncated, info
 
     def _scan(self) -> np.ndarray:
         return lidar_scan(self.robot, self.scenario.warehouse_map, self.dynamic_obstacles,
                           self.config["lidar_rays"], math.radians(self.config["lidar_fov_deg"]),
                           self.config["lidar_max_range"])
 
+    def _sensor_scan(self, force: bool = False) -> np.ndarray:
+        """Contract scan seen by the policy, held between sensor updates."""
+        if force or self._held_scan is None or self._scan_due():
+            self._held_scan = self._fresh_scan()
+        return self._held_scan
+
+    def _scan_due(self) -> bool:
+        period = self.sensor_model.scan_period
+        if period <= self.config["policy_dt"] + 1e-9 and self.sensor_model.scan_phase <= 1e-9:
+            return True
+        if self.elapsed + 1e-9 < self._next_scan_time:
+            return False
+        while self._next_scan_time <= self.elapsed + 1e-9:
+            self._next_scan_time += period
+        return True
+
+    def _fresh_scan(self) -> np.ndarray:
+        model = self.sensor_model
+        self.last_scan_pose = (self.robot.x, self.robot.y, self.robot.theta)
+        bias = math.radians(model.angular_bias_deg)
+        if model.lidar_type == "raw":
+            raw = simulate_raw_scan(self.robot, self.scenario.warehouse_map, self.dynamic_obstacles,
+                                    self._raw_spec, cast_range=self._raw_cast_range, angular_bias=bias)
+            raw = noisy_raw_ranges(raw, model, self._noise_rng)
+            self.last_raw_scan = raw
+            spec = self._raw_spec
+            return resample_scan(raw, spec.angle_min, spec.angle_increment, spec.range_min,
+                                 spec.range_max, mount_x=spec.mount_x, mount_y=spec.mount_y,
+                                 mount_yaw=spec.mount_yaw, contract=self._contract_spec)
+        if model.lidar_type != "contract":
+            raise ValueError(f"Unknown lidar_model.type: {model.lidar_type!r}")
+        if bias:
+            sensed = RobotState(self.robot.x, self.robot.y, self.robot.theta + bias)
+            scan = lidar_scan(sensed, self.scenario.warehouse_map, self.dynamic_obstacles,
+                              self._contract_spec.rays, self._contract_spec.fov,
+                              self._contract_spec.max_range)
+        else:
+            scan = self._scan()
+        if model.scan_noise:
+            scan = noisy_contract_scan(scan, model, self._noise_rng, self._contract_spec.max_range)
+        return scan
+
+    def _actuate(self, command_v: float, command_w: float, dt: float) -> tuple[float, float]:
+        """Velocity the wheels actually achieve for a commanded velocity."""
+        model = self.sensor_model
+        if model.actuation_identity:
+            return command_v, command_w
+        target_v, target_w = command_v * model.v_scale, command_w * model.w_scale
+        if model.actuator_time_constant <= 0.0:
+            return target_v, target_w
+        blend = 1.0 - math.exp(-dt / model.actuator_time_constant)
+        return (self.robot.v + (target_v - self.robot.v) * blend,
+                self.robot.w + (target_w - self.robot.w) * blend)
+
+    def _perceived_robot(self) -> RobotState:
+        """Pose used for path features: true pose plus localization error."""
+        model = self.sensor_model
+        if model.localization_identity:
+            return self.robot
+        noise_xy, noise_theta = model.localization_noise_xy, model.localization_noise_theta
+        dx = float(self._noise_rng.normal(0.0, noise_xy)) if noise_xy > 0.0 else 0.0
+        dy = float(self._noise_rng.normal(0.0, noise_xy)) if noise_xy > 0.0 else 0.0
+        dtheta = float(self._noise_rng.normal(0.0, noise_theta)) if noise_theta > 0.0 else 0.0
+        return RobotState(self.robot.x + model.bias_x + dx, self.robot.y + model.bias_y + dy,
+                          self.robot.theta + model.bias_theta + dtheta, self.robot.v, self.robot.w)
+
     def _observation(self) -> np.ndarray:
-        path = path_state(self.global_path, self.robot, self.config["lookahead_distance"])
-        return build_observation(list(self.scan_history), path, self.robot,
+        robot = self._perceived_robot()
+        path = path_state(self.global_path, robot, self.config["lookahead_distance"])
+        return build_observation(list(self.scan_history), path, robot,
                                  self.config["lidar_max_range"], self.config["goal_distance_scale"],
                                  self.config["v_max"], self.config["w_max"],
                                  self.config["max_cross_track_error"])
 
-    def _collides(self, state: RobotState) -> bool:
+    def _collision_radius(self) -> float:
         radius = self.config["robot_radius"]
+        if self.sensor_model.collision_radius_margin:
+            radius += self.sensor_model.collision_radius_margin
+        return radius
+
+    def _collides(self, state: RobotState) -> bool:
+        radius = self._collision_radius()
         if self.scenario.warehouse_map.collides(state.x, state.y, radius):
             return True
         return any(math.hypot(state.x - obstacle.x, state.y - obstacle.y) <= radius + obstacle.radius
@@ -299,7 +423,7 @@ class WarehouseEnv:
         if invalid_action:
             return "INVALID_ACTION"
         if self.collision:
-            dynamic = any(math.hypot(self.robot.x - item.x, self.robot.y - item.y) <= self.config["robot_radius"] + item.radius
+            dynamic = any(math.hypot(self.robot.x - item.x, self.robot.y - item.y) <= self._collision_radius() + item.radius
                           for item in self.dynamic_obstacles)
             return "COLLISION_DYNAMIC" if dynamic else "COLLISION_STATIC"
         if self.shield_counts["STOP"] > max(20, self.step_count // 2):

@@ -3,8 +3,14 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+import numpy as np
+
 from amr_lite.envs.dynamics import RobotState
 from amr_lite.envs.geometry import point_segment_projection, wrap_angle
+
+# Simplified A* paths have a handful of vertices and keep the exact scalar
+# search; dense paths (ROS A*, randomized Lite paths) use the vectorized one.
+_VECTORIZED_SEGMENTS = 16
 
 
 @dataclass(frozen=True)
@@ -19,18 +25,41 @@ class PathState:
     alpha_goal: float
 
 
-def path_state(path: list[tuple[float, float]], robot: RobotState, lookahead: float) -> PathState:
+def nearest_segment(path: list[tuple[float, float]], x: float, y: float,
+                    first: int = 0, last: int | None = None) -> tuple[int, float, float, float]:
+    """Closest segment among ``first..last`` as ``(index, qx, qy, t)``."""
+    stop = len(path) - 1 if last is None else min(len(path) - 1, last + 1)
+    first = max(0, min(first, stop - 1))
+    if stop - first <= _VECTORIZED_SEGMENTS:
+        best = None
+        for index in range(first, stop):
+            (ax, ay), (bx, by) = path[index], path[index + 1]
+            qx, qy, t = point_segment_projection(x, y, ax, ay, bx, by)
+            distance = math.hypot(x - qx, y - qy)
+            if best is None or distance < best[0]:
+                best = (distance, index, qx, qy, t)
+        assert best is not None
+        return best[1], best[2], best[3], best[4]
+    points = np.asarray(path[first:stop + 1], dtype=np.float64)
+    start, delta = points[:-1], points[1:] - points[:-1]
+    denominator = np.einsum("ij,ij->i", delta, delta)
+    safe = np.where(denominator <= 1e-12, 1.0, denominator)
+    t = np.clip(((x - start[:, 0]) * delta[:, 0] + (y - start[:, 1]) * delta[:, 1]) / safe, 0.0, 1.0)
+    t = np.where(denominator <= 1e-12, 0.0, t)
+    qx, qy = start[:, 0] + t * delta[:, 0], start[:, 1] + t * delta[:, 1]
+    index = first + int(np.argmin((x - qx) ** 2 + (y - qy) ** 2))
+    (ax, ay), (bx, by) = path[index], path[index + 1]
+    qx_best, qy_best, t_best = point_segment_projection(x, y, ax, ay, bx, by)
+    return index, qx_best, qy_best, t_best
+
+
+def path_state(path: list[tuple[float, float]], robot: RobotState, lookahead: float,
+               segment_range: tuple[int, int] | None = None) -> PathState:
     if len(path) < 2:
         goal = path[0] if path else (robot.x, robot.y)
         return PathState(goal, 0, 0.0, 0.0, 0.0, goal, math.dist((robot.x, robot.y), goal), 0.0)
-    best = None
-    for index, (a, b) in enumerate(zip(path, path[1:])):
-        qx, qy, t = point_segment_projection(robot.x, robot.y, *a, *b)
-        distance = math.hypot(robot.x - qx, robot.y - qy)
-        if best is None or distance < best[0]:
-            best = (distance, index, qx, qy, t)
-    assert best is not None
-    _, index, qx, qy, t = best
+    first, last = segment_range if segment_range is not None else (0, None)
+    index, qx, qy, t = nearest_segment(path, robot.x, robot.y, first, last)
     ax, ay = path[index]
     bx, by = path[index + 1]
     heading = math.atan2(by - ay, bx - ax)

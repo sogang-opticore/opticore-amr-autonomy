@@ -1,14 +1,40 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import numpy as np
 
 from amr_lite.envs.dynamics import RobotState
 from amr_lite.planning.path_utils import PathState
+from amr_lite.sensors.lidar import RESAMPLE_RULE_VERSION
 
 
 OBSERVATION_SIZE = 296
+OBSERVATION_CONTRACT_VERSION = "amr-lite-obs-v1"
+HISTORY_FRAMES = 4
+OBSERVATION_TAIL = (
+    "goal_distance", "goal_sin", "goal_cos", "linear_velocity", "angular_velocity",
+    "cross_track_error", "path_heading_sin", "path_heading_cos",
+)
+
+
+def observation_contract(config: dict[str, Any]) -> dict[str, Any]:
+    """Machine-checkable description of the observation contract (ARCHITECTURE §4)."""
+    return {
+        "version": OBSERVATION_CONTRACT_VERSION,
+        "size": OBSERVATION_SIZE,
+        "history_frames": HISTORY_FRAMES,
+        "frame_order": "oldest_to_newest",
+        "lidar_rays": int(config["lidar_rays"]),
+        "lidar_fov_deg": float(config["lidar_fov_deg"]),
+        "lidar_max_range": float(config["lidar_max_range"]),
+        "resample_rule": RESAMPLE_RULE_VERSION,
+        "tail": list(OBSERVATION_TAIL),
+        "goal_distance_scale": float(config["goal_distance_scale"]),
+        "max_cross_track_error": float(config["max_cross_track_error"]),
+        "lookahead_distance": float(config["lookahead_distance"]),
+    }
 
 
 def build_observation(scan_history: list[np.ndarray], path: PathState, robot: RobotState,
@@ -28,4 +54,3 @@ def build_observation(scan_history: list[np.ndarray], path: PathState, robot: Ro
     if observation.shape != (OBSERVATION_SIZE,) or not np.isfinite(observation).all():
         raise ValueError("Invalid observation")
     return observation
-

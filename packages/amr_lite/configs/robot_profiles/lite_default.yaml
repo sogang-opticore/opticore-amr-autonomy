@@ -1,0 +1,4 @@
+# Phase 0/M1 robot: the values already in configs/env.yaml.
+name: lite_default
+description: AMR-Lite Phase 0/M1 robot (72-ray contract LiDAR cast from the robot centre)
+overrides: {}

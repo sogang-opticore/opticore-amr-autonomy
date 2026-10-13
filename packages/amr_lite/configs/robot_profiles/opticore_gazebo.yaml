@@ -1,0 +1,28 @@
+# opticore-amr Gazebo robot. Sources:
+#   ros2_ws/src/amr_bringup/urdf/amr_robot.urdf.xacro  (DiffDrive, gpu_lidar)
+#   ros2_ws/src/amr_navigation/config/dwa_params.yaml   (controller limits)
+# Values are overrides of configs/env.yaml. Keep them in sync with the ROS
+# learned_planner parameters; the node refuses a bundle whose profile differs.
+name: opticore_gazebo
+description: opticore-amr Gazebo AMR (720-sample 360 deg LiDAR at +0.25 m, 10 Hz)
+overrides:
+  robot_radius: 0.36          # circumscribed radius of the 0.60 x 0.40 m chassis
+  v_max: 1.5                  # DWA v_max (spec 2.0 pending team decision)
+  w_max: 1.5                  # DWA w_max
+  accel_max: 1.0              # DWA a_max
+  decel_max: 2.0              # DiffDrive max_linear_acceleration
+  angular_accel_max: 1.5      # DWA alpha_max (spec unconfirmed; measure in Gazebo)
+  policy_dt: 0.05             # DWA control_rate 20 Hz
+  lidar_model:
+    type: raw
+    raw_samples: 720
+    raw_angle_min: -3.14159
+    raw_angle_max: 3.14159
+    raw_range_min: 0.12
+    raw_range_max: 25.0
+    mount_x: 0.25
+    mount_y: 0.0
+    mount_yaw: 0.0
+  sensor_model:
+    scan_period: 0.1          # gpu_lidar update_rate 10 Hz
+    range_noise_std: 0.03     # gpu_lidar gaussian noise stddev
