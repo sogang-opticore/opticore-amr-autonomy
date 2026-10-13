@@ -39,8 +39,10 @@ def _combined_hash(paths: Iterable[Path], base: Path) -> tuple[str, list[dict[st
 
 
 def source_snapshot() -> dict:
-    patterns = ("amr_lite/**/*.py", "configs/*.yaml", "tests/**/*.py", "docs/*.md",
-                "README.md", "pyproject.toml")
+    # Config subdirectories (robot profiles, sweeps, gates, paired sets), the pinned
+    # map asset and golden vectors change results, so they are part of the source.
+    patterns = ("amr_lite/**/*.py", "configs/**/*.yaml", "tests/**/*.py", "tests/golden/*.npz",
+                "assets/**/*.pgm", "assets/**/*.yaml", "docs/*.md", "README.md", "pyproject.toml")
     paths = {path for pattern in patterns for path in ROOT.glob(pattern) if path.is_file()}
     combined, files = _combined_hash(paths, ROOT)
     return {"sha256": combined, "files": files}

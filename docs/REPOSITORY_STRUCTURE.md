@@ -10,11 +10,16 @@
 opticore-amr-autonomy/
 ├── packages/
 │   └── amr_lite/
-│       ├── amr_lite/
-│       ├── configs/
-│       ├── tests/
+│       ├── amr_lite/            envs, sensors, planning, learning, rl, deploy, experiments, evaluation, cli
+│       ├── assets/maps/         opticore-amr warehouse map 사본 (SHA-256 고정)
+│       ├── configs/             env, robot_profiles/, procedural, paired/, ppo_v2, dagger,
+│       │                        evaluation_*_v2, sweeps/, gates/
+│       ├── tests/               golden/ 관측 vector 포함
 │       ├── README.md
 │       └── pyproject.toml
+├── integrations/
+│   └── ros2/
+│       └── amr_learned_planner/ ament_python: core/, 노드, launch/, config/, test/
 ├── experiments/
 │   ├── phase0_amr_lite/
 │       ├── README.md
@@ -28,6 +33,8 @@ opticore-amr-autonomy/
 │       └── artifacts/
 ├── docs/
 │   ├── ROADMAP.md
+│   ├── ARCHITECTURE.md
+│   ├── EXPERIMENT_PLAYBOOK.md
 │   ├── RUNBOOK.md
 │   ├── NEXT_STEPS.md
 │   └── REPOSITORY_STRUCTURE.md
@@ -66,20 +73,16 @@ opticore-amr-autonomy/
 - 공통 observation/action 계약
 - 향후 ROS2/Gazebo 통합 설계
 
-### 향후 `integrations/`
+### `integrations/`
 
-ROS2/Gazebo 연결을 시작할 때 추가한다.
+ROS2/Gazebo 연결 코드를 둔다. 현재 `ros2/amr_learned_planner`가 opticore-amr에
+연결하는 ament_python 패키지다.
 
-```text
-integrations/
-  ros2/
-    src/
-    launch/
-    config/
-    tests/
-```
-
-ROS2 adapter는 `packages/`의 관측·행동 계약을 사용하되, AMR-Lite core가 ROS2에 의존하게 만들지 않는다.
+- ROS2 adapter는 `packages/`의 관측·행동 계약과 shield, NumPy runtime을 import하고
+  복사하지 않는다.
+- 판단 로직은 ROS 의존이 없는 `core/`에 두고 rclpy 노드는 얇게 유지한다.
+- opticore-amr 저장소는 수정하지 않는다. 워크스페이스에 symlink로 연결하고, 그쪽
+  launch 변경은 팀 결정 후 해당 저장소에서 진행한다.
 
 ## 의존성 방향
 

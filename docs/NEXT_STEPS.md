@@ -1,63 +1,54 @@
-# Phase 1 Discussion and Next Steps
+# Next Steps and Team Decisions
 
-## 1. 시뮬레이터와 관측
+마일스톤과 gate는 [ROADMAP.md](ROADMAP.md)가 기준이다. 이 문서는 (1) Phase 1 후보
+목록 중 이미 코드로 구현된 항목, (2) 마일스톤 코드 밖에 남은 작업, (3) 팀이 정해야
+할 질문을 정리한다.
 
-- NumPy/vectorized ray casting 또는 spatial index로 병목 측정 후 최적화
-- Gymnasium 정식 adapter와 vector environment
-- 기존 `warehouse_map.pgm` 선택적 importer
-- LiDAR noise, latency, dropout, domain randomization
-- 1-frame 대 4-frame paired ablation
+## 1. Phase 1 후보 중 구현된 항목 (2026-10-13)
 
-## 2. 동적 장애물
+| 항목 | 구현 위치 |
+|---|---|
+| vectorized ray casting (기존과 bit 단위 동일) | `amr_lite/envs/raycast.py`, `envs/map.py` |
+| vector environment | `amr_lite/rl/vector_env.py` (sync·subprocess, curriculum) |
+| `warehouse_map.pgm` importer | `amr_lite/envs/grid_map.py`, `assets/maps/opticore_warehouse/` |
+| LiDAR noise·latency·dropout·domain randomization | `amr_lite/sensors/randomization.py` |
+| 1-frame 대 4-frame ablation 경로 | `history_mode: newest`, sweep `e5_representation` |
+| frame stack과 explicit tracker 비교 경로 | `planning/scan_shield.py`의 `ScanObstacleTracker` |
+| 제한적 후진 후보 | `scan_shield.reverse_enabled` (기본 off) |
+| teacher·DAgger 반복과 위험 상태 가중치 | `learning/dagger_loop.py`, `train_bc.risk_weight` |
+| 여러 학습 seed·sweep·사전 등록 선정 | `experiments/sweep.py`, `configs/sweeps/` |
+| 비용 제약(PPO-Lagrangian) | `rl/ppo.py`, sweep `e3_lagrangian` |
+| ROS adapter와 Lite↔Gazebo paired test 도구 | `integrations/ros2/amr_learned_planner`, `experiments/paired.py` |
 
-- Safety Shield에 추가한 obstacle velocity extrapolation의 horizon·margin을 시나리오별 계측·조정
-- frame stack과 explicit tracker/CPA feature 비교
-- 횡단, 정면 접근, 추종, 정지 패턴별 seed와 속도 범위 확대
-- `D1` 정면 접근 실패를 대상으로 제한적 후진·시간 확장 회피 trajectory 비교
-- 정지 로봇으로 계속 접근하는 장애물의 책임/충돌 정의 명확화
+## 2. 마일스톤 코드 밖에 남은 작업
 
-## 3. 학습
+### 학습·평가 실행
+- M2 shield 비교, M3 처리량 측정, M4 E1–E6 실행 — [EXPERIMENT_PLAYBOOK.md](EXPERIMENT_PLAYBOOK.md)
+- M5 ROS2 실기동(dwa → shadow → learned)과 fault injection, M6 Gazebo paired 실행
 
-- teacher episode와 perturbation 확대, scenario-family validation split
-- DAgger 정상/위험 상태 sampling weight 조정 및 반복 횟수 비교
-- Stable PPO의 checkpoint 의존성 검증: 여러 학습 seed, KL·anchor·learning-rate sweep, 평가 seed 확대
-- 검증된 PPO 라이브러리와 최소 구현의 수치·성능 비교
-- Stable best와 final checkpoint를 항상 분리 보고하고 선택 규칙을 사전 고정
-- PPO 유지 여부 및 SAC 비교 결정
+### 기술 부채·확장 후보
+- 검증된 PPO 라이브러리(SB3 등)와 PPO v2의 수치 비교. Gymnasium adapter는 있으나
+  비교 스크립트는 없다.
+- SAC 등 off-policy 비교: PPO v2가 G4를 통과하지 못할 때만 진행
+- GRU/LSTM 정책: bundle runtime과 ROS 노드에 hidden state 관리가 필요
+- scan tracker의 정적 지도 필터를 ROS에서도 `/map`으로 적용
+- Lite 동적 agent를 사람 이동 모델(목적지 기반 보행, 무리)로 확장
+- recorder의 충돌 proxy를 Gazebo contact sensor로 교체
+- 차체 직사각형 footprint(0.60 × 0.40 m)를 Lite 충돌·shield에 반영
+- `opticore-amr`의 `multi_robot.launch.py`에 learned 노드 묶음을 넣는 변경
+  (해당 저장소에서 팀 결정 후)
+- CI: 두 테스트 스위트와 Gate 7 smoke를 PR마다 실행
 
-## 4. 안전과 평가
+## 3. 팀 결정 질문
 
-- 단순 CLAMP/STOP을 넘어 안전 action projection 검토
-- shield 예측의 false-positive/false-negative 계측
-- shield saturation recovery와 제한적 후진 정책
-- 모델·시나리오당 seed 수 확대와 confidence interval
-- failure taxonomy 자동 판정 정확도 검토
-
-## 5. ROS2/Gazebo 연결
-
-- observation builder와 action scaling을 재사용하는 ROS adapter
-- Lite baseline과 기존 hybrid planner의 기능/파라미터 대응표
-- 동일 warehouse 경로와 장애물 배치의 Lite ↔ Gazebo paired test
-- timing, sensor frame, footprint 차이 계측 후 Sim-to-Real 범위 결정
-
-## 6. 기술 영역
-
-1. 시뮬레이션 환경·시나리오
-2. 관측·동적 장애물 인식
-3. 경로계획·Rule baseline·Teacher
-4. BC·DAgger·PPO 학습 정책
-5. Reward·Safety Shield·Recovery
-6. 평가·실험 자동화·통계
-7. ROS2·Gazebo·시스템 연결
-
-인원 배치는 고정하지 않는다. 각 영역의 입력·출력 계약과 완료 기준을 먼저 고정하고, 팀 상황에 맞춰 한 사람이 여러 영역을 맡거나 여러 사람이 같은 영역을 나눠 맡는다. 실행 순서와 gate는 [ROADMAP.md](ROADMAP.md)를 따른다.
-
-## 팀 결정 질문
-
-1. 이 Lite 환경을 정식 공통 기반으로 사용할 것인가?
-2. 기존 ROS planner 중 어느 상태 머신까지 baseline에 반영할 것인가?
-3. 동적 장애물 대응을 최종 완료 조건에 포함할 것인가?
-4. frame stack과 tracker feature 중 무엇을 주 입력으로 둘 것인가?
-5. Stable PPO seed sweep과 BC/DAgger 데이터 품질 개선 중 무엇을 먼저 할 것인가?
-6. Safety Shield가 정지 외에 제한적 회피/후진을 허용해야 하는가?
-7. Gazebo paired validation을 어느 gate부터 필수로 둘 것인가?
+1. 배포 robot profile의 `v_max`를 1.5 m/s로 둘 것인가, 명세 2.0 m/s로 올릴 것인가?
+   (profile·학습·ROS 파라미터를 함께 바꿔야 한다)
+2. `angular_accel_max` 1.5 rad/s²(DWA 설정)를 Gazebo에서 실측해 확정할 것인가?
+3. scan shield에 후진 후보를 허용할 것인가? (초기 smoke: 동적 충돌 감소, 정적
+   충돌·timeout 증가)
+4. 학습 planner의 `goal_tolerance`를 Lite 0.25 m로 둘 것인가, 운영 launch의 DWA 값
+   (0.20/0.40 m)에 맞출 것인가?
+5. 학습 planner가 DWA의 동적 상태(`DYNAMIC_BLOCKED` 등)를 대신할 신호를 내야 하는가,
+   아니면 dynamic layer 발행을 DWA에 계속 맡길 것인가?
+6. `learned` 모드에서 fallback 후 자동 복귀(`allow_recovery`)를 허용할 것인가?
+7. Gazebo paired 검증의 반복 횟수와 G6 통과 기준(충돌 0건, 성공률 DWA 이상)을 확정할 것인가?

@@ -209,6 +209,68 @@ M1 보고서·요약·그래프는 `experiments/m1_reproducibility/`에 보존�
 `shield_strategy: legacy`다. predictive 전략은 M2 평가 gate를 통과하기 전까지
 승인된 기본 동작으로 간주하지 않는다.
 
+## 학습형 local planner 확장 (M2–M6)
+
+opticore-amr의 DWA를 학습 정책으로 대체하기 위한 확장이다. 계약은
+[ARCHITECTURE.md](../../docs/ARCHITECTURE.md), 실험 절차는
+[EXPERIMENT_PLAYBOOK.md](../../docs/EXPERIMENT_PLAYBOOK.md)를 따른다. 아래 기능은 모두
+기본값에서 꺼져 있어 Phase 0/M1 결과는 그대로다.
+
+### Robot profile과 센서 모델
+
+```python
+from amr_lite.config import resolve_env_config
+config = resolve_env_config("opticore_gazebo", {"shield_strategy": "scan"})
+```
+
+- `configs/robot_profiles/opticore_gazebo.yaml`: Gazebo 로봇의 `w_max` 1.5, 가감속, 720
+  sample/360°/0.25 m 장착 LiDAR(10 Hz, σ 0.03 m), A* 벽 거리 비용, 경로 길이 비례 timeout
+- `lidar_model.type: raw`: raw scan을 시뮬레이션해 `amr_lite.sensors.lidar.resample_scan`으로
+  72-ray 계약에 맞춘다. ROS 노드가 같은 함수를 쓴다.
+- `sensor_model`·`domain_randomization`: scan hold, 잡음, dropout, 각도 bias, 관측·명령
+  지연, 속도 scale, actuator lag, footprint 여유, localization 잡음, 경로 밀도·흔들림
+- `shield_strategy: scan`: 정답 정보 없이 LiDAR 점과 cluster track만 쓰는 Safety Shield
+
+### 시나리오
+
+| ID | 내용 |
+|---|---|
+| `P-AISLE`, `P-HALL`, `P-PINCH`, `P-JUNCTION`, `P-MIXED` | 절차적 정적 layout |
+| `PD-*` | 위 layout + 경로 기준 동적 agent(횡단·정면·추종·정지·정차·왕복) |
+| `WH-RANDOM`, `WHD-RANDOM` | opticore-amr 창고 지도 위 무작위 start/goal (`WHD`는 동적 agent 포함) |
+| `WH-warehouse_v1-00`…`07` | Gazebo와 짝을 이루는 paired leg (`configs/paired/warehouse_v1.yaml`) |
+
+절차적 split(`procedural.split: train|validation|test`)은 `configs/procedural.yaml`의
+파라미터 영역으로 나뉜다. 평가 protocol v2는 `evaluation_selection_v2.yaml`,
+`evaluation_test_v2.yaml`이다.
+
+### 학습과 실험 명령
+
+```bash
+python -m amr_lite.cli.train_rl --smoke --output artifacts/rl/smoke            # PPO v2
+python -m amr_lite.cli.train_rl --set policy.mode=direct --set lagrangian.enabled=true   --output artifacts/rl/direct-lag                                              # 설정 override
+python -m amr_lite.cli.dagger --output artifacts/dagger/run                     # BC → DAgger
+python -m amr_lite.cli.sweep e2_policy_mode --stage train --parallel 2          # 실험 sweep
+python -m amr_lite.cli.sweep e2_policy_mode --stage select
+python -m amr_lite.cli.sweep e6_candidate --stage test                          # sweep당 1회
+```
+
+PPO v2(`amr_lite.rl`)는 vector env, residual/direct 정책, MLP/1D-CNN, 비용 critic과
+Lagrange 승수, curriculum, pause/resume(`--max-updates`, `--resume`)을 지원한다.
+M1 trainer(`learning/train_ppo.py`)는 기준선 재현용으로 그대로 둔다.
+
+### 배포와 paired 평가
+
+```bash
+python -m amr_lite.cli.export_policy --checkpoint <best.pt> --output artifacts/bundles/cand
+python -m amr_lite.cli.verify_bundle artifacts/bundles/cand --robot-profile opticore_gazebo
+python -m amr_lite.cli.paired lite --policy bundle:artifacts/bundles/cand --seeds 0 1 2   --output artifacts/paired/lite.csv
+python -m amr_lite.cli.paired gap --reference artifacts/paired/lite.csv   --candidate gazebo.csv --output artifacts/paired/GAP_REPORT.md
+```
+
+bundle은 torch 없이 `amr_lite.deploy.runtime.PolicyRuntime`으로 실행되며, ROS2 쪽 사용법은
+[amr_learned_planner README](../../integrations/ros2/amr_learned_planner/README.md)에 있다.
+
 ## 해석 시 주의
 
 `lite_rule_baseline`은 기존 ROS rule-based hybrid local planner의 축소판이며 동등 구현이 아니다. PPO smoke는 256 timestep이며 실행 경로 확인용이다. 초기 shared-encoder 100,000-timestep PPO는 작은 원을 도는 정책으로 붕괴했지만, stable PPO best는 51,200 timestep에서 전체 평가 성공률 87.5%를 기록했다. 다만 final checkpoint는 50%로 저하됐고 `D1` 정면 접근 실패가 남아 있으므로 수렴·일반화를 주장하지 않는다. 자세한 분석은 결과와 한계 문서에 명시했다.

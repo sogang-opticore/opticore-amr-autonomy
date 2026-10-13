@@ -73,6 +73,9 @@
 | 294, 295 | 경로 접선 heading 오차 | `sin`, `cos` |
 
 - frame 순서는 oldest → newest다.
+- `history_mode: stack`이 계약 기본값이다. frame-stack ablation으로 학습한 정책은
+  `history_mode: newest`(4칸 모두 최신 scan)를 bundle 계약에 기록하고, 평가와 ROS
+  어댑터는 정책의 값을 따른다.
 - local goal은 로봇의 경로 투영점에서 경로를 따라 `lookahead_distance`(0.65 m) 앞의 점이다.
 - 제어 tick(20 Hz)마다 가장 최근 scan 하나를 frame stack에 넣는다. scan이 10 Hz로
   들어오면 같은 scan이 두 번 들어가는 zero-order hold가 계약이다.
@@ -115,7 +118,9 @@ v_target = (a_v + 1) / 2 × v_max      # 0 ≤ v_target ≤ v_max, 후진 없음
 w_target = a_w × w_max
 ```
 
-`a`가 유한하지 않으면 `(0, 0)`이며 health fault다.
+`a`가 유한하지 않으면 `(0, 0)`이며 health fault다. ROS 노드는 bundle에 기록된
+`v_max`·`w_max`로 단위 변환하고(정책이 학습한 의미), 이후 가감속 제한과 shield는
+노드의 로봇 파라미터를 쓴다. strict profile 검사에서는 두 값이 같다.
 
 ### 5.2 처리 순서 (Lite와 ROS 동일)
 
@@ -163,6 +168,12 @@ profile은 정책 bundle에 기록된다. ROS 노드는 자신의 로봇 파라�
   golden.npz    관측 N×296과 export 시점 torch 출력 N×2
 ```
 
+네트워크 graph는 `mlp`(linear/tanh/relu 층 목록) 또는 `scan_cnn`(conv1d 층, state
+층, fusion 층)이며, residual 정책은 base 정책(`lite_rule_baseline`)의 환경·기준선
+설정을 함께 담는다. BC, M1 PPO(`ppo`, `ppo_stable`), PPO v2 checkpoint를 모두 export할
+수 있다. profile을 기록하지 않은 이전 checkpoint는 `lite_default`로 간주하고
+`robot_profile.source: assumed`로 표시한다.
+
 `bundle.json` 핵심 필드:
 
 | 필드 | 내용 |
@@ -190,7 +201,7 @@ NumPy runtime은 torch 없이 bundle을 읽고, 로드 시 SHA-256과 golden par
 | `dwa_fallback/status` | `String` | DWA(remap) | `cmd_arbiter` | |
 | `learned_planner/cmd_vel` | `Twist` | `learned_planner` | `cmd_arbiter` | |
 | `learned_planner/status` | `String` | `learned_planner` | `cmd_arbiter` | DWA status 어휘 사용 |
-| `learned_planner/health` | `String`(JSON) | `learned_planner` | `cmd_arbiter`, recorder | fault 목록, 추론 시간 |
+| `learned_planner/health` | `String`(JSON) | `learned_planner` | `cmd_arbiter`, recorder | 제어 tick마다: `healthy`, `faults`, `details`, `inference_ms`, `deadline_misses`, `status`, `shield_mode`, `shield_action`, `risk` |
 | `cmd_arbiter/state` | `String`(JSON) | `cmd_arbiter` | recorder | mode, 활성 source, 전환 이유 |
 
 입력 토픽은 DWA와 같다: `odometry/filtered`(fallback `odom`), `global_path`, `lidar`,
@@ -223,7 +234,10 @@ LEARNED ──fault 또는 학습 cmd stale──► FALLBACK_HOLD(정지, hold_
 FALLBACK ──학습 planner가 recover_sec 동안 정상 && allow_recovery──► LEARNED
 ```
 
-- 두 source가 모두 stale이면 정지 명령과 `STOPPED`를 발행한다.
+- `learned` 모드는 FALLBACK(DWA)에서 시작해 학습 planner가 정상임이 확인되면 넘긴다.
+- 전환 순간 새 source의 최신 명령이 유효하면 다음 메시지를 기다리지 않고 바로 전달한다.
+- 유한하지 않은 명령은 수신하지 않은 것으로 취급해 해당 source가 stale이 된다.
+- 활성 source가 stale이면 정지 명령과 `STOPPED`(1회)를 발행한다.
 - 전환마다 이유와 시각을 `cmd_arbiter/state`에 남긴다.
 
 ## 10. Health fault
@@ -239,21 +253,25 @@ FALLBACK ──학습 planner가 recover_sec 동안 정상 && allow_recovery─�
 | `DEADLINE_MISS` | 추론+후처리가 deadline 초과 연속 N회 | fault |
 | `SHIELD_SATURATION` | Shield STOP 지속 | `EMERGENCY` 상태, 설정 시 fault |
 
+M5 시험용으로 `fault_injection` 파라미터(`nan_action`, `slow_inference`,
+`stale_scan`)를 실행 중에 바꿀 수 있다.
+
 ## 11. 패키지 구조와 의존성
 
 ```text
 packages/amr_lite/amr_lite/
-  envs/         Lite 환경, 지도(직사각형·grid), 절차적 시나리오, vector env
+  envs/         Lite 환경, 지도(직사각형·grid), 절차적·warehouse 시나리오
   sensors/      LiDAR raw 시뮬레이션·재표본화, 센서·동역학 randomization
-  planning/     A*, 경로 투영, rule baseline, Safety Shield(legacy/predictive/scan), tracker
-  learning/     관측·행동 계약, BC, DAgger, M1 PPO(동결)
-  rl/           PPO v2, 네트워크, rollout buffer, curriculum
-  deploy/       bundle export, NumPy runtime
-  experiments/  manifest, sweep, 선정·test gate
+  planning/     A*(선택적 벽 거리 비용), 경로 투영, rule baseline, Safety Shield(legacy/predictive/scan), tracker
+  learning/     관측·행동 계약, BC, DAgger loop, M1 PPO(동결)
+  rl/           vector env·curriculum, PPO v2, 네트워크, 정책 래퍼, 병렬 protocol 평가
+  deploy/       bundle export(torch), NumPy runtime(torch 없음)
+  experiments/  manifest, sweep, G4 gate, Lite paired 실행·gap report
   evaluation/   paired 평가, 통계, 그래프
+packages/amr_lite/assets/maps/   opticore-amr warehouse map 사본(SHA-256 고정)
 integrations/ros2/amr_learned_planner/
-  amr_learned_planner/core/   ROS 없는 planner·arbiter·health·recorder
-  amr_learned_planner/*.py    rclpy 노드
+  amr_learned_planner/core/   ROS 없는 planner·arbiter·health·recorder·goal sequence
+  amr_learned_planner/*.py    rclpy 노드, launch helper
   launch/ config/ test/
 ```
 
@@ -268,10 +286,15 @@ ROS 컨테이너에는 `amr_lite`를 `--no-deps`로 설치해 torch 없이 NumPy
 
 ## 12. 검증 계약
 
-- **Golden observation**: 고정 raw scan·odom·경로 입력과 기대 관측 벡터를 저장하고,
-  Lite parity env와 ROS core가 모두 일치해야 한다.
+- **Golden observation**: `packages/amr_lite/tests/golden/observation_v1.npz`에 고정
+  raw scan·odom·경로 입력과 기대 관측 벡터를 저장한다. Lite env와 ROS core가 모두
+  재현해야 하며, 의도적 변경이면 계약 version을 올리고 다시 생성한다.
+- **Lite↔ROS parity**: 같은 raw scan·odom·경로에서 ROS core 관측이 Lite 관측과
+  `1e-6` 이내로 같아야 한다(`test_core_observation_matches_lite_environment`).
 - **Legacy parity**: 기본 설정(Phase 0/M1)의 trajectory·reward가 변경 전과 같아야 한다.
 - **Runtime parity**: bundle의 NumPy 출력과 torch 출력 차이 ≤ `1e-5`.
 - **Vector env parity**: 같은 seed에서 동기와 subprocess 실행 결과가 같아야 한다.
 - **Residual identity**: residual 정책의 초기 행동은 rule baseline과 같아야 한다.
 - **Arbiter**: 모드·fault·stale 조합별 출력 source가 표 §9와 일치해야 한다.
+- **노드 배선**: rclpy가 없는 환경에서는 `test/fake_ros.py`로 토픽·파라미터·timer
+  배선과 launch helper의 remap을 검사한다. 실제 ROS 실기동 검증은 M5 작업이다.

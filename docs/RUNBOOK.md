@@ -10,13 +10,13 @@
 
 ## 1. 현재 기준선
 
-- 기준일: 2026-09-30
+- 기준일: 2026-10-13 (M1 수치는 2026-09-30 기준선 그대로)
 - 저장소: `sogang-opticore/opticore-amr-autonomy`
-- 실행 패키지: `packages/amr_lite`
+- 실행 패키지: `packages/amr_lite`, ROS2 통합 `integrations/ros2/amr_learned_planner`
 - M1 원본 계산 provenance: `experiments/m1_reproducibility/artifacts/manifest.json`
 - Python: 3.10 이상, 현재 확인 환경은 Python 3.11
-- 단위테스트 기준: `28 passed`
-- 기본 Safety Shield: `legacy`
+- 단위테스트 기준: AMR-Lite `119 passed`, ROS 통합 패키지 `26 passed`
+- 기본 Safety Shield: `legacy` (배포 후보 학습 설정은 `opticore_gazebo` profile + `scan`)
 - M1 학습 seed: `7, 17, 29, 43, 59`
 - M1 최종 평가: 4,160 episode
 - M1 custom Stable PPO best: 성공률 85.4%, 95% CI 84.0–86.5%
@@ -36,6 +36,9 @@
 | Gate 3 | M1 학습·평가 오케스트레이션 smoke | 약 11초 | 실험 코드 변경 후 |
 | Gate 4 | 기존 M1 산출물 감사 | 1~2분 | 결과 인용·보고 전 |
 | Gate 5 | 전체 M1 재현 | 장시간, 장비 의존 | 릴리스 또는 기준선 재생성 시 |
+| Gate 6 | ROS 통합 패키지 테스트(ROS 없이) | 약 4초 | 통합 패키지·관측 계약 변경 후 |
+| Gate 7 | 학습 스택 smoke: PPO v2, DAgger, sweep→gate | 약 1분 | 학습·실험 코드 변경 후 |
+| Gate 8 | bundle export·검증과 Lite paired smoke | 약 30초 | 배포·평가 도구 변경 후 |
 
 Gate 1~3의 시간은 2026-09-30 현재 개발 환경에서 측정한 참고값이다. 다른 CPU,
 PyTorch 버전, 파일시스템에서는 달라질 수 있으며, 시간 자체는 합격 기준이 아니다.
@@ -80,14 +83,19 @@ PYTHONPATH=. MPLCONFIGDIR=artifacts/.matplotlib python -m pytest -q
 현재 기준 예상 결과:
 
 ```text
-28 passed
+119 passed
 ```
 
 합격 기준:
 
 - process exit code가 0이다.
-- 28개 테스트가 모두 통과한다.
+- 119개 테스트가 모두 통과한다.
 - skip, failure, error가 없다.
+
+이 중 `tests/test_legacy_parity.py`는 기본 설정(Phase 0/M1)의 rollout·reward가 변경
+전과 같은지, `tests/test_observation_golden.py`는 관측 계약 golden vector를
+확인한다. 이 둘이 실패하면 M1 기준선 또는 ROS 관측 계약이 바뀐 것이므로 원인을
+확인하기 전에는 병합하지 않는다.
 
 predictive shield만 빠르게 확인할 때는 다음을 사용한다.
 
@@ -282,7 +290,50 @@ python -m amr_lite.cli.m1 \
 - manifest에 dataset/checkpoint hash와 실행 환경이 기록된다.
 - `REPORT.md`, summary, scenario별·training-seed별 summary가 생성된다.
 
-## 9. 결과 판정 순서
+## 9. Gate 6 — ROS 통합 패키지 테스트
+
+저장소 루트에서 실행한다. rclpy가 없으면 가짜 rclpy로 노드 배선을 검사한다.
+
+```bash
+python -m pytest -q integrations/ros2/amr_learned_planner/test
+```
+
+합격 기준: `26 passed`. Lite↔ROS 관측 일치(`1e-6`), golden vector, arbiter fallback,
+Lite 폐루프 도착 테스트가 포함된다. ROS2/Gazebo 실기동 절차는
+`integrations/ros2/amr_learned_planner/README.md`를 따른다.
+
+## 10. Gate 7 — 학습 스택 smoke
+
+```bash
+python -m amr_lite.cli.train_rl --smoke --output artifacts/runbook-check/ppo-v2
+python -m amr_lite.cli.dagger --smoke --output artifacts/runbook-check/dagger
+rm -rf artifacts/runbook-check/sweep
+python -m amr_lite.cli.sweep e3_lagrangian --smoke --output artifacts/runbook-check/sweep
+python -m amr_lite.cli.sweep e3_lagrangian --smoke --output artifacts/runbook-check/sweep --stage test
+```
+
+합격 기준:
+
+- 모든 명령의 exit code가 0이다.
+- PPO v2: `result.json`의 `status`가 `complete`이고 `best.pt`, `final.pt`, `training.csv`가 있다.
+- DAgger: `rounds.csv`에 round 0과 1이 있고 `best.pt`가 있다.
+- sweep: `leaderboard.csv`, `SELECTION.md`, `test/GATE_REPORT.md`가 생긴다. 같은
+  `--stage test`를 다시 실행하면 거부돼야 한다.
+- smoke의 G4 판정은 PASS/FAIL 어느 쪽이든 실행 경로 확인용이며 성능이 아니다.
+
+## 11. Gate 8 — Bundle export·검증과 Lite paired smoke
+
+```bash
+python -m amr_lite.cli.export_policy --checkpoint artifacts/runbook-check/ppo-v2/final.pt   --output artifacts/runbook-check/bundle
+python -m amr_lite.cli.verify_bundle artifacts/runbook-check/bundle --robot-profile opticore_gazebo
+python -m amr_lite.cli.paired lite --policy bundle:artifacts/runbook-check/bundle --legs 5 --seeds 0   --label smoke --output artifacts/runbook-check/paired.csv
+```
+
+합격 기준: `verify_bundle` exit 0, `golden_max_error` ≤ `1e-5`, `profile_mismatches`가
+비어 있음, paired CSV 1행 생성. Phase 0 checkpoint처럼 profile이 다른 bundle은
+`verify_bundle`이 exit 2로 불일치 항목을 보고하는 것이 정상이다.
+
+## 12. 결과 판정 순서
 
 결과를 볼 때는 아래 순서를 지킨다.
 
@@ -296,7 +347,7 @@ python -m amr_lite.cli.m1 \
 충돌률만 낮아지고 timeout이 늘어난 결과를 안전성 향상으로 단독 해석하지 않는다.
 또한 smoke 결과를 학습 성능이나 일반화 성능으로 인용하지 않는다.
 
-## 10. 자주 발생하는 문제
+## 13. 자주 발생하는 문제
 
 ### `ModuleNotFoundError: amr_lite`
 
@@ -338,7 +389,24 @@ PYTHONPATH=. python -m amr_lite.learning.collect_teacher \
 5. Python, PyTorch, NumPy 버전
 6. selection/test seed와 scenario randomization
 
-## 11. 실행 기록 템플릿
+### `A vector-env worker exited ... 'spawn' start method`
+
+subprocess vector env는 `spawn`으로 worker를 띄운다. 표준입력으로 넘긴 스크립트
+(`python - <<EOF`)에서는 동작하지 않는다. 모듈(`python -m ...`)이나
+`if __name__ == "__main__":`이 있는 파일로 실행하거나 `vector_env.backend=sync`를 쓴다.
+
+### `The test split was already evaluated for this sweep`
+
+의도된 보호다. test split은 sweep당 한 번만 연다. 실행 도중 중단된 경우에만
+`--force`로 다시 실행하고, 결과를 본 뒤의 재실행은 protocol version을 올린다.
+
+### ROS 노드가 `PROFILE_MISMATCH`로 주행하지 않음
+
+bundle의 robot profile(`verify_bundle` 출력)과 `config/learned_planner.yaml`의 로봇
+파라미터가 다르다. 배포에는 `opticore_gazebo`로 학습한 bundle을 쓰고, 파이프라인 점검용
+이전 bundle은 `profile_check:=warn`과 `mode:=shadow`로만 실행한다.
+
+## 14. 실행 기록 템플릿
 
 검증 결과를 PR, 이슈 또는 연구 노트에 남길 때 아래 형식을 사용한다.
 
@@ -352,20 +420,26 @@ AMR-Lite verification
 - Gate 1: PASS/FAIL, tests, elapsed
 - Gate 2: PASS/FAIL, output path, elapsed
 - Gate 3: PASS/FAIL, output path, elapsed
+- Gate 6: PASS/FAIL, tests
+- Gate 7: PASS/FAIL, output paths
+- Gate 8: PASS/FAIL, golden_max_error
 - M1 artifact audit: PASS/FAIL
-- Shield strategy: legacy/predictive
+- Shield strategy / robot profile: legacy|predictive|scan / lite_default|opticore_gazebo
 - Deviations from baseline:
 - Known failures observed:
 - Artifact/report path:
 ```
 
-## 12. 관련 문서
+## 15. 관련 문서
 
 - `packages/amr_lite/README.md`: 설치, 구성, 개별 학습·평가 명령
 - `experiments/phase0_amr_lite/RESULTS.md`: Phase 0 실험 결과와 해석
 - `experiments/m1_reproducibility/RESULTS.md`: M1 재현성 평가의 공식 요약
 - `experiments/phase0_amr_lite/DECISIONS.md`: 설계 선택과 근거
 - `experiments/phase0_amr_lite/KNOWN_LIMITATIONS.md`: 현재 주장할 수 없는 범위
-- `docs/NEXT_STEPS.md`: Phase 1 이후 후보 작업
+- `docs/NEXT_STEPS.md`: 마일스톤 밖 후속 항목과 팀 결정 질문
+- `docs/EXPERIMENT_PLAYBOOK.md`: M3·M4 학습 실험 절차와 예산
+- `docs/ARCHITECTURE.md`: 관측·행동·bundle·토픽 계약
+- `integrations/ros2/amr_learned_planner/README.md`: opticore-amr 설치·실행·paired 평가
 - `experiments/m1_reproducibility/artifacts/REPORT.md`: 생성된 M1 보고서
 - `experiments/m1_reproducibility/artifacts/manifest.json`: 실행·hash·환경 증적

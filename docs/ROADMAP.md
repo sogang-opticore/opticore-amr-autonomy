@@ -10,7 +10,9 @@ local planner로 대체하는 프로그램의 **마일스톤, 의사결정 gate,
 |---|---|
 | 본 문서 | 마일스톤, gate, 완료 기준, 위험 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 목표 스택, 관측·행동·bundle·토픽 계약 |
+| [EXPERIMENT_PLAYBOOK.md](EXPERIMENT_PLAYBOOK.md) | M3 확인부터 M4 후보 선정까지의 학습 실험 절차와 예산 |
 | [RUNBOOK.md](RUNBOOK.md) | 실행·검증 절차와 합격 판정 |
+| [amr_learned_planner README](../integrations/ros2/amr_learned_planner/README.md) | opticore-amr 설치·실행·fault injection·paired 평가 (M5·M6) |
 | [NEXT_STEPS.md](NEXT_STEPS.md) | 마일스톤 밖 후속 항목과 팀 결정 질문 |
 | [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) | 디렉터리와 의존성 원칙 |
 
@@ -102,17 +104,32 @@ planner를 "DWA" 또는 "기존 planner"로 부르고, 비교 기준선 B0로 �
 
 ## 4. 마일스톤 한눈에 보기
 
-| M | 이름 | 규모 | 코드 산출물 | 학습·검증 작업 | 종료 gate |
-|---|---|---|---|---|---|
-| M1 | 재현 가능한 평가 기준선 | 1 sprint | 완료 | 완료 | G1 승인 |
-| M2 | Sim-to-Sim parity와 배포 가능한 안전 계층 | 1–2 sprints | robot profile, LiDAR 재표본화, 센서·동역학 randomization, scan shield·tracker | parity·D0–D4 stress 평가 | G2 |
-| M3 | 대량 경량 학습 인프라 | 1–2 sprints | 절차적 시나리오, warehouse map, vector env, PPO v2, DAgger loop, sweep runner | smoke와 처리량 측정 | G3 |
-| M4 | 학습 실험과 배포 후보 선정 | 2–3 sprints | 선정·test gate, policy bundle, NumPy runtime | **sweep 학습 실행**, 선정, test 1회 | G4 |
-| M5 | `opticore-amr` ROS2 통합 | 1–2 sprints | `amr_learned_planner` 노드·arbiter·launch | DWA pass-through → shadow → learned | G5 |
-| M6 | Gazebo paired 검증과 release | 1–2 sprints | paired scenario, episode recorder, gap report | Lite↔Gazebo paired 실행, release | G6 |
+| M | 이름 | 규모 | 코드 산출물 | 코드 상태 | 학습·검증 작업 | 종료 gate |
+|---|---|---|---|---|---|---|
+| M1 | 재현 가능한 평가 기준선 | 1 sprint | 완료 | ✅ | 완료 | G1 승인 |
+| M2 | Sim-to-Sim parity와 배포 가능한 안전 계층 | 1–2 sprints | robot profile, LiDAR 재표본화, 센서·동역학 randomization, scan shield·tracker | ✅ 구현 | parity·D0–D4 stress 평가 | G2 |
+| M3 | 대량 경량 학습 인프라 | 1–2 sprints | 절차적 시나리오, warehouse map, vector env, PPO v2, DAgger loop, sweep runner | ✅ 구현 | 장비별 처리량 측정 | G3 |
+| M4 | 학습 실험과 배포 후보 선정 | 2–3 sprints | 선정·test gate, policy bundle, NumPy runtime | ✅ 구현 | **sweep 학습 실행**, 선정, test 1회 | G4 |
+| M5 | `opticore-amr` ROS2 통합 | 1–2 sprints | `amr_learned_planner` 노드·arbiter·launch | ✅ 구현(ROS 실기동 전) | DWA pass-through → shadow → learned | G5 |
+| M6 | Gazebo paired 검증과 release | 1–2 sprints | paired scenario, episode recorder, gap report | ✅ 구현(ROS 실기동 전) | Lite↔Gazebo paired 실행, release | G6 |
 
 이 저장소의 현재 작업 범위는 **학습 실행을 제외한 M2–M6의 코드 산출물 전체**다.
 학습 실행과 결과 판정은 각 마일스톤의 "학습·검증 작업"으로 남는다.
+
+### 4.1 구현 현황 (2026-10-13)
+
+| 영역 | 위치 | 검증 |
+|---|---|---|
+| 관측 parity | `amr_lite.sensors.lidar`, `learning.observation` | 기본 설정 rollout·reward·checkpoint가 변경 전과 bit 단위 동일, golden vector |
+| 센서·동역학 randomization | `amr_lite.sensors.randomization`, `configs/robot_profiles/` | seed 재현성, 지연·hold·scale 단위 테스트 |
+| 시나리오 | `envs.procedural`, `envs.grid_map`, `envs.warehouse_scenarios`, `configs/procedural.yaml`, `configs/paired/` | split별 재현성, A* 경로 보장, 정확한 거리장 |
+| 안전 계층 | `planning.scan_shield` | 도달 가능한 명령, track 예측, Lite env 통합 |
+| 학습 | `amr_lite.rl` (vector env, PPO v2), `learning.dagger_loop` | sync·subprocess 동일 결과, residual 초기 행동 = rule, pause/resume |
+| 실험 운영 | `experiments.sweep`, `experiments.gate`, `configs/sweeps/`, `configs/gates/g4.yaml` | smoke sweep의 train→select→test(1회)→gate |
+| 배포 | `amr_lite.deploy` (bundle export, NumPy runtime) | torch 출력과 `1e-5` 이내, torch 미import |
+| ROS2 | `integrations/ros2/amr_learned_planner` | ROS 없는 core·노드 배선·launch 배선 테스트, Lite↔ROS 관측 일치(`1e-6`), Lite 폐루프 주행 |
+
+ROS2/Gazebo 위에서의 실제 실행과 모든 학습 실험은 아직 수행하지 않았다.
 
 ## 5. 마일스톤 상세
 
@@ -129,8 +146,13 @@ M1 trainer(`amr_lite.learning.train_ppo`)와 protocol v1은 기준선 재현용�
 
 ### M2 — Sim-to-Sim parity와 배포 가능한 안전 계층
 
-상태: 예측형 shield 코어는 기존 구현. 본 프로그램에서 parity와 scan 기반 안전 계층을
-추가한다.
+상태: **코드 구현 완료, 평가 대기.** 기본 shield 전략은 여전히 `legacy`이며
+`opticore_gazebo` 학습 설정은 `scan`을 쓴다.
+
+초기 smoke 관찰(rule baseline, 시나리오당 6–8 seed, 공식 결과 아님): Gazebo
+profile에서 scan shield는 정답 정보 없이 legacy shield와 같은 결과를 냈고 `D1`은
+해결하지 못했다. scan shield에 후진 후보를 허용하면 동적 충돌은 줄었지만 정적
+충돌과 timeout이 늘었다. 후진 허용 여부는 G2에서 결정한다.
 
 목표:
 
@@ -164,6 +186,9 @@ M1 trainer(`amr_lite.learning.train_ppo`)와 protocol v1은 기준선 재현용�
 
 ### M3 — 대량 경량 학습 인프라
 
+상태: **코드 구현 완료.** 처리량 측정과 예산은
+[EXPERIMENT_PLAYBOOK.md](EXPERIMENT_PLAYBOOK.md) §1을 따른다.
+
 목표: 한 대의 개발 장비에서도 여러 설정 × 여러 seed 실험을 반복할 수 있게 한다.
 "지도"가 아니라 "지도 생성 규칙"을 기준으로 train/validation/test를 분리한다.
 
@@ -194,6 +219,10 @@ M1 trainer(`amr_lite.learning.train_ppo`)와 protocol v1은 기준선 재현용�
 - sweep이 중단 후 재개되고 완료 trial을 다시 학습하지 않는다.
 
 ### M4 — 학습 실험과 배포 후보 선정
+
+상태: **코드 구현 완료, 학습 실험 대기.** 실험 절차는
+[EXPERIMENT_PLAYBOOK.md](EXPERIMENT_PLAYBOOK.md), sweep 정의는
+`packages/amr_lite/configs/sweeps/e1_dagger.yaml`–`e6_candidate.yaml`이다.
 
 목표: 사전 등록한 protocol v2로 후보를 고르고 test split은 한 번만 연다.
 
@@ -231,6 +260,11 @@ M1 trainer(`amr_lite.learning.train_ppo`)와 protocol v1은 기준선 재현용�
 
 ### M5 — `opticore-amr` ROS2 통합
 
+상태: **코드 구현 완료, ROS2/Gazebo 실기동 대기.** 설치와 단계별 명령은
+[amr_learned_planner README](../integrations/ros2/amr_learned_planner/README.md).
+학습 전에는 Phase 0 Stable PPO bundle(`lite_default`, `profile_check:=warn`)로
+shadow 파이프라인만 점검할 수 있다.
+
 목표: 같은 bundle을 `opticore-amr`에서 실행하되, 기존 DWA를 끄지 않고 단계적으로
 권한을 넘긴다.
 
@@ -260,6 +294,9 @@ M1 trainer(`amr_lite.learning.train_ppo`)와 protocol v1은 기준선 재현용�
 - shadow 모드 최소 30 goal에서 학습 정책의 shield 개입률과 DWA 명령 차이가 기록된다.
 
 ### M6 — Gazebo paired 검증과 release
+
+상태: **도구 구현 완료, 실행 대기.** paired set `warehouse_v1`(8개 leg, Gazebo mover
+4개 포함), Gazebo runner·recorder, Lite paired 실행과 gap report가 준비됐다.
 
 목표: 같은 창고 지도·같은 goal 순서로 Lite와 Gazebo를 짝지어 실행해 sim-to-sim
 차이를 측정하고, 통과하면 학습 planner를 기본 모드로 승격한다.
