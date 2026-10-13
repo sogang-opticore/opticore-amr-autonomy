@@ -12,7 +12,7 @@ import numpy as np
 from amr_lite.config import load_config
 from amr_lite.learning.action import scale_action
 from amr_lite.learning.observation import build_observation
-from amr_lite.planning.astar import astar
+from amr_lite.planning.astar import astar, clearance_key
 from amr_lite.planning.path_utils import path_state, remaining_path_distance
 from amr_lite.planning.safety_shield import SafetyShield
 from amr_lite.sensors.lidar import ContractScanSpec, RawLidarSpec, resample_scan, simulate_raw_scan
@@ -72,6 +72,7 @@ class WarehouseEnv:
         self.robot: RobotState
         self.global_path: list[tuple[float, float]]
         self.elapsed = 0.0
+        self.episode_timeout = float(self.config["episode_timeout"])
         self.step_count = 0
         self.collision = False
         self.success = False
@@ -123,7 +124,7 @@ class WarehouseEnv:
         self.np_random = np.random.default_rng(seed)
         self._python_random.seed(seed)
         requested = (options or {}).get("scenario_id", self.scenario_id)
-        self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"))
+        self.scenario = make_scenario(requested, seed, self.config.get("scenario_randomization"), self.config)
         self.shield.reset()
         self.sensor_model, self._noise_rng = episode_sensor_model(self.config, seed)
         self.robot = copy.deepcopy(self.scenario.start)
@@ -133,6 +134,7 @@ class WarehouseEnv:
             self.robot.y += float(self.np_random.uniform(-amount, amount))
             self.robot.theta += float(self.np_random.uniform(-amount, amount))
         inflation = self.config["robot_radius"] + self.config["obstacle_inflation"]
+        planner_clearance = clearance_key(self.config.get("astar_clearance"))
         path_key = (
             self.scenario.instance_id,
             float(self.config["grid_resolution"]),
@@ -140,6 +142,14 @@ class WarehouseEnv:
             tuple((rect.x_min, rect.y_min, rect.x_max, rect.y_max)
                   for rect in self.scenario.warehouse_map.obstacles),
         )
+        if planner_clearance is not None:
+            path_key += (planner_clearance,)
+        reference = self.scenario.reference_path
+        if (reference and path_key not in _PATH_CACHE
+                and self.scenario.reference_planner == (float(self.config["grid_resolution"]), float(inflation),
+                                                        planner_clearance)
+                and (self.robot.x, self.robot.y) == (self.scenario.start.x, self.scenario.start.y)):
+            _PATH_CACHE[path_key] = tuple(reference)
         if path_key in _PATH_CACHE:
             _PATH_CACHE.move_to_end(path_key)
         else:
@@ -149,6 +159,7 @@ class WarehouseEnv:
                 self.scenario.goal,
                 self.config["grid_resolution"],
                 inflation,
+                self.config.get("astar_clearance"),
             ))
             if len(_PATH_CACHE) > _PATH_CACHE_LIMIT:
                 _PATH_CACHE.popitem(last=False)
@@ -157,6 +168,12 @@ class WarehouseEnv:
             self.global_path = perturb_path(self.global_path, self.sensor_model.path_resample_spacing,
                                             self.sensor_model.path_lateral_noise, self._noise_rng)
         self.elapsed = 0.0
+        self.episode_timeout = float(self.config["episode_timeout"])
+        per_meter = float(self.config.get("episode_timeout_per_meter", 0.0))
+        if per_meter > 0.0 and len(self.global_path) > 1:
+            shortest = sum(math.dist(a, b) for a, b in zip(self.global_path, self.global_path[1:]))
+            self.episode_timeout = max(self.episode_timeout, float(
+                self.config.get("episode_timeout_base", 6.0)) + per_meter * shortest)
         self.step_count = 0
         self.collision = False
         self.success = False
@@ -293,7 +310,7 @@ class WarehouseEnv:
         reward = float(sum(reward_components.values()))
         self.cumulative_reward += reward
         terminated = self.collision or self.success or invalid or not self.global_path
-        truncated = self.elapsed >= self.config["episode_timeout"] and not terminated
+        truncated = self.elapsed >= self.episode_timeout and not terminated
         self.previous_action = action_array.copy()
         self.previous_path_remaining = current_path_remaining
         info = self._info(reward_components=reward_components, invalid_action=invalid,
@@ -432,9 +449,9 @@ class WarehouseEnv:
             return "OSCILLATION"
         if self.total_abs_rotation > 4.0 * math.pi:
             return "CIRCLING"
-        if self.idle_time > self.config["episode_timeout"] * 0.6:
+        if self.idle_time > self.episode_timeout * 0.6:
             return "STUCK"
-        return "TIMEOUT" if self.elapsed >= self.config["episode_timeout"] else ""
+        return "TIMEOUT" if self.elapsed >= self.episode_timeout else ""
 
     def _info(self, seed: int | None = None, reward_components: dict | None = None,
               invalid_action: bool = False, **extra: Any) -> dict[str, Any]:
@@ -489,6 +506,10 @@ class WarehouseEnv:
 
         fig, ax = plt.subplots(figsize=(9, 6), dpi=100)
         ax.set(xlim=(0, self.scenario.warehouse_map.width), ylim=(0, self.scenario.warehouse_map.height), aspect="equal")
+        grid = getattr(self.scenario.warehouse_map, "occupied_cells", None)
+        if grid is not None:
+            ax.imshow(grid, origin="lower", cmap="Greys", vmin=0, vmax=1.6, interpolation="nearest",
+                      extent=(0, self.scenario.warehouse_map.width, 0, self.scenario.warehouse_map.height))
         for rect in self.scenario.warehouse_map.obstacles:
             ax.add_patch(PatchRectangle((rect.x_min, rect.y_min), rect.x_max - rect.x_min,
                                         rect.y_max - rect.y_min, color="#39424e"))

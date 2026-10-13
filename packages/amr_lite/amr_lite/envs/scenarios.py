@@ -23,12 +23,69 @@ class DynamicObstacle:
     motion_type: str = "cross"
     start_delay: float = 0.0
     stop_time: float | None = None
+    # Reverse direction after travelling this far (procedural "patrol" agents).
+    patrol_distance: float | None = None
+    travelled: float = 0.0
 
     def update(self, time: float, dt: float) -> None:
         if time < self.start_delay or (self.stop_time is not None and time >= self.stop_time):
             return
         self.x += self.vx * dt
         self.y += self.vy * dt
+        if self.patrol_distance:
+            self.travelled += math.hypot(self.vx, self.vy) * dt
+            if self.travelled >= self.patrol_distance:
+                self.vx, self.vy, self.travelled = -self.vx, -self.vy, 0.0
+
+
+def smoothstep(value: float) -> float:
+    value = max(0.0, min(1.0, value))
+    return value * value * (3.0 - 2.0 * value)
+
+
+@dataclass
+class WaypointObstacle(DynamicObstacle):
+    """Agent that eases between waypoints and pauses at each one.
+
+    Mirrors ``amr_bringup/src/dynamic_obstacle_mover.py`` of opticore-amr so
+    paired Lite scenarios reproduce the Gazebo actors. ``vx``/``vy`` hold the
+    current velocity for the shields; pauses are drawn from ``pause_seed``.
+    """
+
+    waypoints: tuple[tuple[float, float], ...] = ()
+    speed: float = 0.5
+    pause_range: tuple[float, float] = (0.0, 0.0)
+    pause_seed: int = 0
+
+    def __post_init__(self) -> None:
+        self._rng = np.random.default_rng(self.pause_seed)
+        self._target = 1 % max(1, len(self.waypoints))
+        self._source = 0
+        self._segment_time = 0.0
+        self._pause = 0.0
+
+    def update(self, time: float, dt: float) -> None:
+        if time < self.start_delay or len(self.waypoints) < 2:
+            return
+        if self._pause > 0.0:
+            self._pause -= dt
+            self.vx = self.vy = 0.0
+            if self._pause <= 0.0:
+                self._segment_time = 0.0
+            return
+        (x0, y0), (x1, y1) = self.waypoints[self._source], self.waypoints[self._target]
+        distance = math.hypot(x1 - x0, y1 - y0)
+        self._segment_time += dt
+        progress = self._segment_time / max(distance / max(self.speed, 1e-6), 1e-9)
+        if progress >= 1.0:
+            self.x, self.y, self.vx, self.vy = x1, y1, 0.0, 0.0
+            self._source, self._target = self._target, (self._target + 1) % len(self.waypoints)
+            self._pause = float(self._rng.uniform(*self.pause_range))
+            return
+        blend = smoothstep(progress)
+        x, y = x0 + (x1 - x0) * blend, y0 + (y1 - y0) * blend
+        self.vx, self.vy = (x - self.x) / dt, (y - self.y) / dt
+        self.x, self.y = x, y
 
 
 @dataclass
@@ -40,6 +97,10 @@ class Scenario:
     dynamic_obstacles: list[DynamicObstacle]
     solvable: bool = True
     instance_id: str = ""
+    # A* path validated by a generator for (resolution, inflation); lets the
+    # environment skip re-planning when the start pose is not perturbed.
+    reference_path: tuple[tuple[float, float], ...] | None = None
+    reference_planner: tuple[float, float] | None = None
 
 
 def _instance_id(scenario_id: str, seed: int, start: RobotState, goal: tuple[float, float],
@@ -112,7 +173,21 @@ def _randomize_dynamic_obstacles(rng: np.random.Generator, dynamics: list[Dynami
     return randomized
 
 
-def make_scenario(scenario_id: str, seed: int = 0, randomization: dict | None = None) -> Scenario:
+def make_scenario(scenario_id: str, seed: int = 0, randomization: dict | None = None,
+                  sources: dict | None = None) -> Scenario:
+    """Build a scenario instance.
+
+    ``S*``/``D*`` are the fixed Phase 0/M1 scenarios (jittered by
+    ``randomization``). ``P-*``/``PD-*`` are procedural families and ``WH*``
+    scenarios use the opticore-amr warehouse map; their settings come from
+    ``sources`` (the environment config).
+    """
+    if scenario_id.startswith(("P-", "PD-")):
+        from .procedural import make_procedural_scenario
+        return make_procedural_scenario(scenario_id, seed, sources or {})
+    if scenario_id.startswith("WH"):
+        from .warehouse_scenarios import make_warehouse_scenario
+        return make_warehouse_scenario(scenario_id, seed, sources or {})
     specs: dict[str, tuple[list[Rectangle], RobotState, tuple[float, float], bool]] = {
         "S0": ([], RobotState(1.0, 4.0, 0.0), (11.0, 4.0), True),
         "S1": ([Rectangle(5.0, 0.0, 5.5, 5.7)], RobotState(1.0, 2.0, 0.0), (9.5, 6.5), True),

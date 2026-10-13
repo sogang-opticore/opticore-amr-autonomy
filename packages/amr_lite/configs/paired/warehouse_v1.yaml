@@ -1,0 +1,31 @@
+# Paired Lite <-> Gazebo scenario set on the opticore-amr warehouse map.
+#
+# All coordinates are in the ROS `map` frame, i.e. what /goal_pose uses, so the
+# Gazebo runner (amr_learned_planner goal_sequence_runner) sends exactly these
+# goals. Lite runs leg NN as scenario WH-warehouse_v1-NN; leg k starts where
+# leg k-1 arrived.
+#
+# start: amr1 spawn, world (3.0, 13.0) -> map (0.0, -2.0) with
+#        map = world - (3.0, 15.0) (multi_robot.launch.py fleet_localization_init;
+#        the CCTV calibration measured (2.96, 15.12)).
+# agents: amr_bringup/src/dynamic_obstacle_mover.py actors converted with the
+#         same offset. They move through walls in Gazebo as well (teleported).
+name: warehouse_v1
+map: opticore_warehouse
+frame: map
+start: {x: 0.0, y: -2.0, yaw: 0.0}
+goal_timeout_sec: 120.0
+legs:
+  - {name: west_to_aisle_a, goal: {x: 20.0, y: 3.0}}
+  - {name: aisle_a_to_aisle_b_cross_gap, goal: {x: 36.0, y: -3.0}}
+  - {name: aisle_b_to_northeast, goal: {x: 50.0, y: 10.0}}
+  - {name: north_traverse_past_pillar, goal: {x: 27.0, y: 12.0}}
+  - {name: into_pinch_corridor, goal: {x: 11.5, y: 0.0}}
+  - {name: pinch_exit_southwest, goal: {x: 8.0, y: -10.0}}
+  - {name: south_long_straight, goal: {x: 40.0, y: -11.0}}
+  - {name: return_to_start, goal: {x: 0.0, y: -2.0}}
+agents:
+  - {name: person_1, waypoints: [[11.0, 3.0], [14.0, 3.0]], speed: 0.6, pause: [3.0, 5.0], radius: 0.3}
+  - {name: forklift_1, waypoints: [[7.0, 15.0], [11.0, 15.0]], speed: 0.4, pause: [4.0, 6.0], radius: 0.6}
+  - {name: person_2, waypoints: [[29.0, 5.0], [30.0, 5.0]], speed: 0.4, pause: [5.0, 8.0], radius: 0.3}
+  - {name: person_3, waypoints: [[22.0, -1.0], [23.0, -1.0]], speed: 0.4, pause: [5.0, 8.0], radius: 0.3}

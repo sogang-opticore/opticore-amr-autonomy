@@ -26,3 +26,9 @@ overrides:
   sensor_model:
     scan_period: 0.1          # gpu_lidar update_rate 10 Hz
     range_noise_std: 0.03     # gpu_lidar gaussian noise stddev
+  # Planner parity: the opticore-amr A* adds a wall-distance cost, so its
+  # global paths stay centred in 2 m shelf gaps; plan the same way in Lite.
+  astar_clearance:
+    enabled: true
+  # Warehouse/procedural paths are longer than the 10 m Phase 0 scenarios.
+  episode_timeout_per_meter: 2.0
