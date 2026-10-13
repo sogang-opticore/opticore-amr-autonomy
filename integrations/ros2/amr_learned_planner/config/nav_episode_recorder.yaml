@@ -1,0 +1,11 @@
+nav_episode_recorder:
+  ros__parameters:
+    use_sim_time: true
+    label: ros
+    output_csv: nav_episodes.csv
+    robot_radius: 0.36
+    collision_clearance: 0.0       # LiDAR return inside the 0.36 m footprint circle -> collision proxy
+    timeout_sec: 120.0
+    lidar_mount_x: 0.25
+    lidar_mount_y: 0.0
+    lidar_mount_yaw: 0.0

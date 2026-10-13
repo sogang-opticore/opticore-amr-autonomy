@@ -1,0 +1,14 @@
+# Command arbiter (amr_learned_planner/cmd_arbiter_node.py): the only
+# publisher of cmd_vel and of the dwa/status that A* listens to.
+cmd_arbiter:
+  ros__parameters:
+    use_sim_time: true
+    mode: shadow                   # dwa | shadow | learned
+    cmd_timeout: 0.25
+    health_timeout: 0.5
+    fallback_hold_sec: 0.3         # stop before handing over to the DWA
+    min_fallback_sec: 2.0
+    recover_after_sec: 2.0
+    allow_recovery: true
+    rate: 20.0
+    state_period: 1.0

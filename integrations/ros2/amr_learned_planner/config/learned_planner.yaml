@@ -1,0 +1,47 @@
+# Learned planner (amr_learned_planner/learned_planner_node.py). Robot limits
+# must equal the bundle's robot profile (opticore_gazebo); with
+# profile_check: strict a mismatch keeps the planner out of control.
+learned_planner:
+  ros__parameters:
+    use_sim_time: true
+    bundle_path: ""
+    profile_check: strict          # strict | warn (warn: shadow testing only)
+    control_rate: 20.0
+    v_max: 1.5
+    w_max: 1.5
+    accel_max: 1.0
+    decel_max: 2.0
+    angular_accel_max: 1.5
+    robot_radius: 0.36
+    lidar_mount_x: 0.25            # URDF lidar_joint
+    lidar_mount_y: 0.0
+    lidar_mount_yaw: 0.0
+    goal_tolerance: 0.25           # dwa_params.yaml uses 0.20 (single) / 0.40 (multi_robot launch)
+    goal_reached_epsilon: 0.03
+    goal_reached_stopped_speed: 0.03
+    reached_new_path_rearm_dist: 0.75
+    path_lost_offset: 1.8
+    path_search_back: 2
+    path_search_ahead: 40
+    odom_timeout: 0.5
+    scan_timeout: 0.5
+    deadline_ms: 25.0
+    deadline_miss_limit: 3
+    shield_enabled: true
+    emergency_after_sec: 1.0       # STOP this long -> EMERGENCY (A* re-plans)
+    emergency_repeat_sec: 2.0
+    path_lost_repeat_sec: 2.0
+    fault_on_saturation: false
+    fault_injection: none          # none | nan_action | slow_inference | stale_scan (M5 tests)
+    odom_topic: /odometry/filtered
+    odom_fallback_topic: /odom
+    global_path_topic: /global_path
+    goal_pose_topic: /goal_pose
+    scan_topic: /lidar
+    cmd_topic: learned_planner/cmd_vel
+    status_topic: learned_planner/status
+    health_topic: learned_planner/health
+    local_frame: odom_filtered
+    global_frame: map
+    path_tf_timeout: 1.0
+    status_period: 1.0
