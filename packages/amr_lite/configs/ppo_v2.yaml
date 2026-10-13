@@ -9,6 +9,8 @@ environment_overrides:
     enabled: true
   procedural:
     split: train
+  domain_randomization:
+    enabled: true           # stages below only set its probability
 policy:
   mode: residual            # direct | residual (a = clip(rule + scale * pi, -1, 1))
   residual_scale: 0.5
@@ -56,18 +58,18 @@ curriculum:
       until: 0.2
       scenarios: {S0: 1, S1: 1, S3: 1, S4: 1, P-AISLE: 2, P-PINCH: 1}
       environment_overrides:
-        domain_randomization: {enabled: true, probability: 0.0}
+        domain_randomization: {probability: 0.0}
     - name: static_mixed
       until: 0.5
       scenarios: {S1: 1, S2: 1, S3: 1, S4: 1, S5: 1, P-MIXED: 4, WH-RANDOM: 1}
       environment_overrides:
-        domain_randomization: {enabled: true, probability: 0.5}
+        domain_randomization: {probability: 0.5}
     - name: dynamic
       until: 1.0
       scenarios: {S2: 1, S3: 1, S4: 1, D0: 1, D1: 1, D2: 1, D3: 1, D4: 1,
                   P-MIXED: 3, PD-MIXED: 4, WH-RANDOM: 1, WHD-RANDOM: 1}
       environment_overrides:
-        domain_randomization: {enabled: true, probability: 1.0}
+        domain_randomization: {probability: 1.0}
 evaluation:
   protocol: evaluation_selection_v2
   interval_updates: 20      # 0 disables in-training selection

@@ -1,0 +1,19 @@
+# G4 deployment-candidate gate (docs/ROADMAP.md, M4). Pre-registered: do not
+# edit after the test split has been opened; change it with a new protocol
+# version and a recorded decision instead.
+reference: lite_rule_baseline
+non_inferiority:              # shield OFF, paired by scenario instance and seed
+  success_delta_ci_low_min: -0.02
+  collision_delta_ci_high_max: 0.01
+improvement:                  # at least one must hold (shield OFF, point estimates)
+  dynamic_scenarios: [D0, D1, D2, D3, D4, PD-AISLE, PD-HALL, PD-PINCH, PD-JUNCTION, WHD-RANDOM]
+  dynamic_success_delta_min: 0.05
+  mean_time_ratio_max: 0.95   # candidate / reference mean episode time on episodes both solved
+robustness:                   # across training seeds, shield OFF
+  worst_seed_gap_max: 0.05    # median success - worst success
+  best_final_gap_max: 0.10    # per seed: best success - final success
+behaviour:
+  failure_types: [CIRCLING, OSCILLATION, STUCK]
+  max_rate: 0.02
+shield_on:
+  saturation_rate_max: 0.05

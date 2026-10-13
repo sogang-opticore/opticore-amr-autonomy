@@ -26,6 +26,9 @@ class PPOPolicy:
             raise ValueError("A residual policy needs a base policy")
         self.network, self.mode, self.residual_scale, self.base = network.eval(), mode, float(residual_scale), base
         self.name = name
+        # Observation-construction settings are part of the policy, not of the
+        # evaluation protocol (e.g. the frame-stack ablation).
+        self.observation_overrides: dict[str, Any] = {}
 
     def base_actions(self, observations: np.ndarray) -> np.ndarray:
         return np.stack([self.base.predict(item) for item in observations]).astype(np.float32)
@@ -55,7 +58,9 @@ def build_policy(checkpoint: dict[str, Any], name: str = "ppo_v2") -> PPOPolicy:
     base = None
     if mode == "residual":
         base = RuleBasedPlanner(checkpoint["env_config"], checkpoint.get("baseline_config"))
-    return PPOPolicy(network, mode, float(policy.get("residual_scale", 0.5)), base, name)
+    result = PPOPolicy(network, mode, float(policy.get("residual_scale", 0.5)), base, name)
+    result.observation_overrides = {"history_mode": checkpoint["env_config"].get("history_mode", "stack")}
+    return result
 
 
 def load_ppo_v2(path: str | Path) -> PPOPolicy:

@@ -26,6 +26,7 @@ def observation_contract(config: dict[str, Any]) -> dict[str, Any]:
         "size": OBSERVATION_SIZE,
         "history_frames": HISTORY_FRAMES,
         "frame_order": "oldest_to_newest",
+        "history_mode": str(config.get("history_mode", "stack")),
         "lidar_rays": int(config["lidar_rays"]),
         "lidar_fov_deg": float(config["lidar_fov_deg"]),
         "lidar_max_range": float(config["lidar_max_range"]),

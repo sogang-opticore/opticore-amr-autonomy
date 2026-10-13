@@ -1,0 +1,21 @@
+# E1 - BC -> DAgger (ROADMAP M4). Does DAgger beat plain BC, and does the
+# risk-weighted loss help? The teacher is lite_rule_baseline.
+name: e1_dagger
+trainer: dagger
+base_config: dagger
+training_seeds: [7, 17, 29]
+variants:
+  bc_only: {rounds: 0}
+  dagger3: {rounds: 3}
+  dagger3_unweighted: {rounds: 3, bc: {risk_weight: 1.0}}
+parallel_trials: 2
+selection:
+  protocol: evaluation_selection_v2
+  workers: 4
+  evaluate_final: false
+  rule:
+    constraints: {collision_rate_max: 0.20, timeout_rate_max: 0.20}
+test:
+  protocol: evaluation_test_v2
+  workers: 4
+  include_final: false

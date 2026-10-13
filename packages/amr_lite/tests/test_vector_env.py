@@ -83,3 +83,20 @@ def test_protocol_episodes_expand_scenarios_and_seeds():
     protocol = {"seed": 20000, "episodes_per_scenario": 2, "scenarios": ["S0", "D1"]}
     assert protocol_episodes(protocol) == [("S0", 20000), ("S0", 20001), ("D1", 20000), ("D1", 20001)]
     assert protocol_episodes(protocol, 1) == [("S0", 20000), ("D1", 20000)]
+
+
+def test_parallel_evaluator_matches_sequential_and_honours_robot_profile(tmp_path):
+    from amr_lite.evaluation import evaluate
+
+    timing = {"inference_ms", "simulation_steps_per_second"}
+    config = {"seed": 3, "episodes_per_scenario": 1, "scenarios": ["S3", "D0"], "max_steps": 400,
+              "shield_modes": [False, True], "bootstrap_resamples": 20, "robot_profile": "opticore_gazebo",
+              "environment_overrides": {"shield_strategy": "scan"}}
+    planner = RuleBasedPlanner(resolve_env_config("opticore_gazebo"))
+    sequential, _ = evaluate({"rule": planner}, tmp_path / "seq", config)
+    parallel, _ = evaluate({"rule": planner}, tmp_path / "par", {**config, "workers": 2})
+    strip = lambda rows: [{k: v for k, v in row.items() if k not in timing} for row in rows]
+    assert strip(sequential) == strip(parallel)
+    assert {row["shield_strategy"] for row in sequential} == {"scan"}
+    environment = __import__("json").loads((tmp_path / "seq" / "config.json").read_text())["environment"]
+    assert environment["robot_profile"] == "opticore_gazebo" and environment["w_max"] == 1.5

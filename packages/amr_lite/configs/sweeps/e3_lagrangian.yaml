@@ -1,0 +1,20 @@
+# E3 - PPO-Lagrangian on the per-step safety cost (collision + near miss).
+name: e3_lagrangian
+trainer: ppo_v2
+base_config: ppo_v2
+training_seeds: [7, 17, 29]
+budget:
+  total_timesteps: 1000000
+variants:
+  unconstrained: {lagrangian: {enabled: false}}
+  cost_0p01: {lagrangian: {enabled: true, cost_limit: 0.01}}
+  cost_0p03: {lagrangian: {enabled: true, cost_limit: 0.03}}
+parallel_trials: 2
+selection:
+  protocol: evaluation_selection_v2
+  workers: 4
+  rule:
+    constraints: {collision_rate_max: 0.15, timeout_rate_max: 0.15}
+test:
+  protocol: evaluation_test_v2
+  workers: 4

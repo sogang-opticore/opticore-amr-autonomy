@@ -1,0 +1,22 @@
+# E6 - deployment candidate (ROADMAP M4, gate G4). Fill `variants.candidate`
+# with the settings chosen at G3 from E1-E5 before training; then run
+# train/select and, once, the test stage.
+name: e6_candidate
+trainer: ppo_v2
+base_config: ppo_v2
+training_seeds: [7, 17, 29, 43, 59]
+budget:
+  total_timesteps: 5000000
+variants:
+  candidate: {}
+parallel_trials: 2
+selection:
+  protocol: evaluation_selection_v2
+  workers: 4
+  rule:
+    constraints: {collision_rate_max: 0.10, timeout_rate_max: 0.10}
+test:
+  protocol: evaluation_test_v2
+  workers: 4
+  include_final: true
+  gate: gates/g4

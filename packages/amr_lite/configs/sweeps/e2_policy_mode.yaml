@@ -1,0 +1,24 @@
+# E2 - residual on the rule baseline vs direct policies (ROADMAP M4).
+# direct_bc needs a teacher dataset: see docs/EXPERIMENT_PLAYBOOK.md step 2.
+name: e2_policy_mode
+trainer: ppo_v2
+base_config: ppo_v2
+training_seeds: [7, 17, 29]
+budget:
+  total_timesteps: 1000000
+variants:
+  residual_0p5: {policy: {mode: residual, residual_scale: 0.5}}
+  residual_0p3: {policy: {mode: residual, residual_scale: 0.3}}
+  direct_scratch: {policy: {mode: direct}}
+  direct_bc:
+    policy: {mode: direct}
+    warm_start: {dataset: [artifacts/datasets/teacher_opticore_gazebo], anchor_coef: 0.5}
+parallel_trials: 2
+selection:
+  protocol: evaluation_selection_v2
+  workers: 4
+  rule:
+    constraints: {collision_rate_max: 0.15, timeout_rate_max: 0.15}
+test:
+  protocol: evaluation_test_v2
+  workers: 4

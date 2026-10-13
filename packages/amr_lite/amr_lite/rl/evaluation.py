@@ -59,7 +59,7 @@ def run_episodes(policy: Any, episodes: Sequence[tuple[str, int]], env_config: d
 
     Episodes end by the environment's own termination or timeout.
     """
-    config = dict(env_config)
+    config = deep_merge(env_config, getattr(policy, "observation_overrides", None))
     if shield_enabled is not None:
         config["shield_enabled"] = bool(shield_enabled)
     count = max(1, min(int(workers), len(episodes)))

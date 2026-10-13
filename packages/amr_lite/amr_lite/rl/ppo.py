@@ -127,9 +127,11 @@ def checkpoint_payload(network: PolicyNetwork, cfg: dict[str, Any], env_config: 
     }
 
 
-def _policy_for(network: PolicyNetwork, cfg: dict[str, Any], base: RuleBasedPlanner | None) -> PPOPolicy:
-    mode = cfg["policy"]["mode"]
-    return PPOPolicy(network, mode, float(cfg["policy"].get("residual_scale", 0.5)), base)
+def _policy_for(network: PolicyNetwork, cfg: dict[str, Any], base: RuleBasedPlanner | None,
+                env_config: dict[str, Any]) -> PPOPolicy:
+    policy = PPOPolicy(network, cfg["policy"]["mode"], float(cfg["policy"].get("residual_scale", 0.5)), base)
+    policy.observation_overrides = {"history_mode": env_config.get("history_mode", "stack")}
+    return policy
 
 
 def train(output: str | Path, config: dict[str, Any] | None = None, *, smoke: bool = False,
@@ -348,7 +350,7 @@ def train(output: str | Path, config: dict[str, Any] | None = None, *, smoke: bo
                 if "scenarios" in evaluation_cfg:
                     protocol["scenarios"] = list(evaluation_cfg["scenarios"])
                 metrics, _ = evaluate_protocol(
-                    _policy_for(network, cfg, base), protocol, robot_profile=cfg.get("robot_profile"),
+                    _policy_for(network, cfg, base, env_config), protocol, robot_profile=cfg.get("robot_profile"),
                     episodes_per_scenario=evaluation_cfg.get("episodes_per_scenario"),
                     workers=int(evaluation_cfg.get("workers", 1)), backend=str(evaluation_cfg.get("backend", "sync")))
                 network.train()

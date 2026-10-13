@@ -438,7 +438,10 @@ class WarehouseEnv:
     def _observation(self) -> np.ndarray:
         robot = self._perceived_robot()
         path = path_state(self.global_path, robot, self.config["lookahead_distance"])
-        return build_observation(list(self.scan_history), path, robot,
+        scans = list(self.scan_history)
+        if self.config.get("history_mode", "stack") == "newest":
+            scans = [scans[-1]] * len(scans)  # frame-stack ablation: no temporal information
+        return build_observation(scans, path, robot,
                                  self.config["lidar_max_range"], self.config["goal_distance_scale"],
                                  self.config["v_max"], self.config["w_max"],
                                  self.config["max_cross_track_error"])

@@ -9,6 +9,7 @@ results for the same specs.
 from __future__ import annotations
 
 import multiprocessing as mp
+import time
 import zlib
 from dataclasses import dataclass, field
 from typing import Any, Sequence
@@ -66,6 +67,8 @@ class EpisodeSlot:
         self.episode_return = 0.0
         self.episode_cost = 0.0
         self.episode_length = 0
+        self.actions: list[np.ndarray] = []
+        self.env_seconds = 0.0
         self.current: tuple[str, int, str] = ("", 0, "")
         self._rng = np.random.default_rng(np.random.SeedSequence(
             [int(spec.training_seed) % 2**32, spec.index, zlib.crc32(b"scenario-sampler")]))
@@ -96,14 +99,19 @@ class EpisodeSlot:
             self._env_key = key
         observation, _ = self.env.reset(seed=seed, options={"scenario_id": scenario})
         self.current = (scenario, seed, stage)
-        self.episode_return = self.episode_cost = 0.0
+        self.episode_return = self.episode_cost = self.env_seconds = 0.0
         self.episode_length = 0
+        self.actions = []
         return observation
 
     def step(self, action: np.ndarray) -> tuple[np.ndarray, float, float, bool, bool, dict[str, Any]]:
         if self.exhausted:
             return np.zeros(296, dtype=np.float32), 0.0, 0.0, True, False, {"exhausted": True}
+        action = np.asarray(action, dtype=np.float32)
+        self.actions.append(action)
+        started = time.perf_counter()
         observation, reward, terminated, truncated, info = self.env.step(action)
+        self.env_seconds += time.perf_counter() - started
         cost = float(info.get("safety_cost", 0.0))
         self.episode_return += reward
         self.episode_cost += cost
@@ -114,6 +122,9 @@ class EpisodeSlot:
             compact.update({
                 "episode_return": self.episode_return, "episode_cost": self.episode_cost,
                 "episode_length": self.episode_length, "truncated": bool(truncated),
+                "terminated": bool(terminated),
+                "action_smoothness": _smoothness(self.actions),
+                "simulation_steps_per_second": self.episode_length / max(self.env_seconds, 1e-9),
                 "seed": self.current[1], "stage": self.current[2],
                 "final_observation": observation,
             })
@@ -122,6 +133,12 @@ class EpisodeSlot:
 
     def set_progress(self, progress: float) -> None:
         self.progress = float(progress)
+
+
+def _smoothness(actions: list[np.ndarray]) -> float:
+    """Mean squared action change; same expression as the sequential evaluator."""
+    diffs = np.diff(np.asarray(actions), axis=0) if len(actions) > 1 else np.zeros((1, 2))
+    return float(np.mean(np.sum(diffs * diffs, axis=1)))
 
 
 class SyncVectorEnv:
