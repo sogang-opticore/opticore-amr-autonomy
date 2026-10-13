@@ -15,7 +15,8 @@ experiments/
   phase0_amr_lite/          Phase 0 결정·결과·한계와 선별 산출물
   m1_reproducibility/       M1 재현성 결과·manifest·요약·그래프
 docs/
-  ROADMAP.md                M0–M5 마일스톤과 의사결정 gate
+  ROADMAP.md                DWA → 학습형 local planner 마일스톤과 gate
+  ARCHITECTURE.md           목표 스택과 관측·행동·bundle·토픽 계약
   RUNBOOK.md                단계별 실행·검증·복구 절차
   NEXT_STEPS.md             후속 기술 항목과 팀 결정 질문
   REPOSITORY_STRUCTURE.md   디렉터리와 의존성 원칙
@@ -54,6 +55,7 @@ PYTHONPATH=. MPLCONFIGDIR=artifacts/.matplotlib python -m amr_lite.cli.train
 ## 문서
 
 - [향후 마일스톤](docs/ROADMAP.md)
+- [학습형 planner 아키텍처와 계약](docs/ARCHITECTURE.md)
 - [실행·검증 런북](docs/RUNBOOK.md)
 - [다음 기술 항목](docs/NEXT_STEPS.md)
 - [저장소 구조 원칙](docs/REPOSITORY_STRUCTURE.md)
