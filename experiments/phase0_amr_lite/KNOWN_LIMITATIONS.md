@@ -1,5 +1,9 @@
 # Known Limitations
 
+> 2026-09-08 Phase 0 시점의 기록이다. LiDAR 잡음·mount offset·actuator delay, frame-stack ablation,
+> 병렬 environment, constrained RL(PPO-Lagrangian)은 이후 M2–M3에서 구현됐다. 현재 코드의 한계는
+> [docs/internals](../../docs/internals/README.md)의 각 문서 "주의할 점과 알려진 한계" 절을 따른다.
+
 - `lite_rule_baseline`은 기존 ROS rule-based hybrid local planner와 동일하지 않다. Pure Pursuit, 경로 오차 보정, 속도 상한, clearance 감속, 단순 recovery만 포함한다.
 - 물리는 평면 kinematic differential-drive이며 wheel slip, 관성, actuator delay, 접촉력은 없다.
 - 로봇은 0.36 m 원이고 장애물은 축 정렬 직사각형 또는 원이다.
