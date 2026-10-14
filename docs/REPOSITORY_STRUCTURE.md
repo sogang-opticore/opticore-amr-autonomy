@@ -37,7 +37,9 @@ opticore-amr-autonomy/
 │   ├── EXPERIMENT_PLAYBOOK.md
 │   ├── RUNBOOK.md
 │   ├── NEXT_STEPS.md
-│   └── REPOSITORY_STRUCTURE.md
+│   ├── REPOSITORY_STRUCTURE.md
+│   ├── internals/           서브시스템별 코드 동작 설명
+│   └── handover/            spike 회고, 검증 현황, 방향, 온보딩
 ├── README.md
 └── LICENSE
 ```
@@ -72,6 +74,10 @@ opticore-amr-autonomy/
 - 저장소·브랜치 운영 방식
 - 공통 observation/action 계약
 - 향후 ROS2/Gazebo 통합 설계
+- `internals/`: 서브시스템별로 코드가 실제로 하는 일, 설정, 검증 범위, 알려진 한계.
+  코드를 바꾸면 해당 문서도 같은 PR에서 고친다 (claude 제안사항).
+- `handover/`: 특정 시점의 인수인계 기록(spike 회고, 근거 수준, 방향 제안). 기준
+  commit과 날짜를 적고, 이후 상황은 새 문서나 결정 기록으로 남긴다 (claude 제안사항).
 
 ### `integrations/`
 
