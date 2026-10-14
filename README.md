@@ -24,6 +24,8 @@ docs/
   RUNBOOK.md                단계별 실행·검증·복구 절차
   NEXT_STEPS.md             후속 기술 항목과 팀 결정 질문
   REPOSITORY_STRUCTURE.md   디렉터리와 의존성 원칙
+  internals/                서브시스템별 코드 동작 설명(환경, 센서·안전, 학습, 평가·실험, 배포·ROS2)
+  handover/                 spike 회고, 검증 현황, 향후 방향과 2주 계획, 팀 온보딩
 ```
 
 새 기능은 `packages/`에서 개발하고, 완료된 실험의 설정과 결과는 `experiments/<milestone>/`에 분리한다. Phase 0 기록을 새 실험 결과로 덮어쓰지 않는다.
@@ -64,6 +66,12 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
 
 ## 문서
 
+처음 합류했다면 [handover](docs/handover/README.md)와 [팀 온보딩](docs/handover/ONBOARDING.md)부터 읽는다.
+
+- [Spike 회고](docs/handover/SPIKE_REVIEW.md)
+- [검증 현황과 테스트 지도](docs/handover/VERIFICATION_STATUS.md)
+- [향후 방향과 2주 계획](docs/handover/DIRECTION_OPTIONS.md)
+- [코드 내부 구조](docs/internals/README.md)
 - [향후 마일스톤](docs/ROADMAP.md)
 - [학습형 planner 아키텍처와 계약](docs/ARCHITECTURE.md)
 - [학습 실험 playbook](docs/EXPERIMENT_PLAYBOOK.md)
@@ -85,4 +93,8 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
   센서 randomization, LiDAR 기반 Safety Shield, 절차적·창고 지도 시나리오, PPO v2와
   DAgger, sweep과 G4 gate, torch 없는 policy bundle, opticore-amr ROS2 통합 패키지가
   들어갔다. 기본 설정(Phase 0/M1)의 결과는 변경 전과 bit 단위로 같다.
-- 다음 작업은 [실험 playbook](docs/EXPERIMENT_PLAYBOOK.md)의 E1–E6 학습과 M5 ROS2 실기동이다.
+- **2026-10-14 인수인계 검토.** 테스트(119 + 26)와 학습·배포 smoke가 다시 통과했다.
+  G4 gate가 Shield OFF rule baseline과 비교하도록 정의돼 있어 학습 전에 배포 구성
+  (Shield ON) 기준으로 고칠 것을 제안했다. 상세는 [검증 현황](docs/handover/VERIFICATION_STATUS.md) §4.
+- 다음 작업은 [2주 계획](docs/handover/DIRECTION_OPTIONS.md)에 따른 결정·G3 동결, E1–E6 학습,
+  M5 ROS2 실기동, M6 Gazebo paired 검증이다.
