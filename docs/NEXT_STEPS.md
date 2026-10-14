@@ -52,14 +52,14 @@
    아니면 dynamic layer 발행을 DWA에 계속 맡길 것인가?
 6. `learned` 모드에서 fallback 후 자동 복귀(`allow_recovery`)를 허용할 것인가?
 7. Gazebo paired 검증의 반복 횟수와 G6 통과 기준(충돌 0건, 성공률 DWA 이상)을 확정할 것인가?
-8. G4의 비열등성·개선 판정을 Shield OFF 대신 배포 구성(Shield ON, `scan`)으로 할 것인가?
+8. G4의 비열등성·개선 판정을 Shield OFF 대신 배포 구성(Shield ON, `scan`)으로 할 것인가? (claude 제안사항)
    Shield OFF의 `lite_rule_baseline`은 지도에 없는 장애물을 피하지 않아 동적 성공률 개선
    기준이 쉽게 통과된다([검증 현황](handover/VERIFICATION_STATUS.md) §4.1).
 9. G4의 Shield ON saturation 상한 5%를 유지할 것인가? rule baseline도 protocol v2 selection에서
-   12.9%다.
-10. 동적 장애물에 정지 상태로 받힌 충돌을 정책 실패와 분리해 집계할 것인가?
+   12.9%다. (claude 제안사항)
+10. 동적 장애물에 정지 상태로 받힌 충돌을 정책 실패와 분리해 집계할 것인가? (claude 제안사항)
 11. `lite_rule_baseline`의 정지 임계값(`clearance_stop` 0.12 m < 로봇 반경 0.36 m)을 고친 새 baseline을
-    기준선·BC 교사·residual base로 쓸 것인가? M1 재현용 기존 값은 유지한다.
-12. learned 패키지를 붙일 단일 로봇 bring-up(내비게이션 노드를 끄는 옵션)을 `opticore-amr`에 추가할 것인가?
+    기준선·BC 교사·residual base로 쓸 것인가? M1 재현용 기존 값은 유지한다. (claude 제안사항)
+12. learned 패키지를 붙일 단일 로봇 bring-up(내비게이션 노드를 끄는 옵션)을 `opticore-amr`에 추가할 것인가? (claude 제안사항)
 
-제안값과 결정 시점은 [향후 방향](handover/DIRECTION_OPTIONS.md) §3에 있다.
+제안값과 결정 시점(claude 제안사항)은 [향후 방향](handover/DIRECTION_OPTIONS.md) §3에 있다.

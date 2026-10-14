@@ -476,7 +476,7 @@ warm start batch는 `minibatch_size`(64)를 쓴다. M1 실험 정의는 `m1.yaml
   `collect_dagger`의 `dagger_risk_only` 경로, `GymnasiumWarehouseEnv`.
 - 참조 PPO 구현과의 수치 일치, 학습 수렴(PPO v2는 1M step 이상 실행한 적이 없다).
 
-## 7. 확장 방법
+## 7. 확장 방법 (claude 제안사항)
 
 ### 7.1 새 encoder (예: attention, 다른 CNN)
 
@@ -521,7 +521,7 @@ warm start batch는 `minibatch_size`(64)를 쓴다. M1 실험 정의는 `m1.yaml
    `costs[step, index] += gamma * final_costs[...]` **뒤에** `costs.mean()`으로 λ를 갱신하고 `step_cost`를
    기록한다. timeout 1.0 s로 돌린 `/tmp` 확인 실행에서 env 비용 평균은 0.0이었지만 `step_cost`는
    0.0075–0.0096이었다. λ가 실제 비용이 아니라 cost critic 예측을 따라 움직일 수 있다. bootstrap 전 원시 비용
-   평균을 따로 써야 한다(E3 전에 수정 권장).
+   평균을 따로 써야 한다(E3 전에 수정 권장, claude 제안사항).
 2. **crash 후 resume하면 `training.csv` 행이 중복되고 `best.pt`가 후퇴할 수 있다 (확신 높음).** CSV는 매
    update append, `state.pt`는 25 update마다다. 확인 실행에서 update 열이 `1, 2, 2, 3, 4`가 됐다.
    `best_score`도 `state.pt` 시점으로 돌아가므로, 그 뒤 저장된 더 좋은 `best.pt`를 낮은 점수의 checkpoint가
@@ -539,7 +539,7 @@ warm start batch는 `minibatch_size`(64)를 쓴다. M1 실험 정의는 `m1.yaml
    `sweep --stage select`는 20000–20004를 쓴다. `best.pt`의 selection 점수는 `final.pt`보다 낙관적으로
    나올 수 있다(추정). test split은 분리돼 있다.
 7. **v2에는 timestep 0 평가가 없다.** D-012의 "best = 초기 정책" 상황을 `best.pt`만으로는 알 수 없다. 초기
-   정책(residual은 rule, direct+BC는 BC)과 따로 비교해야 한다.
+   정책(residual은 rule, direct+BC는 BC)과 따로 비교해야 한다 (claude 제안사항).
 8. **M1에서 `--stable` 없이도 KL stop이 켜진다.** KL 검사는 `cfg.get("target_kl")`만 보며 `ppo.yaml`에
    0.01이 있다. `--stable` help("use separate actor/critic encoders, value normalization, and KL stop")와
    README는 KL stop이 stable 전용처럼 읽힌다. Phase 0 shared 실행 당시 config는 확인할 수 없다. D-012의

@@ -391,7 +391,7 @@ timeout은 28.6–90.5 s다.
 - `GymnasiumWarehouseEnv` 전체(현재 개발 환경에 gymnasium이 없어 생성하면 `RuntimeError`).
 - `WHD-RANDOM` agent 배치의 타당성(비어 있지 않은지만 확인), 동적 시나리오의 회피 가능성.
 
-## 7. 확장 방법
+## 7. 확장 방법 (claude 제안사항)
 
 **고정 시나리오 추가**: `scenarios.make_scenario`의 `specs`에 `(장애물, 시작, 목표, solvable)`을 넣고, 동적이면
 `if scenario_id == ...` 분기에 `DynamicObstacle`을 만든다. 기존 id의 값은 바꾸지 않는다(legacy parity). 평가

@@ -413,7 +413,7 @@ Robot profile에서 이 계층에 닿는 값: `opticore_gazebo`는 `w_max` 1.5, 
 - `SHIELD_SATURATION` 분류, FP/FN·`shield_actual_false_negative`·`shield_ineffective_intervention` 계측.
 - `simplify_path`·`_RasterView` 단독 동작, `shield_strategy` 오타 처리.
 
-## 7. 확장 방법
+## 7. 확장 방법 (claude 제안사항)
 
 **새 shield 전략**
 

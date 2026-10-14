@@ -66,11 +66,12 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
 
 ## 문서
 
-처음 합류했다면 [handover](docs/handover/README.md)와 [팀 온보딩](docs/handover/ONBOARDING.md)부터 읽는다.
+처음 합류했다면 [handover](docs/handover/README.md)와 [팀 온보딩](docs/handover/ONBOARDING.md)부터 읽는다 (claude 제안사항).
+`(claude 제안사항)` 표시는 이번 검토에서 Claude가 제안한 판단·계획이며 팀 합의 전에는 확정이 아니다.
 
 - [Spike 회고](docs/handover/SPIKE_REVIEW.md)
 - [검증 현황과 테스트 지도](docs/handover/VERIFICATION_STATUS.md)
-- [향후 방향과 2주 계획](docs/handover/DIRECTION_OPTIONS.md)
+- [향후 방향과 2주 계획](docs/handover/DIRECTION_OPTIONS.md) (claude 제안사항)
 - [코드 내부 구조](docs/internals/README.md)
 - [향후 마일스톤](docs/ROADMAP.md)
 - [학습형 planner 아키텍처와 계약](docs/ARCHITECTURE.md)
@@ -95,6 +96,6 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
   들어갔다. 기본 설정(Phase 0/M1)의 결과는 변경 전과 bit 단위로 같다.
 - **2026-10-14 인수인계 검토.** 테스트(119 + 26)와 학습·배포 smoke가 다시 통과했다.
   G4 gate가 Shield OFF rule baseline과 비교하도록 정의돼 있어 학습 전에 배포 구성
-  (Shield ON) 기준으로 고칠 것을 제안했다. 상세는 [검증 현황](docs/handover/VERIFICATION_STATUS.md) §4.
+  (Shield ON) 기준으로 고칠 것을 제안했다 (claude 제안사항). 상세는 [검증 현황](docs/handover/VERIFICATION_STATUS.md) §4.
 - 다음 작업은 [2주 계획](docs/handover/DIRECTION_OPTIONS.md)에 따른 결정·G3 동결, E1–E6 학습,
-  M5 ROS2 실기동, M6 Gazebo paired 검증이다.
+  M5 ROS2 실기동, M6 Gazebo paired 검증이다 (claude 제안사항).

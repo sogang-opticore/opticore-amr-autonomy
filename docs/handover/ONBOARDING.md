@@ -2,9 +2,10 @@
 
 spike를 이어받는 팀원이 환경을 갖추고, 자기 영역의 코드를 직접 확인하고, 의심 항목을
 기록하기까지의 절차다. 방향과 2주 일정은 [DIRECTION_OPTIONS](DIRECTION_OPTIONS.md),
-명령의 세부와 합격 기준은 [RUNBOOK](../RUNBOOK.md)을 따른다.
+명령의 세부와 합격 기준은 [RUNBOOK](../RUNBOOK.md)을 따른다. §1, §3–§5와 표시된 문장은 (claude 제안사항)이고,
+§2 환경 준비와 §6은 확인된 실행 절차·증상이다.
 
-## 1. 읽는 순서
+## 1. 읽는 순서 (claude 제안사항)
 
 | 순서 | 문서 | 시간 | 얻는 것 |
 |---|---|---|---|
@@ -32,12 +33,12 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test   # 2
 
 - Python 3.10 이상. 확인 환경은 Python 3.11, PyTorch 2.8, NumPy 2.3이다.
 - iCloud·Dropbox 같은 동기화 폴더에 clone하지 않는다. git이 느려지고 `.git` 객체가
-  동기화 대상이 된다.
+  동기화 대상이 된다 (claude 제안사항).
 - macOS에는 `timeout` 명령이 없다. 긴 실행은 `nohup`이나 별도 터미널을 쓴다.
 - ROS2 쪽(R4·R5)은 `opticore-amr`의 Docker 환경(ROS 2 Humble, Ignition Fortress)을 쓴다.
   설치는 [amr_learned_planner README](../../integrations/ros2/amr_learned_planner/README.md) §1을 따른다.
 
-## 3. 첫 smoke
+## 3. 첫 smoke (claude 제안사항)
 
 모든 팀원이 한 번씩 돌려 본다. 결과는 성능이 아니라 실행 경로 확인이다.
 
@@ -53,9 +54,9 @@ python -m amr_lite.cli.verify_bundle artifacts/onboarding/bundle --robot-profile
 
 `artifacts/`는 Git에 들어가지 않는다.
 
-## 4. 영역 인수 절차
+## 4. 영역 인수 절차 (claude 제안사항)
 
-자기 영역([DIRECTION_OPTIONS](DIRECTION_OPTIONS.md) §4)을 아래 순서로 인수한다.
+자기 영역([DIRECTION_OPTIONS](DIRECTION_OPTIONS.md) §5)을 아래 순서로 인수한다.
 
 1. 해당 internals 문서를 읽고 파일 지도의 모든 파일을 한 번씩 연다.
 2. 해당 영역의 테스트를 따로 실행하고, 테스트가 무엇을 확인하고 무엇을 확인하지
@@ -68,7 +69,7 @@ python -m amr_lite.cli.verify_bundle artifacts/onboarding/bundle --robot-profile
 인수가 끝났다는 기준: 자기 영역을 다른 팀원에게 15분 안에 설명할 수 있고, 의심 항목이
 issue로 정리돼 있다.
 
-## 5. 작업 규칙
+## 5. 작업 규칙 (claude 제안사항)
 
 | 항목 | 규칙 |
 |---|---|

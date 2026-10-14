@@ -1,9 +1,11 @@
-# 향후 방향 — 선택지, 추천, 2주 실행 계획
+# 향후 방향 — 선택지, 추천, 2주 실행 계획 (claude 제안사항)
 
 spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천안과 2주 실행 계획을 제안한다.
 판단 근거는 [SPIKE_REVIEW](SPIKE_REVIEW.md)와 [VERIFICATION_STATUS](VERIFICATION_STATUS.md),
-마일스톤과 gate 정의는 [ROADMAP](../ROADMAP.md)를 따른다. 이 문서는 제안이며 팀 합의
-후 결정 기록으로 확정한다.
+마일스톤과 gate 정의는 [ROADMAP](../ROADMAP.md)를 따른다.
+
+**이 문서 전체가 (claude 제안사항)이다.** §4의 결함 내용은 코드와 측정으로 확인한 사실이고, 담당·시점·
+수정 방향은 제안이다. 팀 합의 후 결정 기록으로 확정한다.
 
 ## 1. 전제
 
@@ -14,9 +16,9 @@ spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천
   순차 약 20시간이다([EXPERIMENT_PLAYBOOK](../EXPERIMENT_PLAYBOOK.md) §1). 정책망이 작고
   병목이 Python 환경 step이라 GPU 이득은 작을 것이다(추정). 원격 장비는 vCPU 수로 고른다.
 - Gazebo 쪽은 `opticore-amr` 서버 진단(2026-10-13)대로 4대 실행 시 느리고 namespace 아래에서
-  YAML이 적용되지 않는다. 이 계획은 **단일 로봇** 실행을 기준으로 한다.
+  YAML이 적용되지 않는다. 이 계획은 **단일 로봇** 실행을 기준으로 한다 (claude 제안사항).
 
-## 2. 선택지 비교
+## 2. 선택지 비교 (claude 제안사항)
 
 | | A. 그대로 따라가기 | B. 다시 만들기 | C. 새 방향 | **D. 검증하며 인수 (추천)** |
 |---|---|---|---|---|
@@ -26,7 +28,7 @@ spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천
 | 위험 | §4의 결함이 결과를 오염시킨다. G4가 너무 쉬워 결론을 방어할 수 없다 | 이미 있는 parity·평가 자산을 다시 만든다 | 남은 자산을 버리고 근거 0에서 다시 시작한다 | 첫 2–3일을 수정과 결정에 써야 한다 |
 | 결과물 | 수치는 나오지만 신뢰할 수 없다 | 2주 뒤에도 학습 결과가 없을 가능성이 크다 | 탐색 단계로 돌아간다 | gate 판정과 Lite↔Gazebo 근거 |
 
-### 추천: D. 검증하며 인수
+### 추천: D. 검증하며 인수 (claude 제안사항)
 
 - **버리지 않는다.** 관측 계약, golden parity, 평가 통계, sweep, bundle, ROS core는 2주
   안에 다시 만들 수 없고 구조도 타당하다.
@@ -40,7 +42,7 @@ spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천
 - **PPO 채택은 결과로 정한다.** G4를 통과하지 못하면 rule 또는 BC·DAgger를 후보로 두고
   M5·M6를 계속한다. bundle export는 BC도 지원한다.
 
-## 3. D1에 내릴 결정
+## 3. D1에 내릴 결정 (claude 제안사항)
 
 학습 결과를 무효로 만드는 결정이므로 D1에 모두 정한다. 제안값은 출발점이다.
 
@@ -64,7 +66,7 @@ spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천
 `evaluation_selection_v3.yaml`, `evaluation_test_v3.yaml`, 새 gate 파일을 만든 뒤 결정 기록을
 남긴다([EVALUATION_AND_EXPERIMENTS](../internals/EVALUATION_AND_EXPERIMENTS.md) §7.3).
 
-## 4. 실행 전에 고칠 것
+## 4. 실행 전에 고칠 것 (claude 제안사항)
 
 인수인계 검토에서 찾은 결함 중 결과를 오염시키는 것만 골랐다. 각 항목의 근거는 해당 internals
 문서의 "주의할 점과 알려진 한계" 절에 있다. "막는 작업"이 시작되기 전에 PR로 병합한다.
@@ -91,7 +93,7 @@ spike를 5인 팀이 이어받을 때의 방향 선택지를 비교하고 추천
 F6은 코드를 고치기 전이라도 "smoke는 항상 별도 `--output`"으로 운영하면 피할 수 있다. F12는
 코드 대신 rosbag 기록으로 대체할 수 있다.
 
-## 5. 역할
+## 5. 역할 (claude 제안사항)
 
 | 역할 | 담당 영역 | 기준 문서 | 책임 gate |
 |---|---|---|---|
@@ -101,7 +103,7 @@ F6은 코드를 고치기 전이라도 "smoke는 항상 별도 `--output`"으로
 | R4 ROS2 통합 | `amr_learned_planner` 빌드, dwa → shadow → learned, fault injection | [DEPLOY_AND_ROS2](../internals/DEPLOY_AND_ROS2.md) | G5 |
 | R5 Gazebo 검증 | `opticore-amr` 단일 로봇 실행, profile 실측, recorder 수정, paired 실행, gap report | [DEPLOY_AND_ROS2](../internals/DEPLOY_AND_ROS2.md), `opticore-amr/docs/server-run-prescription.md` | G6 |
 
-## 6. 2주 계획
+## 6. 2주 계획 (claude 제안사항)
 
 연산 병목을 피하려고 **sweep 단위로 장비를 나눈다.** sweep CLI는 한 출력 디렉터리 안에서
 `--parallel`로만 병렬화하므로, 서로 다른 sweep을 서로 다른 장비에서 돌린다.
@@ -155,7 +157,7 @@ D6 오후에 시작하면 장비 3대 이상에서 D7 오전에 끝난다.
 - test split은 D7에 sweep당 한 번만 연다.
 - 실패한 실험도 설정과 원인을 기록한다.
 
-## 7. 축소 기준
+## 7. 축소 기준 (claude 제안사항)
 
 막히면 아래 순서로 범위를 줄인다. 줄인 내용은 보고서의 한계 절에 남긴다.
 
@@ -168,7 +170,7 @@ D6 오후에 시작하면 장비 3대 이상에서 D7 오전에 끝난다.
 | PPO 후보가 G4 실패 | D7 | rule·BC·DAgger 중 G4 기준이 가장 나은 정책을 후보로 M5·M6 진행. "PPO 미채택"을 결론으로 보고 |
 | `learned` 모드에서 fallback 전환이 불안정 | D8 | shadow 결과만 보고하고 G5 보류 |
 
-## 8. 2주 뒤 결과물
+## 8. 2주 뒤 결과물 (claude 제안사항)
 
 - 결정 기록: G2–G6 판정과 근거, §3의 결정
 - `experiments/m2_.../`, `m4_learned_planner/`, `m6_gazebo_paired/`: sweep spec, leaderboard,

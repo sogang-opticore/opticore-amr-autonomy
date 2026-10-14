@@ -68,7 +68,7 @@
 | M2 smoke (2026-10-13) | scan shield는 정답 정보 없이 legacy와 같은 결과를 냈지만 D1을 풀지 못했다. 후진을 허용하면 동적 충돌은 줄고 정적 충돌·timeout은 늘었다 |
 | 진단 (2026-10-14) | protocol v2 selection에서 rule baseline은 Shield OFF 55/85 성공, 동적 충돌 30건 전부 주행 중. Shield ON 59/85, saturation 11건 |
 
-## 5. 배운 것
+## 5. 배운 것 (claude 제안사항)
 
 ### L1. 작은 평가는 착시를 만든다
 16 episode의 87.5%가 4,160 episode에서 68.8%가 됐다. seed 분리, 계층적 bootstrap,
@@ -119,7 +119,7 @@ YAML이 적용되지 않는 문제를 보고했다. M5·M6은 이 저장소 밖�
 
 2026-10-14 검토에서 코드를 직접 읽고 작은 실행으로 확인한 결과다. 영향이 큰 것만 고른다.
 전체 목록과 근거는 각 [internals](../internals/README.md) 문서의 "주의할 점과 알려진 한계"
-절에 있고, 실행 전 수정 계획은 [DIRECTION_OPTIONS](DIRECTION_OPTIONS.md) §4에 있다.
+절에 있고, 실행 전 수정 계획(claude 제안사항)은 [DIRECTION_OPTIONS](DIRECTION_OPTIONS.md) §4에 있다.
 
 ### 6.1 평가 전제
 
@@ -171,7 +171,7 @@ YAML이 적용되지 않는 문제를 보고했다. M5·M6은 이 저장소 밖�
 | `packages/amr_lite/README.md`가 D3을 "통로 정지"로 설명하지만 D3은 빈 `S0` 지도 위 정지 장애물이다 | README 수정 |
 | Phase 0 `KNOWN_LIMITATIONS.md`가 이후 구현된 항목(잡음, 병렬 env 등)을 미구현으로 적는다 | 시점 기록이라는 머리말 추가 |
 | EXPERIMENT_PLAYBOOK §0의 "학습 seed는 코드가 강제"는 PPO v2에만 맞다. teacher·DAgger 수집은 `seed + i`를 쓴다 | LEARNING §8-11에 기록 |
-| 연구계획서 연구 질문 2는 "선행 DWA가 8방향 행동"이라고 전제하지만 현재 `dwa_node`는 Pure Pursuit 연속 제어 중심 hybrid다(ROADMAP §2.1) | 연구 질문 2의 비교 대상을 다시 정의해야 한다 |
+| 연구계획서 연구 질문 2는 "선행 DWA가 8방향 행동"이라고 전제하지만 현재 `dwa_node`는 Pure Pursuit 연속 제어 중심 hybrid다(ROADMAP §2.1) | 연구 질문 2의 비교 대상을 다시 정의해야 한다 (claude 제안사항) |
 
 ## 7. 연구계획서와의 대응
 
@@ -187,7 +187,7 @@ YAML이 적용되지 않는 문제를 보고했다. M5·M6은 이 저장소 밖�
 성공률 저하 5%p 이내)과 3단계 기준(성공률 중앙값 85% 이상, 충돌률 중앙값 10% 이하,
 best–final 차이 10%p 이내)은 ROADMAP의 G2·G4와 대체로 같다.
 
-## 8. 유지할 것, 보류할 것, 의심할 것
+## 8. 유지할 것, 보류할 것, 의심할 것 (claude 제안사항)
 
 | 구분 | 대상 | 이유 |
 |---|---|---|

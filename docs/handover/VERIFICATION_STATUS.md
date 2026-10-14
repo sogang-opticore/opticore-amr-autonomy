@@ -5,7 +5,7 @@
 [internals](../internals/README.md), spike에서 배운 것은 [SPIKE_REVIEW](SPIKE_REVIEW.md)를
 따른다. 기준일은 2026-10-14, 기준 commit은 `4e83d29`(`dev`)다.
 
-## 1. 근거 수준
+## 1. 근거 수준 (claude 제안사항)
 
 | 수준 | 의미 | 인용 가능 범위 |
 |---|---|---|
@@ -134,7 +134,7 @@ protocol v2 selection split(17 시나리오 × 5 seed = 85 episode, `opticore_ga
   학습 중 best 선정과 sweep 순위는 Shield OFF로 한다(`evaluation_selection_v2.yaml`).
 - test split을 아직 한 번도 열지 않았으므로 지금 바꾸면 결과 오염이 없다. 파일 주석 규칙대로
   기존 v2를 두고 v3 protocol과 새 gate 파일을 만든다
-  ([EVALUATION_AND_EXPERIMENTS](../internals/EVALUATION_AND_EXPERIMENTS.md) §7.3).
+  ([EVALUATION_AND_EXPERIMENTS](../internals/EVALUATION_AND_EXPERIMENTS.md) §7.3). (claude 제안사항)
 
 재현 스크립트(`packages/amr_lite`에서 `PYTHONPATH=.`로 실행):
 
@@ -168,7 +168,7 @@ for shield in (False, True):
 
 ## 5. 아직 아무도 확인하지 않은 주장
 
-우선순위 순서다. 이 항목들은 결과 보고에서 "확인됨"으로 쓰지 않는다.
+우선순위 순서다. 이 항목들은 결과 보고에서 "확인됨"으로 쓰지 않는다 (claude 제안사항).
 
 1. 학습 정책이 Shield ON 배포 구성에서 rule baseline보다 낫다 — PPO v2 학습 자체가 없다.
 2. PPO v2의 residual·Lagrangian·curriculum이 M1의 best/final 붕괴를 줄인다 — 미실행.

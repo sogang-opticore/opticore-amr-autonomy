@@ -10,7 +10,7 @@
 
 | 구분 | 내용 |
 |---|---|
-| 담당 | R4 ROS2(bundle·노드·launch), R5 Gazebo(recorder·paired runner) ([internals 색인](README.md)) |
+| 담당 (claude 제안사항) | R4 ROS2(bundle·노드·launch), R5 Gazebo(recorder·paired runner) ([internals 색인](README.md)) |
 | 포함 | checkpoint → bundle export, NumPy runtime, `LearnedPlannerCore`, `CommandArbiter`, `HealthMonitor`, `EpisodeRecorder`, `GoalSequence`, rclpy 노드 4개, launch helper, `fake_ros` 테스트 하네스 |
 | 제외 | 관측·재표본화·shield 알고리즘 자체([SENSORS_AND_SAFETY](SENSORS_AND_SAFETY.md)), 정책 학습([LEARNING](LEARNING.md)), Lite paired 실행과 gap report([EVALUATION_AND_EXPERIMENTS](EVALUATION_AND_EXPERIMENTS.md)) |
 | 상태 | ROS-free 테스트(ROS 패키지 26개, `test_deploy.py` 7개)만 통과했다. ROS2/Gazebo 실기동은 한 번도 하지 않았다 |
@@ -303,7 +303,7 @@ event는 제어 tick에서 즉시, 현재 status는 1 Hz timer로 `learned_plann
 토픽 이름·타입·status 문자열 불일치는 찾지 못했다. 다만 sibling의 현재 bring-up은 `robot.launch.py`(기본 `robot_name: amr1`,
 모든 노드 namespace)와 `multi_robot.launch.py`뿐이고 둘 다 A*·DWA를 무조건 띄운다. `warehouse.launch.py`는 로봇을 spawn하지 않는다.
 따라서 README의 단일 로봇(namespace 없음) 절차를 그대로 쓸 수 있는 bring-up이 sibling에 없고, `namespace:=amr1`로 붙이면
-`/amr1/astar_planner`·`/amr1/dwa_planner`가 중복된다(추정, launch 코드 기준). M5 전에 sibling launch에 내비게이션 노드를 끄는 옵션이 필요하다.
+`/amr1/astar_planner`·`/amr1/dwa_planner`가 중복된다(추정, launch 코드 기준). M5 전에 sibling launch에 내비게이션 노드를 끄는 옵션이 필요하다 (claude 제안사항).
 
 ### 4.10 `fake_ros` 하네스 — `.../test/fake_ros.py`
 
@@ -416,7 +416,7 @@ rule baseline과 같으므로 폐루프 테스트는 **배선과 계약**을 증
   `--no-deps` 설치라 torch가 없으면 `bundle_dir` 테스트도 skip된다. 로컬에서 torch import를 막고 실행하면 14 passed, 12 skipped였고,
   ROS 컨테이너에서는 `test_arbiter_recorder.py`의 8개만 실행될 것으로 본다(추정).
 
-## 7. 확장 방법
+## 7. 확장 방법 (claude 제안사항)
 
 ### 7.1 bundle에 새 network op 추가
 

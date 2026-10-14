@@ -75,9 +75,9 @@ opticore-amr-autonomy/
 - 공통 observation/action 계약
 - 향후 ROS2/Gazebo 통합 설계
 - `internals/`: 서브시스템별로 코드가 실제로 하는 일, 설정, 검증 범위, 알려진 한계.
-  코드를 바꾸면 해당 문서도 같은 PR에서 고친다.
+  코드를 바꾸면 해당 문서도 같은 PR에서 고친다 (claude 제안사항).
 - `handover/`: 특정 시점의 인수인계 기록(spike 회고, 근거 수준, 방향 제안). 기준
-  commit과 날짜를 적고, 이후 상황은 새 문서나 결정 기록으로 남긴다.
+  commit과 날짜를 적고, 이후 상황은 새 문서나 결정 기록으로 남긴다 (claude 제안사항).
 
 ### `integrations/`
 

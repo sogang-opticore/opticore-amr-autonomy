@@ -16,7 +16,7 @@
 | sweep runner, G4 gate, manifest, Lite paired·gap report, `experiments/` 구조 | |
 
 이 서브시스템의 소유자는 보고된 숫자가 어떤 행·어떤 shield mode·어떤 seed에서 계산됐는지 설명할 수 있어야
-한다. 평가 의미를 바꾸는 변경은 §7.3의 protocol version 규칙을 따른다.
+한다 (claude 제안사항). 평가 의미를 바꾸는 변경은 §7.3의 protocol version 규칙을 따른다.
 
 ## 2. 파일 지도
 
@@ -447,7 +447,7 @@ shield_on:
 - `run_m1`·`_can_resume`(Runbook Gate 3 smoke로만 확인), `build_manifest`·`source_snapshot` 내용
 - v2 selection·test seed 비중첩, `make_plots`, CLI 인자 처리, `gap_report`의 빈 leg·nan
 
-## 7. 확장 방법
+## 7. 확장 방법 (claude 제안사항)
 
 ### 7.1 새 sweep spec
 
@@ -474,7 +474,7 @@ shield_on:
 결과를 본 뒤 평가 시나리오·seed·shield mode·profile·gate를 바꾸거나 test를 다시 열어야 하면 다음을 따른다.
 
 1. 기존 파일은 그대로 두고 `evaluation_selection_v3.yaml`, `evaluation_test_v3.yaml`(`protocol: v3`)을 만든다.
-2. 이미 열린 test instance를 재사용하지 않도록 새 test seed 범위를 쓴다(권장, 코드·문서 규칙은 없음).
+2. 이미 열린 test instance를 재사용하지 않도록 새 test seed 범위를 쓴다(권장, 코드·문서 규칙은 없음, claude 제안사항).
 3. `test_reproducibility.py`에 v3 selection·test 비중첩 테스트를 추가한다(현재 v1만 검사).
 4. sweep spec의 `selection.protocol`·`test.protocol`(필요하면 `test.gate`)을 바꾸고 **새 `--output`**을 쓴다.
    `DONE`과 `selection_<role>.json` cache는 디렉터리 단위이고 protocol을 검사하지 않는다.

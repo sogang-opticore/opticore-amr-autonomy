@@ -5,9 +5,12 @@
 (역할과 범위 → 파일 지도 → 동작 흐름 → 핵심 구성요소 → 설정 → 불변식과 검증 → 확장 방법 →
 주의할 점과 알려진 한계)를 따른다. 기준 commit은 `4e83d29`, 작성일은 2026-10-14다.
 
+내용은 코드를 읽고 작은 실행으로 확인한 사실이다. `(claude 제안사항)` 표시는 Claude가 제안한 규칙·권고·절차이며
+각 문서의 "확장 방법" 절이 여기에 해당한다. 표기 규칙은 [handover](../handover/README.md)와 같다.
+
 ## 문서와 코드의 대응
 
-| 문서 | 코드 | 담당 역할 |
+| 문서 | 코드 | 담당 역할 (claude 제안사항) |
 |---|---|---|
 | [ENVIRONMENT](ENVIRONMENT.md) | `amr_lite/envs/`, `amr_lite/config.py`, `configs/env.yaml`, `configs/procedural.yaml`, `configs/robot_profiles/`, `assets/maps/` | R3 안전·환경 |
 | [SENSORS_AND_SAFETY](SENSORS_AND_SAFETY.md) | `amr_lite/sensors/`, `amr_lite/planning/`, `configs/baseline.yaml` | R3 안전·환경 |
@@ -16,7 +19,7 @@
 | [DEPLOY_AND_ROS2](DEPLOY_AND_ROS2.md) | `amr_lite/deploy/`, `integrations/ros2/amr_learned_planner/` | R4 ROS2, R5 Gazebo |
 
 `amr_lite/` 경로는 `packages/amr_lite/amr_lite/`, `configs/`는 `packages/amr_lite/configs/`를 뜻한다.
-역할 정의는 [향후 방향](../handover/DIRECTION_OPTIONS.md) §4에 있다.
+역할 정의는 [향후 방향](../handover/DIRECTION_OPTIONS.md) §5에 있다.
 
 ## 모듈 의존 관계
 
@@ -49,7 +52,7 @@ ROS2`이지만, import 관계는 이 순서대로 층이 나뉘어 있지 않다
   ([REPOSITORY_STRUCTURE](../REPOSITORY_STRUCTURE.md)). `amr_lite.experiments`는 패키지 안의
   실험 운영 모듈로 top-level `experiments/` 폴더와 다르다.
 
-## 문서를 고칠 때
+## 문서를 고칠 때 (claude 제안사항)
 
 - 코드를 바꾸는 PR은 해당 internals 문서도 함께 고친다.
 - 줄 번호 대신 파일 경로와 심볼 이름으로 가리킨다.
