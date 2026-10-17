@@ -1,0 +1,131 @@
+{
+  "manifest_sha256": "10d739004d0b163f556382cb84b8b877499cb5ae49afe00514397b89cb4db9d7",
+  "files": [
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final_best.pt",
+      "expected_sha256": "d78565cff45f7cb2dae3c3078cd7154d1f5e470b32ad261910515145331c9f18",
+      "observed_sha256": "d78565cff45f7cb2dae3c3078cd7154d1f5e470b32ad261910515145331c9f18",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final_best.pt",
+      "expected_sha256": "d24fcf3db93131e9429f8c82f47f4d7c598abfee2e8d7284329ff24d18f25f76",
+      "observed_sha256": "d24fcf3db93131e9429f8c82f47f4d7c598abfee2e8d7284329ff24d18f25f76",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final_best.pt",
+      "expected_sha256": "92583cbd682588313a4c0df62f27b20caadb0f584a306d185b2577f170b4016c",
+      "observed_sha256": "92583cbd682588313a4c0df62f27b20caadb0f584a306d185b2577f170b4016c",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final_best.pt",
+      "expected_sha256": "516463ec6629291ac95564bb677a53fa2f878a72805676b83fd873e22074ddcc",
+      "observed_sha256": "516463ec6629291ac95564bb677a53fa2f878a72805676b83fd873e22074ddcc",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final_best.pt",
+      "expected_sha256": "5f6439d68e6b8f6e69939375e872c55eee977729c584c37f7aab7988f5b0a783",
+      "observed_sha256": "5f6439d68e6b8f6e69939375e872c55eee977729c584c37f7aab7988f5b0a783",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_29_final.pt",
+      "expected_sha256": "e8f1232ecf9a905e93e794526b9ce90c65600056147b86a3424c807dc06d158f",
+      "observed_sha256": "e8f1232ecf9a905e93e794526b9ce90c65600056147b86a3424c807dc06d158f",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_17_final.pt",
+      "expected_sha256": "69dbacd3f734c47cf5a23d3376555f2c061b288523e6e476c7e35837267261e6",
+      "observed_sha256": "69dbacd3f734c47cf5a23d3376555f2c061b288523e6e476c7e35837267261e6",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_43_final.pt",
+      "expected_sha256": "c4ee7a5bd3c87b30b4c307b677457985c537ee7d26e22ef68181507a5c6fdb82",
+      "observed_sha256": "c4ee7a5bd3c87b30b4c307b677457985c537ee7d26e22ef68181507a5c6fdb82",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_7_final.pt",
+      "expected_sha256": "b495a41454c06942c39c3e678dd19b0b1694dd3c1596368fde3c8c04cc02df18",
+      "observed_sha256": "b495a41454c06942c39c3e678dd19b0b1694dd3c1596368fde3c8c04cc02df18",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/m1/m1-reproducible-baseline-v1/checkpoints/custom_stable_ppo_seed_59_final.pt",
+      "expected_sha256": "1b768cf06f7b093c917dbde3c04e7c083c1b60f73ff93690bd1b8161069e5ad8",
+      "observed_sha256": "1b768cf06f7b093c917dbde3c04e7c083c1b60f73ff93690bd1b8161069e5ad8",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/checkpoints/bc_full.pt",
+      "expected_sha256": "b1b2c6df940a282da4ea1b4517d5f3407057982a3a2008c33b0452cc8553379d",
+      "observed_sha256": "b1b2c6df940a282da4ea1b4517d5f3407057982a3a2008c33b0452cc8553379d",
+      "matches": true
+    },
+    {
+      "group": "checkpoint",
+      "path": "artifacts/checkpoints/ppo_stable_full_best.pt",
+      "expected_sha256": "629e91e69a65659db555de2ae3907b9aea7526087a4a8f1efccc7528d706ab2c",
+      "observed_sha256": "629e91e69a65659db555de2ae3907b9aea7526087a4a8f1efccc7528d706ab2c",
+      "matches": true
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0000_S0.npz",
+      "expected_sha256": "98c6b9ca8c48b198dabce05888ea47119eccac559cc90fbc88898e4b4617fb4a",
+      "observed_sha256": "be00d5e5424798a8464265724b1030157f5333af77e72aec2f776636811f5220",
+      "matches": false
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0001_S1.npz",
+      "expected_sha256": "3b1571bc3e89073772e07c45e8c5b89c5b114b3314e5d1a5f9b6db1fd0f80283",
+      "observed_sha256": "226e665ccda95afa3a062a511c6c1f65229931ee9f6559e924fa988d0a1eb544",
+      "matches": false
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0002_S2.npz",
+      "expected_sha256": "36f841d6cf180e0d5766c0b5b9f462f7502bf6bc01a1b68c089699238869e53b",
+      "observed_sha256": "cf503ada367a80ac8dc4061ffd573f771e8b8add9c5491b1e3135f56fdaeacd5",
+      "matches": false
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0003_S3.npz",
+      "expected_sha256": "00d384925bf42b968c7122142325093d25c58c95c9a42a99f91051a8a4e46ebd",
+      "observed_sha256": "504d4e929bca8b6ce241b33f83102b49a736651293cf3623383a97cd88ba782f",
+      "matches": false
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0004_S4.npz",
+      "expected_sha256": "d1227abd124600980ecd91c096959a1e9e8bea49a34ef9d3d4247202e0c83f85",
+      "observed_sha256": "4eb1f759af80e518393b368b0157e65dfd4722d3316a587046345360651b99d4",
+      "matches": false
+    },
+    {
+      "group": "teacher",
+      "path": "artifacts/datasets/teacher/episode_0005_S5.npz",
+      "expected_sha256": "49f527555c97da85129a71041da6d5de208b2d659de2b2e2419adac6fb7c7f37",
+      "observed_sha256": "ae7bcf77b20e08290966ea46e07c91c209927d307d0cce34149343b8df749470",
+      "matches": false
+    }
+  ]
+}

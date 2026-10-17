@@ -3,3 +3,6 @@
 packages/amr_lite/artifacts/
 __pycache__/
 *.pyc
+
+# Local project working notes
+/.cowork/
