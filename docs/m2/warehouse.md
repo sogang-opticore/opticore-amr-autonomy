@@ -29,3 +29,16 @@ The raster uses unknown gray 205 for parts of the exterior and shelf interiors. 
 | Gazebo | Physics step 0.004 s; requested real-time factor 1.0. Measure achieved factor, sensor intervals, command→motion delay and stopping distance from timestamped runs. |
 
 Retain both the requested commands and the executed trajectory. A velocity limit or physics setting is insufficient to estimate actual stopping distance on its own.
+
+## Measured static-transfer timing
+
+The four train-static bags from the local Fortress pilot at `661ebc815d3a` contain median stamp intervals of 100 ms for LiDAR, 20 ms for world ground truth and 4 ms for the simulation clock in every trial. The table uses simulation time after goal dispatch.
+
+| Control | Repeat | Forward response at 0.05 m/s | Distance during final approach deceleration |
+|---|---:|---:|---:|
+| B0 | 0 | 88 ms | 0.709 m |
+| B0 | 1 | 112 ms | Sustained stop window unavailable |
+| B1 | 0 | 64 ms | 1.418 m |
+| B1 | 1 | 128 ms | 0.425 m |
+
+For forward response, timestamp the first final `cmd_vel.linear.x ≥ 0.05` m/s with the most recently recorded `/clock`. Subtract that time from the first world ground-truth sample at or above 0.05 m/s planar speed. This estimate includes message ordering and ground-truth sampling. For final deceleration, start with the first command below 1 m/s after the last command at or above 1 m/s. Sum world-pose displacements until ground-truth speed stays below 0.02 m/s for 0.25 s. These distances describe the normal controller's approach to the dock. Emergency braking would require a separately triggered stop.
