@@ -18,5 +18,7 @@ def generate_launch_description() -> LaunchDescription:
         namespace=LaunchConfiguration("namespace"), output="screen",
         parameters=[{"paired_set": LaunchConfiguration("paired_set"), "runs": LaunchConfiguration("runs"),
                      "label": LaunchConfiguration("label"), "output_csv": LaunchConfiguration("output_csv"),
+                     "goal_pose_topic": "goal_pose", "pose_topic": "odometry/filtered", "path_topic": "global_path",
+                     "scan_topic": "lidar", "status_topic": "dwa/status",
                      "use_sim_time": LaunchConfiguration("use_sim_time")}])
     return LaunchDescription([*arguments, runner])

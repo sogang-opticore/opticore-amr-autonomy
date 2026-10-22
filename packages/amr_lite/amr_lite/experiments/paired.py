@@ -85,6 +85,8 @@ def _flag(row: dict[str, Any], key: str) -> bool:
 
 
 def _rate(rows: list[dict[str, Any]], key: str) -> float:
+    if any(row.get(key) in (None, "") for row in rows):
+        return math.nan
     return sum(_flag(row, key) for row in rows) / len(rows) if rows else math.nan
 
 
@@ -137,7 +139,7 @@ def write_gap_report(path: str | Path, report: dict[str, Any], reference_label: 
     lines = [f"# Paired gap report — {candidate_label} vs {reference_label}", "",
              f"- Success: {percent(overall['candidate_success'])} vs {percent(overall['reference_success'])} "
              f"(delta {percent(overall['success_delta'])})",
-             f"- Collision (proxy in Gazebo): {percent(overall['candidate_collision'])} vs "
+             f"- Collision: {percent(overall['candidate_collision'])} vs "
              f"{percent(overall['reference_collision'])}",
              f"- Time ratio on legs both solved: {overall['time_ratio']:.3f} "
              f"({overall['legs_compared_for_time']} legs)", "",

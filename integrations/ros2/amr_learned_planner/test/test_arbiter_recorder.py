@@ -88,9 +88,13 @@ def test_recovery_can_be_disabled():
 def test_recorder_success_timeout_collision_and_fallbacks(tmp_path):
     recorder = EpisodeRecorder(label="learned", timeout_sec=10.0, lidar_mount=(0.0, 0.0, 0.0))
     angles = np.linspace(-math.pi, math.pi, 8, endpoint=False)
+    recorder.on_contact(0.0, False, "gazebo_contacts", count=0, epoch=0)
     recorder.start(0.0, (3.0, 0.0), "WH-x-00", 0)
+    recorder.on_path(0.0, (3.0, 0.0), "map")
+    recorder.on_status(0.1, "NORMAL")
     for step in range(31):
         recorder.on_pose(0.1 * step, 0.1 * step, 0.0)
+        recorder.on_contact(0.1 * step, False, "gazebo_contacts", count=0, epoch=0)
     recorder.on_scan(1.0, np.full(8, 1.0), float(angles[0]), float(angles[1] - angles[0]), 0.1, 10.0)
     recorder.on_arbiter(1.0, {"mode": "learned", "state": "FALLBACK_HOLD"})
     recorder.on_arbiter(2.0, {"mode": "learned", "state": "LEARNED"})
@@ -107,7 +111,8 @@ def test_recorder_success_timeout_collision_and_fallbacks(tmp_path):
     recorder.on_scan(6.0, np.full(8, 0.2), float(angles[0]), float(angles[1] - angles[0]), 0.1, 10.0)
     assert recorder.tick(14.0) is None
     timed_out = recorder.tick(15.5)
-    assert timed_out["failure_type"] == "COLLISION_PROXY" and timed_out["collision"] == 1
+    assert timed_out["failure_type"] == "TIMEOUT" and timed_out["collision"] is None
+    assert timed_out["proximity_warning"] == 1
     recorder.start(20.0, (1.0, 1.0))
     assert recorder.tick(31.0)["failure_type"] == "TIMEOUT"
     lines = recorder.write_csv(tmp_path / "episodes.csv").read_text().splitlines()

@@ -129,11 +129,19 @@ def test_goal_sequence_runner_sends_legs_and_records(tmp_path):
     fake_ros.Node.parameter_overrides = {"paired_set": "warehouse_v1", "start_delay_sec": 0.0,
                                          "settle_sec": 0.0, "output_csv": str(output), "label": "dwa"}
     node = GoalSequenceRunnerNode()
+    node.deliver("m2/contacts", _string(json.dumps({"stamp": 10.0, "collision": False, "source": "gazebo_contacts", "coverage_epoch": 0, "collision_events": 0})))
     node.fire(0.2)
     goals = node.publishers["/goal_pose"].messages
     assert (goals[-1].pose.position.x, goals[-1].pose.position.y, goals[-1].header.frame_id) == (20.0, 3.0, "map")
-    node.deliver("/odometry/filtered", _odometry(0.0, -2.0))
-    fake_ros.Clock.time = 40.0
+    node.deliver("/global_path", _path([(20.0, 3.0)], "map"))
+    node.deliver("/dwa/status", _string("NORMAL"))
+    for tick in range(1, 301):
+        fake_ros.Clock.time = round(10 + tick / 10, 1)
+        node.deliver("m2/contacts", _string(json.dumps(
+            {"stamp": fake_ros.Clock.time, "collision": False, "source": "gazebo_contacts", "coverage_epoch": 0, "collision_events": 0})))
+    odom = _odometry(20.0, 3.0)
+    odom.header.frame_id = "map"
+    node.deliver("/odometry/filtered", odom)
     node.deliver("/dwa/status", _string("GOAL_REACHED"))
     node.fire(0.2)
     assert (goals[-1].pose.position.x, goals[-1].pose.position.y) == (36.0, -3.0)
@@ -149,14 +157,48 @@ def test_nav_episode_recorder_node_writes_rows(tmp_path):
     node = NavEpisodeRecorderNode()
     goal = fake_ros.PoseStamped()
     goal.pose.position.x = 3.0
+    goal.header.frame_id = "map"
     node.deliver("/goal_pose", goal)
     node.deliver("/lidar", _scan())
-    fake_ros.Clock.time = 15.0
     node.deliver("/dwa/status", _string("REACHED"))
+    assert not node.recorder.rows
+    node.deliver("/global_path", _path([(3.0, 0.0)], "map"))
+    node.deliver("/dwa/status", _string("NORMAL"))
+    fake_ros.Clock.time = 15.0
+    odom = _odometry(2.0, -2.0)
+    odom.header.frame_id = "odom_filtered"
+    node.deliver("/odometry/filtered", odom)
+    assert node.recorder.current.pose is None
+    fake_ros.Buffer.transform = SimpleNamespace(transform=SimpleNamespace(
+        translation=SimpleNamespace(x=1.0, y=2.0), rotation=SimpleNamespace(x=0, y=0, z=0, w=1)))
+    node.deliver("/odometry/filtered", odom)
+    node.deliver("/dwa/status", _string("REACHED"))
+    fake_ros.Clock.time += 0.5
     node.fire(0.5)
     rows = list(csv.DictReader(output.open()))
     assert len(rows) == 1
     row = rows[0]
-    assert (row["success"], row["collision"], row["truncated"]) == ("1", "0", "0")
+    assert (row["success"], row["collision"], row["truncated"]) == ("0", "", "0")
+    assert (row["arrived"], row["failure_type"]) == ("1", "CONTACT_UNKNOWN")
     assert float(row["episode_time"]) == pytest.approx(5.0) and float(row["goal_x"]) == 3.0
     assert np.isnan(float(row["minimum_clearance"]))  # no LiDAR return: clearance unknown
+
+
+def test_invalid_health_diagnostics_do_not_interrupt_an_active_measurement(tmp_path):
+    from amr_learned_planner.nav_episode_recorder_node import NavEpisodeRecorderNode
+
+    output = tmp_path / "bad.csv"
+    fake_ros.Node.parameter_overrides = {"output_csv": str(output)}
+    node = NavEpisodeRecorderNode()
+    goal = fake_ros.PoseStamped()
+    goal.header.frame_id = "map"
+    node.deliver("/goal_pose", goal)
+    for diagnostic in ("{", "[]", '{"inference_ms":NaN}'):
+        node.deliver("learned_planner/health", _string(diagnostic))
+    for diagnostic in ("{", "null"):
+        node.deliver("cmd_arbiter/state", _string(diagnostic))
+    node.deliver("m2/contacts", _string('{"stamp":10,"collision":false,"source":"gazebo_contacts"}'))
+    assert node.recorder.current.ticks == 0 and node.recorder.last_contact is None
+    node.recorder.close(10)
+    events = [json.loads(line)["kind"] for line in output.with_suffix(".events.jsonl").read_text().splitlines()]
+    assert events.count("malformed_health") == 3 and events.count("malformed_arbiter") == 2

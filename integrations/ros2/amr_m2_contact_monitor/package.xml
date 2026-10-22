@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>amr_m2_contact_monitor</name>
+  <version>0.1.0</version>
+  <description>Simulation-only evaluation of physics contacts on the AMR.</description>
+  <maintainer email="ukkhnn@users.noreply.github.com">OPTICORE</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>ignition-gazebo6</depend>
+  <depend>ignition-plugin</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

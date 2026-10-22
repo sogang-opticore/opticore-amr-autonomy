@@ -14,13 +14,13 @@ from rclpy.node import Node
 
 from geometry_msgs.msg import PoseStamped
 
-from amr_learned_planner.core.recorder import EpisodeRecorder
 from amr_learned_planner.core.sequence import GoalSequence
 from amr_learned_planner.ros_common import (
     RECORDER_TOPICS,
     RELIABLE_QOS,
     declare_parameters,
     now_seconds,
+    recorder_from_parameters,
     subscribe_recorder,
 )
 
@@ -33,7 +33,6 @@ NODE_PARAMETERS = {
     "start_delay_sec": 5.0,
     "settle_sec": 2.0,
     "on_failure": "abort_run",
-    "global_frame": "map",
     "robot_radius": 0.36,
     "collision_clearance": 0.0,
     "lidar_mount_x": 0.25,
@@ -51,10 +50,7 @@ class GoalSequenceRunnerNode(Node):
         spec = paired_spec(str(self.p["paired_set"]))
         self.sequence = GoalSequence(spec, int(self.p["runs"]), float(self.p["settle_sec"]), str(self.p["on_failure"]))
         self.sequence.ready_at = now_seconds(self) + float(self.p["start_delay_sec"])
-        self.recorder = EpisodeRecorder(
-            str(self.p["label"]), float(self.p["robot_radius"]), float(self.p["collision_clearance"]),
-            self.sequence.timeout_sec,
-            (float(self.p["lidar_mount_x"]), float(self.p["lidar_mount_y"]), float(self.p["lidar_mount_yaw"])))
+        self.recorder = recorder_from_parameters(self.p, self.sequence.timeout_sec)
         subscribe_recorder(self, self.recorder, self.p, on_goal=False)
         self._goal_pub = self.create_publisher(PoseStamped, self.p["goal_pose_topic"], RELIABLE_QOS)
         self._rows = 0
@@ -74,7 +70,8 @@ class GoalSequenceRunnerNode(Node):
                                    f"failure={row['failure_type'] or '-'}")
         goal = self.sequence.next_goal(now)
         if goal is not None:
-            self.recorder.start(now, (goal.x, goal.y), goal.scenario_id, goal.run)
+            self.recorder.start(now, (goal.x, goal.y), goal.scenario_id, goal.run,
+                                goal_id=f"{goal.scenario_id}:{goal.run}", frame=self.p["global_frame"])
             message = PoseStamped()
             message.header.frame_id = self.p["global_frame"]
             message.header.stamp = self.get_clock().now().to_msg()
@@ -98,6 +95,7 @@ def main(args: list[str] | None = None) -> None:
     except KeyboardInterrupt:
         pass
     finally:
+        node.recorder.close(now_seconds(node))
         node.recorder.write_csv(node.p["output_csv"])
         node.destroy_node()
         rclpy.shutdown()

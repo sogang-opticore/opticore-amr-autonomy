@@ -5,12 +5,13 @@ from __future__ import annotations
 import rclpy
 from rclpy.node import Node
 
-from amr_learned_planner.core.recorder import EpisodeRecorder
-from amr_learned_planner.ros_common import RECORDER_TOPICS, declare_parameters, now_seconds, subscribe_recorder
+from amr_learned_planner.ros_common import RECORDER_TOPICS, declare_parameters, now_seconds, recorder_from_parameters, subscribe_recorder
 
 NODE_PARAMETERS = {
     **RECORDER_TOPICS,
     "label": "ros",
+    "scenario_id": "",
+    "seed": 0,
     "output_csv": "nav_episodes.csv",
     "robot_radius": 0.36,
     "collision_clearance": 0.0,
@@ -25,10 +26,7 @@ class NavEpisodeRecorderNode(Node):
     def __init__(self) -> None:
         super().__init__("nav_episode_recorder")
         self.p = declare_parameters(self, NODE_PARAMETERS)
-        self.recorder = EpisodeRecorder(
-            str(self.p["label"]), float(self.p["robot_radius"]), float(self.p["collision_clearance"]),
-            float(self.p["timeout_sec"]),
-            (float(self.p["lidar_mount_x"]), float(self.p["lidar_mount_y"]), float(self.p["lidar_mount_yaw"])))
+        self.recorder = recorder_from_parameters(self.p, float(self.p["timeout_sec"]))
         subscribe_recorder(self, self.recorder, self.p, on_goal=True)
         self._written = 0
         self.create_timer(0.5, self._on_timer)
@@ -51,6 +49,7 @@ def main(args: list[str] | None = None) -> None:
     except KeyboardInterrupt:
         pass
     finally:
+        node.recorder.close(now_seconds(node))
         node.recorder.write_csv(node.p["output_csv"])
         node.destroy_node()
         rclpy.shutdown()

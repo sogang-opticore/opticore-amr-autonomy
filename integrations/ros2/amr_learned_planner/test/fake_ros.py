@@ -30,7 +30,8 @@ class Pose:
 
 class Header:
     def __init__(self) -> None:
-        self.frame_id, self.stamp = "", None
+        self.frame_id = ""
+        self.stamp = Clock().now().to_msg()
 
 
 class Twist:
@@ -72,7 +73,8 @@ class Clock:
     time = 0.0
 
     def now(self) -> Any:
-        return SimpleNamespace(nanoseconds=int(Clock.time * 1e9), to_msg=lambda: None)
+        ns = int(round(Clock.time * 1e9))
+        return SimpleNamespace(nanoseconds=ns, to_msg=lambda: SimpleNamespace(sec=ns // 10**9, nanosec=ns % 10**9))
 
 
 class Logger:
@@ -185,7 +187,12 @@ def install() -> bool:
     module("rclpy.qos", QoSProfile=lambda **kwargs: SimpleNamespace(**kwargs),
            QoSReliabilityPolicy=SimpleNamespace(BEST_EFFORT="best_effort", RELIABLE="reliable"))
     module("rclpy.duration", Duration=lambda seconds=0.0: SimpleNamespace(seconds=seconds))
-    module("rclpy.time", Time=lambda: SimpleNamespace())
+    class Time:
+        @staticmethod
+        def from_msg(stamp):
+            return SimpleNamespace(nanoseconds=stamp.sec * 10**9 + stamp.nanosec)
+
+    module("rclpy.time", Time=Time)
     module("geometry_msgs")
     module("geometry_msgs.msg", Twist=Twist, PoseStamped=PoseStamped)
     module("nav_msgs")
