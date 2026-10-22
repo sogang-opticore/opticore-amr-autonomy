@@ -57,6 +57,7 @@ RECORDER_TOPICS = {
     "path_topic": "/global_path",
     "contact_topic": "m2/contacts",
     "global_frame": "map",
+    "max_stamp_lead_sec": 0.25,
     "run_id": "",
     "goal_tolerance": 0.25,
     "max_pose_age": 0.5,
@@ -88,26 +89,30 @@ def stamp_seconds(stamp: Any) -> float:
 
 def subscribe_recorder(node: Node, recorder: EpisodeRecorder, topics: dict[str, Any], *, on_goal: bool) -> None:
     global_frame = str(topics["global_frame"])
+    # /clock and stamped samples travel on different DDS channels.
+    max_lead = float(topics["max_stamp_lead_sec"])
+    if not math.isfinite(max_lead) or max_lead < 0:
+        raise ValueError("max_stamp_lead_sec must be finite and nonnegative")
     buffer = Buffer()
     node.recorder_tf_listener = TransformListener(buffer, node)
 
     def goal(message: PoseStamped) -> None:
         now = now_seconds(node)
         stamp = stamp_seconds(message.header.stamp)
-        if (message.header.frame_id != global_frame or stamp > now + 1e-6
+        if (message.header.frame_id != global_frame or stamp > now + max_lead
                 or (recorder.current is not None and stamp < recorder.current.started)):
             recorder.event(now, "invalid_goal", frame=message.header.frame_id, stamp=stamp)
             return
         goal_id = f"{global_frame}:{message.header.stamp.sec}.{message.header.stamp.nanosec:09d}"
         recorder.start(stamp, (message.pose.position.x, message.pose.position.y), str(topics["scenario_id"]),
-                       int(topics["seed"]), goal_id=goal_id, frame=global_frame)
+                       int(topics["seed"]), goal_id=goal_id, frame=global_frame, received_at=now)
 
     def pose(message: Odometry) -> None:
         if recorder.current is None:
             return
         source, timestamp = message.header.frame_id, message.header.stamp
         stamp = stamp_seconds(timestamp)
-        if not source or stamp > now_seconds(node) + 1e-6:
+        if not source or stamp > now_seconds(node) + max_lead:
             return
         position = message.pose.pose.position
         x, y = position.x, position.y
@@ -124,7 +129,7 @@ def subscribe_recorder(node: Node, recorder: EpisodeRecorder, topics: dict[str, 
 
     def path(message: NavPath) -> None:
         stamp = stamp_seconds(message.header.stamp)
-        if stamp > now_seconds(node) + 1e-6:
+        if stamp > now_seconds(node) + max_lead:
             return
         point = message.poses[-1].pose.position if message.poses else None
         recorder.on_path(stamp, (point.x, point.y) if point else None, message.header.frame_id)

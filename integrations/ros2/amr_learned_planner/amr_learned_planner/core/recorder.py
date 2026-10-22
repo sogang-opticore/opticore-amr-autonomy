@@ -28,6 +28,7 @@ class _Episode:
     goal_id: str
     episode_id: str
     frame: str
+    last_clock: float
     wall_started: float = field(default_factory=time.monotonic)
     start_pose: tuple[float, float] | None = None
     pose: tuple[float, float] | None = None
@@ -85,8 +86,9 @@ class EpisodeRecorder:
             self.events.write(json.dumps(entry, allow_nan=False) + "\n")
 
     def start(self, now: float, goal: tuple[float, float], scenario_id: str = "", seed: int = 0,
-              *, goal_id: str = "", frame: str = "map") -> None:
-        if not frame or not all(math.isfinite(v) for v in (*goal, now)):
+              *, goal_id: str = "", frame: str = "map", received_at: float | None = None) -> None:
+        arrival = now if received_at is None else received_at
+        if not frame or not all(math.isfinite(v) for v in (*goal, now, arrival)):
             return
         episode_id = f"{self.run_id}:{len(self.rows) + int(self.current is not None):04d}"
         goal_id = goal_id or episode_id
@@ -96,8 +98,8 @@ class EpisodeRecorder:
             self.finish(now, "PREEMPTED")
         self.goal_ids.add(goal_id)
         self.current = e = _Episode(scenario_id or f"goal_{len(self.rows):03d}", int(seed), tuple(goal), now,
-                                    goal_id, episode_id, frame)
-        self.event(now, "goal", frame=frame, x=goal[0], y=goal[1], scenario_id=e.scenario_id, seed=seed,
+                                    goal_id, episode_id, frame, arrival)
+        self.event(now, "goal", received_at=arrival, frame=frame, x=goal[0], y=goal[1], scenario_id=e.scenario_id, seed=seed,
                    contact_max_gap=self.contact_max_gap, goal_tolerance=self.goal_tolerance,
                    max_pose_age=self.max_pose_age, timeout_sec=self.timeout_sec)
         if self.last_contact is not None:
@@ -201,7 +203,7 @@ class EpisodeRecorder:
         if e is None or now < e.started or e.arrived_at is not None:
             return
         self.event(now, "status", value=status)
-        if now >= e.started + self.timeout_sec or e.path_stamp is None:
+        if now >= e.started + self.timeout_sec or e.path_stamp is None or now < e.path_stamp:
             return
         if status in ACTIVE_STATES:
             e.armed = True
@@ -257,9 +259,10 @@ class EpisodeRecorder:
         e = self.current
         if e is None:
             return None
-        if now < e.started:
+        if now < e.last_clock:
             self.last_contact = None
-            return self.finish(e.started, "CLOCK_RESET")
+            return self.finish(max(e.started, e.last_clock), "CLOCK_RESET")
+        e.last_clock = now
         if e.arrived_at is not None:
             if now - e.arrived_at >= self.contact_max_gap:
                 return self.finish(e.arrived_at, "ARRIVED")

@@ -202,3 +202,48 @@ def test_invalid_health_diagnostics_do_not_interrupt_an_active_measurement(tmp_p
     node.recorder.close(10)
     events = [json.loads(line)["kind"] for line in output.with_suffix(".events.jsonl").read_text().splitlines()]
     assert events.count("malformed_health") == 3 and events.count("malformed_arbiter") == 2
+
+
+def test_stamped_goal_and_path_arrive_before_local_clock_tick(tmp_path):
+    from amr_learned_planner.nav_episode_recorder_node import NavEpisodeRecorderNode
+
+    fake_ros.Node.parameter_overrides = {"output_csv": str(tmp_path / "episodes.csv")}
+    node = NavEpisodeRecorderNode()
+    # Driver and A* saw /clock at 10.1. Recorder has received only 10.0.
+    fake_ros.Clock.time = 10.1
+    goal = fake_ros.PoseStamped()
+    goal.header.frame_id = "map"
+    goal.pose.position.x = 3.0
+    path = _path([(3.0, 0.0)], "map")
+    pose = _odometry(3.0, 0.0)
+    pose.header.frame_id = "map"
+    fake_ros.Clock.time = 10.0
+    node.deliver("/goal_pose", goal)
+    node.deliver("/global_path", path)
+    node.deliver("/odometry/filtered", pose)
+    node.fire(0.5)
+    episode = node.recorder.current
+    assert episode.started == episode.path_stamp == episode.pose_stamp == pytest.approx(10.1)
+    assert not node.recorder.rows
+
+    # Untagged status from before this goal must not arm the recorded path.
+    node.deliver("/dwa/status", _string("NORMAL"))
+    assert not episode.armed
+    fake_ros.Clock.time = 10.1
+    node.deliver("/goal_pose", goal)
+    node.deliver("/dwa/status", _string("NORMAL"))
+    node.deliver("/dwa/status", _string("REACHED"))
+    assert node.recorder.current is episode and episode.arrived_at == pytest.approx(10.1)
+    fake_ros.Clock.time = 10.5
+    node.fire(0.5)
+    assert len(node.recorder.rows) == 1 and node.recorder.rows[0]["arrived"] == 1
+    # No contact stream in this fixture: arrival still cannot count as success.
+    assert node.recorder.rows[0]["failure_type"] == "CONTACT_UNKNOWN"
+
+    fake_ros.Clock.time = 15.0
+    invalid = fake_ros.PoseStamped()
+    invalid.header.frame_id = "map"
+    fake_ros.Clock.time = 11.0
+    node.deliver("/goal_pose", invalid)
+    assert node.recorder.current is None
+    node.recorder.close(11.0)
