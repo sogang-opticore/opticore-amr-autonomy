@@ -66,7 +66,26 @@ def ownership_error(node, planner):
     return None
 
 
-def capture_params(out, planner):
+def parameter_response(node, service, name, request):
+    """Query the live node directly and bound discovery and response in wall time."""
+    import rclpy
+
+    client = node.create_client(service, name)
+    try:
+        if not client.wait_for_service(timeout_sec=10):
+            raise RuntimeError(f"parameter service unavailable: {name}")
+        future = client.call_async(request)
+        rclpy.spin_until_future_complete(node, future, timeout_sec=10)
+        if not future.done():
+            raise RuntimeError(f"parameter service response timeout: {name}")
+        return future.result()
+    finally:
+        node.destroy_client(client)
+
+
+def capture_params(node, out, planner):
+    from rcl_interfaces.srv import GetParameters, ListParameters
+    from ros2param.api import get_value
     import yaml
 
     nodes = ["astar_planner", "dwa_planner", "amcl", "nav_episode_recorder"]
@@ -77,13 +96,16 @@ def capture_params(out, planner):
     hashes = {}
     for name in nodes:
         key = "/amr1/" + name
-        result = subprocess.run(["ros2", "param", "dump", key], capture_output=True, text=True,
-                                timeout=30, check=True)
-        parsed = yaml.safe_load(result.stdout)
-        if key not in (parsed or {}) or not parsed[key]["ros__parameters"]:
-            raise RuntimeError(f"missing effective parameters for {key}")
+        listed = parameter_response(node, ListParameters, key + "/list_parameters", ListParameters.Request())
+        names = sorted(listed.result.names)
+        if not names:
+            raise RuntimeError(f"no effective parameters listed for {key}")
+        response = parameter_response(node, GetParameters, key + "/get_parameters", GetParameters.Request(names=names))
+        if len(response.values) != len(names):
+            raise RuntimeError(f"incomplete parameter response for {key}")
+        params = {n: get_value(parameter_value=v) for n, v in zip(names, response.values)}
         path = target / (name + ".yaml")
-        path.write_text(result.stdout)
+        path.write_text(yaml.safe_dump({key: {"ros__parameters": params}}))
         hashes[key] = digest(path)
     return hashes
 
@@ -212,7 +234,7 @@ def observe(out, case, run, stack):
                 raise RuntimeError(f"startup deadline: {why}")
 
     await_start()
-    run["effective_parameter_sha256"] = capture_params(out, planner)
+    run["effective_parameter_sha256"] = capture_params(node, out, planner)
     obstacle = GazeboActor(trajectory) if trajectory else None
     await_start(verify_actor=bool(obstacle))
     # Stamp and dispatch only after acknowledged, measured placement in the world.
