@@ -1,0 +1,37 @@
+id: post-m1-policy-io-v1
+robot_profile: opticore_gazebo
+
+scan:
+  clock: simulation
+  identity: [robot_namespace, header.frame_id, header.stamp]
+  raw_samples: 720
+  rate_hz: 10
+  mount_xy_yaw: [0.25, 0.0, 0.0]
+  raw_range_m: [0.12, 25.0]
+  bins: 72
+  fov_deg: 270.0
+  range_cap_m: 8.0
+  history_frames: 4
+  history_order: oldest_to_newest
+  warmup: hold_physical_stop_until_full
+  scan_stale_s: 0.5
+  odometry_stale_s: 0.5
+
+observation:
+  dtype: float32
+  shape: [296]
+  tail: [goal_distance, goal_sin, goal_cos, linear_velocity, angular_velocity, cross_track_error, path_heading_sin, path_heading_cos]
+  lookahead_m: 0.65
+  goal_distance_scale_m: 8.0
+  cross_track_scale_m: 2.0
+
+action:
+  mode: direct
+  dtype: float32
+  shape: [2]
+  control_hz: 20
+  bounds: [-1.0, 1.0]
+  max_linear_mps: 1.5
+  max_angular_radps: 1.5
+  normalized_stop: [-1.0, 0.0]
+  fault_twist: [0.0, 0.0]
