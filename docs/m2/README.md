@@ -20,3 +20,28 @@
 - 보존한 Lite 평가에서 Shield OFF 성공률은 Rule 86.2%, PPO 5-seed best 85.4%다. D1 정면 접근은 PPO가 모두 충돌했다. 이 관측은 창고 재현 실험의 동기다. [M1 결과](../../experiments/m1_reproducibility/RESULTS.md)
 - 원래 `opticore-amr/amr_lite_spike` 보관본을 manifest와 바이트 단위로 대조했다. 체크포인트 12개가 일치했다. 확인한 teacher NPZ 6개는 이름이 일치하고 SHA-256이 모두 다르다. 같은 teacher 데이터로 재학습을 재현하려면 manifest에 맞는 사본을 확보해야 한다. [파일별 해시 대조표](../../experiments/m2/m1-asset-audit.json)
 - 재검증 명령은 `python3 scripts/m2/audit_m1_assets.py /path/to/opticore-amr/amr_lite_spike`다. 파일 누락이나 해시 불일치가 있으면 개별 결과를 출력하고 종료 코드 1을 반환한다. M1 모델·데이터·요약 CSV는 보존하며 M2의 기준선 시행 수에는 포함하지 않는다.
+
+## 구현과 실행 증거
+
+**현재 판정은 보류다.** 2026-11-22에 개발용 정적 운송 임무를 B0와 B1에서 기동했다. 이 호스트에 ROS 2 Humble의 `ament_index_python`과 Fortress 실행 파일이 없어 두 시도 모두 목표 전송 전에 끝났다. 확보한 Gazebo 주행은 0회다. 직접 시도한 Docker 엔진 접근과 기존 원격 실행 호스트 연결도 이 작업 환경에서 허용되지 않았다.
+
+| 개발 조건 | B0 직접 제어 | B1 중계 제어 |
+|---|---|---|
+| 정적 station-to-station | 환경 기동 실패, 주행 0회 | 환경 기동 실패, 주행 0회 |
+| 횡단·정면 접근·일시 차단 | 실행 대기 | 실행 대기 |
+| 무충돌 완료율·충돌률·운송시간·실측 RTF | 미측정 | 미측정 |
+
+개발 입력은 4종 × 3분할로 등록했다. 독립 시험 결과는 열지 않았다. M2 전용 Python 회귀 테스트 44개와 네이티브 C++ 접촉 분류 테스트를 로컬에서 통과했다. Python 테스트에는 실제 기록기 코어와 가짜 ROS 메시지를 사용한 경우가 포함된다. Gazebo 플러그인 빌드, 실접촉 보정, 단일 로봇 폐루프 주행, 대표 실패 재현, B0/B1 비교 및 실측 예산 확정이 M2의 잔여 항목이다.
+
+- [창고·차체 기준](warehouse.md) · [실험 장면](scenarios.md) · [임무 입력과 산출물](missions.md)
+- [시스템 경계](baselines.md) · [ROS·fleet 계약](ros-fleet.md) · [빌드와 실제 주행기 기동](baseline-launch.md)
+- [에피소드·충돌 계측](episode-schema.md) · [관측·행동](learning-io.md) · [PPO·보상](learning-ppo.md)
+- [평가 절차와 예산](evaluation.md) · [B0/B1 시도별 결과](../../experiments/m2/baseline-inventory.json) · [Lite 처리량 측정](../../experiments/m2/lite-throughput.json)
+
+설치와 접촉 보정 후 첫 개발 시행 및 집계 예시는 아래와 같다. 명령은 저장소 루트에서 실행한다.
+
+```sh
+python3 experiments/m2/run_mission.py train-static --planner b0 --seed 0 --out /tmp/m2-b0-static-01
+python3 experiments/m2/run_mission.py train-static --planner b1 --seed 0 --out /tmp/m2-b1-static-01
+python3 scripts/m2/summarize_baseline.py --split train --seed 0 /tmp/m2-b0-static-01 /tmp/m2-b1-static-01
+```

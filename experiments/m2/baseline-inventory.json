@@ -1,0 +1,94 @@
+{
+  "splits": [
+    "train"
+  ],
+  "seeds": [
+    0
+  ],
+  "planners": {
+    "b0": {
+      "expected": 4,
+      "scored": 0,
+      "counts": {
+        "missing": 3,
+        "runner_error": 1
+      },
+      "trials": [
+        {
+          "mission": "train-blockage",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-crossing",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-headon",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-static",
+          "seed": 0,
+          "disposition": "runner_error"
+        }
+      ],
+      "completion_rate": null
+    },
+    "b1": {
+      "expected": 4,
+      "scored": 0,
+      "counts": {
+        "missing": 3,
+        "runner_error": 1
+      },
+      "trials": [
+        {
+          "mission": "train-blockage",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-crossing",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-headon",
+          "seed": 0,
+          "disposition": "missing"
+        },
+        {
+          "mission": "train-static",
+          "seed": 0,
+          "disposition": "runner_error"
+        }
+      ],
+      "completion_rate": null
+    }
+  },
+  "input_directories": [
+    {
+      "directory": "experiments/m2/attempts/train-static-b0-r2",
+      "disposition": "runner_error",
+      "planner": "b0",
+      "mission": "train-static",
+      "seed": 0,
+      "run_id": "4f8afc5413e34408a98c2e23bbf5bd25",
+      "detail": "ModuleNotFoundError: No module named 'ament_index_python'",
+      "pre_dispatch": true
+    },
+    {
+      "directory": "experiments/m2/attempts/train-static-b1",
+      "disposition": "runner_error",
+      "planner": "b1",
+      "mission": "train-static",
+      "seed": 0,
+      "run_id": "cbf9bf2702174bacb0b01bc77191d153",
+      "detail": "ModuleNotFoundError: No module named 'ament_index_python'",
+      "pre_dispatch": true
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "train-static",
+  "split": "train",
+  "family": "static",
+  "from": "dock1",
+  "to": "dockA",
+  "actor": null,
+  "start": [
+    2,
+    22
+  ],
+  "goal": [
+    52,
+    22
+  ],
+  "spawn_world": [
+    5.0,
+    37.0
+  ],
+  "timeout_sec": 120.0,
+  "map_sha256": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+  "manifest_sha256": "905bd935b6a384c885f0a771bc447e526303ab6e22fb26a84a3f1dca26a1e2c5",
+  "status": "invalid",
+  "planner": "b0",
+  "seed": 0,
+  "scenario_id": "train-static",
+  "run_id": "4f8afc5413e34408a98c2e23bbf5bd25",
+  "ros_domain_id": 82,
+  "ign_partition": "m2_4f8afc5413e34408a98c2e23bbf5bd25",
+  "error": "ModuleNotFoundError: No module named 'ament_index_python'"
+}

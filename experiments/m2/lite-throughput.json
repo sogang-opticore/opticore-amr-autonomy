@@ -1,0 +1,93 @@
+{
+  "started_at_utc": "2026-11-22T14:39:01.108737+00:00",
+  "protocol": "m2-lite-throughput-v1",
+  "reproduce": "PYTHONPATH=packages/amr_lite python scripts/m2/benchmark_lite.py",
+  "system": "Darwin",
+  "os_release": "25.6.0",
+  "machine": "arm64",
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "pyyaml": "6.0.3",
+  "amr_lite_source_tree": "8b0d638c345112e4c46fa5a1be7ca19d057becdf",
+  "map_sha256": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+  "profile": "opticore_gazebo",
+  "legacy_shield_enabled": false,
+  "scenario_split": "train",
+  "workers": 1,
+  "measurement": "One initial reset and all terminal resets inside each timed window, serial Rule prediction plus WarehouseEnv.step. Constructor time is reported separately. Map/path caches persist in-process.",
+  "budget_scope": "Linear projection for this Rule + Lite rollout workload. PPO inference, gradient updates, evaluation, Gazebo and job startup require their own measurement.",
+  "results": [
+    {
+      "scenario": "WH-RANDOM",
+      "effective_env_config_sha256": "238e7375d1037efc798b354579b6c9337ae41d03ad9c4d52b610ee4eb31ab832",
+      "initialization_wall_seconds": 0.5302539579570293,
+      "trials": [
+        {
+          "first_seed": 1000000,
+          "last_seed": 1000015,
+          "initial_instance": "WH-RANDOM-opticore_warehouse-1000000-225702aad3a1770a",
+          "completed_episodes": 15,
+          "steps": 4096,
+          "wall_seconds": 2.9050724171102047,
+          "steps_per_wall_second": 1409.9476405047624
+        },
+        {
+          "first_seed": 1010000,
+          "last_seed": 1010015,
+          "initial_instance": "WH-RANDOM-opticore_warehouse-1010000-4f47327d7e644069",
+          "completed_episodes": 15,
+          "steps": 4096,
+          "wall_seconds": 2.8911396665498614,
+          "steps_per_wall_second": 1416.7423481439614
+        },
+        {
+          "first_seed": 1020000,
+          "last_seed": 1020016,
+          "initial_instance": "WH-RANDOM-opticore_warehouse-1020000-f39666a53e9efca2",
+          "completed_episodes": 16,
+          "steps": 4096,
+          "wall_seconds": 2.8857766250148416,
+          "steps_per_wall_second": 1419.3752782161143
+        }
+      ],
+      "pooled_steps_per_wall_second": 1415.3439277941034,
+      "projected_minutes_per_100k_rule_steps": 1.1775700830993527
+    },
+    {
+      "scenario": "WHD-RANDOM",
+      "effective_env_config_sha256": "84be9ca07c6ea4705e163c3a20623b5e34ae40110e67eafdc7ce8fc337f6d4ad",
+      "initialization_wall_seconds": 0.13170974981039762,
+      "trials": [
+        {
+          "first_seed": 1000000,
+          "last_seed": 1000027,
+          "initial_instance": "WHD-RANDOM-opticore_warehouse-1000000-3d4f3b8cf9a8500e",
+          "completed_episodes": 27,
+          "steps": 4096,
+          "wall_seconds": 3.8704289998859167,
+          "steps_per_wall_second": 1058.280619569751
+        },
+        {
+          "first_seed": 1010000,
+          "last_seed": 1010024,
+          "initial_instance": "WHD-RANDOM-opticore_warehouse-1010000-d64e9c76910ad960",
+          "completed_episodes": 24,
+          "steps": 4096,
+          "wall_seconds": 4.2549024587497115,
+          "steps_per_wall_second": 962.6542652175382
+        },
+        {
+          "first_seed": 1020000,
+          "last_seed": 1020022,
+          "initial_instance": "WHD-RANDOM-opticore_warehouse-1020000-dafd113992d4d68d",
+          "completed_episodes": 22,
+          "steps": 4096,
+          "wall_seconds": 3.797502165660262,
+          "steps_per_wall_second": 1078.603729851419
+        }
+      ],
+      "pooled_steps_per_wall_second": 1030.6274822924634,
+      "projected_minutes_per_100k_rule_steps": 1.6171378071147855
+    }
+  ]
+}
