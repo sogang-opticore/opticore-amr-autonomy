@@ -1,0 +1,41 @@
+id: post-m1-sb3-direct-v1
+policy_io: post-m1-policy-io-v1
+versions:
+  stable-baselines3: 2.4.1
+  gymnasium: 1.0.0
+robot_profile: opticore_gazebo
+n_envs: 4
+seed: 7
+# Arguments for stable_baselines3.PPO. The environment supplies the frame history.
+ppo:
+  policy: MlpPolicy
+  policy_kwargs:
+    net_arch: {pi: [64, 64], vf: [64, 64]}
+  n_steps: 256
+  batch_size: 64
+  n_epochs: 10
+  learning_rate: 0.0003
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.0
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+# Fixed engineering scales in the observation builder. No running statistics.
+normalize_observations: false
+normalize_rewards: false
+environment_overrides:
+  history_mode: stack
+  shield_strategy: scan
+  shield_enabled: true
+  goal_tolerance: 0.4
+  reward_progress: 2.0
+  reward_goal: 20.0
+  reward_collision: -20.0
+  reward_time: -0.01
+  reward_near: 0.0
+  reward_smooth: 0.0
+  reward_path: 0.0
+  reward_idle: 0.0
+  reward_heading: 0.0
+  reward_turn: 0.0
