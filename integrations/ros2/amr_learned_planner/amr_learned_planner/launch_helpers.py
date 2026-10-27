@@ -83,7 +83,7 @@ def make_learned_nav_nodes(*, mode: str = "shadow", bundle_path: str = "", names
                     "output_csv": record_csv, "label": f"{mode}:{os.path.basename(bundle_path.rstrip('/'))}"}
         if ns:
             recorder.update({"goal_pose_topic": "goal_pose", "pose_topic": "odometry/filtered",
-                             "scan_topic": "lidar", "status_topic": "dwa/status"})
+                             "scan_topic": "lidar", "status_topic": "dwa/status", "path_topic": "global_path"})
         nodes.append(Node(package=PACKAGE, executable="nav_episode_recorder", name="nav_episode_recorder",
                           namespace=ns, output="screen", parameters=[recorder]))
     return nodes

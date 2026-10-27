@@ -2,6 +2,7 @@
 
 Modes (ARCHITECTURE §9):
 
+- ``stop``: hold a physical zero Twist regardless of planner inputs
 - ``dwa``: forward the DWA (rollback / unchanged behaviour)
 - ``shadow``: forward the DWA; the learned planner only runs and is recorded
 - ``learned``: forward the learned planner; on a fault or stale output hold a
@@ -15,7 +16,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any
 
-MODES = ("dwa", "shadow", "learned")
+MODES = ("dwa", "shadow", "learned", "stop")
 
 
 @dataclass
@@ -37,7 +38,7 @@ class Source:
     status_stamp: float = -math.inf
 
     def fresh(self, now: float, timeout: float) -> bool:
-        return now - self.cmd_stamp <= timeout
+        return 0.0 <= now - self.cmd_stamp <= timeout
 
 
 @dataclass
@@ -58,7 +59,7 @@ class CommandArbiter:
         self.health_stamp = -math.inf
         self.healthy_since: float | None = None
         # learned mode starts on the DWA until the learned planner reports healthy.
-        self.state = "DWA" if config.mode in {"dwa", "shadow"} else "FALLBACK"
+        self.state = {"stop": "STOP", "dwa": "DWA", "shadow": "DWA", "learned": "FALLBACK"}[config.mode]
         self.state_since = 0.0
         self.reason = "start" if config.mode != "learned" else "startup: waiting for a healthy learned planner"
         self.transitions = 0
@@ -68,7 +69,7 @@ class CommandArbiter:
     # ------------------------------------------------------------- helpers
     @property
     def active(self) -> str:
-        return {"DWA": "dwa", "LEARNED": "learned", "FALLBACK": "dwa", "FALLBACK_HOLD": "stop"}[self.state]
+        return {"STOP": "stop", "DWA": "dwa", "LEARNED": "learned", "FALLBACK": "dwa", "FALLBACK_HOLD": "stop"}[self.state]
 
     def _source(self, name: str) -> Source:
         return self.learned if name == "learned" else self.dwa
@@ -134,6 +135,9 @@ class CommandArbiter:
         active = self.active
         if active == "stop":
             output.cmd = (0.0, 0.0)
+            if self.state == "STOP" and not self.stopped_published:
+                output.statuses.append("STOPPED")
+                self.stopped_published = True
         elif output.transition is not None and output.cmd is not None:
             pass  # the handover already forwarded the new source's latest command
         elif not self._source(active).fresh(now, config.cmd_timeout):
@@ -150,4 +154,5 @@ class CommandArbiter:
         return {"mode": self.config.mode, "state": self.state, "active": self.active, "reason": self.reason,
                 "since": self.state_since, "transitions": self.transitions, "fallbacks": self.fallbacks,
                 "learned_healthy": self.learned_healthy, "learned_faults": self.learned_faults,
-                "learned_cmd_age": now - self.learned.cmd_stamp, "dwa_cmd_age": now - self.dwa.cmd_stamp}
+                "learned_cmd_age": now - self.learned.cmd_stamp if math.isfinite(self.learned.cmd_stamp) else None,
+                "dwa_cmd_age": now - self.dwa.cmd_stamp if math.isfinite(self.dwa.cmd_stamp) else None}

@@ -7,7 +7,6 @@ fallback (``learned`` mode); see ``core/arbiter.py`` for the state machine.
 from __future__ import annotations
 
 import json
-from dataclasses import fields
 
 import rclpy
 from rclpy.node import Node
@@ -16,7 +15,6 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 
 from amr_learned_planner.core.arbiter import ArbiterConfig, ArbiterOutput, CommandArbiter
-from amr_learned_planner.core.planner_core import coerce
 from amr_learned_planner.ros_common import (
     RELIABLE_QOS,
     declare_dataclass_parameters,
@@ -45,9 +43,7 @@ class CmdArbiterNode(Node):
         super().__init__("cmd_arbiter")
         values = declare_dataclass_parameters(self, ArbiterConfig())
         self.p = declare_parameters(self, NODE_PARAMETERS)
-        defaults = ArbiterConfig()
-        config = ArbiterConfig(**{item.name: coerce(getattr(defaults, item.name), values[item.name])
-                                  for item in fields(ArbiterConfig)})
+        config = ArbiterConfig(**values)
         self.arbiter = CommandArbiter(config)
         self.get_logger().info(f"cmd_arbiter mode={config.mode} state={self.arbiter.state}")
         self._cmd_pub = self.create_publisher(Twist, self.p["cmd_topic"], 10)
