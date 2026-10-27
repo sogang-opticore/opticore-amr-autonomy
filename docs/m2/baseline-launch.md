@@ -1,5 +1,15 @@
 # Single-robot baseline launch
 
+## Paired development pilot
+
+On the Humble host, run this from the autonomy checkout. Supply the upstream `opticore-amr` sources at `e8c9197ac2801c2770c83a7ee696b2b992d473b8` and a new results directory on persistent storage.
+
+```bash
+bash scripts/m2/run_on_humble.sh /workspace/opticore-amr /workspace/m2-results-01
+```
+
+The command builds the upstream packages and M2 overlay in the results directory. It then runs the native classifier and Fortress contact calibration. After both pass, it runs four development missions twice each for both B0 and B1. The second repetition reverses planner order. The first infrastructure or evidence failure stops the batch and preserves the logs and partial summary in `pilot/summary.json`. The file `exit-status` records the last phase and exit code, including failures before the first mission.
+
 ## Build on the simulator host
 
 Use Ubuntu 22.04 with ROS 2 Humble, the upstream repository's `docs/environment-setup.md` runtime dependencies and the Fortress development libraries for C++17 (`ignition-gazebo6`, `ignition-plugin1` with `register`). The ROS tools needed for M2 include `colcon`, `ros_gz_bridge`, `ros2 bag`, TF2, NumPy and PyYAML. The upstream ROS workspace supplies the robot, localization and navigation packages. For two checkouts under `/workspace`, build and source them in order:
