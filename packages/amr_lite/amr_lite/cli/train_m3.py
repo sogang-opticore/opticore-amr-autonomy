@@ -44,7 +44,8 @@ class CaptureRollouts(BaseCallback):
             if self.locals["dones"][index]:
                 self.episodes += 1
                 self.invalid += int(info["disposition"] == "invalid")
-                record = {"step": self.num_timesteps, "worker": index, **info}
+                record = {"step": self.num_timesteps, "worker": index, **info,
+                          "terminal_observation": info["terminal_observation"].tolist()}
                 self.stream.write(json.dumps(record, allow_nan=False) + "\n")
                 self.stream.flush()
                 if info["disposition"] == "invalid":
