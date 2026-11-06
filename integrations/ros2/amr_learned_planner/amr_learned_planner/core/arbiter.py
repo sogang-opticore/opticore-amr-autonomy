@@ -28,6 +28,7 @@ class ArbiterConfig:
     min_fallback_sec: float = 2.0
     recover_after_sec: float = 2.0
     allow_recovery: bool = True
+    fallback_enabled: bool = True
 
 
 @dataclass
@@ -60,6 +61,8 @@ class CommandArbiter:
         self.healthy_since: float | None = None
         # learned mode starts on the DWA until the learned planner reports healthy.
         self.state = {"stop": "STOP", "dwa": "DWA", "shadow": "DWA", "learned": "FALLBACK"}[config.mode]
+        if config.mode == "learned" and not config.fallback_enabled:
+            self.state = "WAIT_LEARNED"
         self.state_since = 0.0
         self.reason = "start" if config.mode != "learned" else "startup: waiting for a healthy learned planner"
         self.transitions = 0
@@ -69,13 +72,14 @@ class CommandArbiter:
     # ------------------------------------------------------------- helpers
     @property
     def active(self) -> str:
-        return {"STOP": "stop", "DWA": "dwa", "LEARNED": "learned", "FALLBACK": "dwa", "FALLBACK_HOLD": "stop"}[self.state]
+        return {"STOP": "stop", "DWA": "dwa", "LEARNED": "learned", "FALLBACK": "dwa",
+                "FALLBACK_HOLD": "stop", "WAIT_LEARNED": "stop"}[self.state]
 
     def _source(self, name: str) -> Source:
         return self.learned if name == "learned" else self.dwa
 
     def _learned_ok(self, now: float) -> tuple[bool, str]:
-        if now - self.health_stamp > self.config.health_timeout:
+        if not 0.0 <= now - self.health_stamp <= self.config.health_timeout:
             return False, "learned health stale"
         if not self.learned_healthy:
             return False, "learned faults: " + ",".join(self.learned_faults or ["unknown"])
@@ -104,6 +108,9 @@ class CommandArbiter:
             return ArbiterOutput()  # treated as missing: the source goes stale
         target = self._source(source)
         target.cmd, target.cmd_stamp = (float(v), float(w)), now
+        if source == "learned" and self.active == source and not self.config.fallback_enabled:
+            if not self._learned_ok(now)[0]:
+                return ArbiterOutput(cmd=(0.0, 0.0))
         return ArbiterOutput(cmd=target.cmd) if self.active == source else ArbiterOutput()
 
     def on_status(self, source: str, now: float, status: str) -> ArbiterOutput:
@@ -123,7 +130,13 @@ class CommandArbiter:
             self.healthy_since = now if self.healthy_since is None else self.healthy_since
         else:
             self.healthy_since = None
-        if config.mode == "learned":
+        if config.mode == "learned" and not config.fallback_enabled:
+            if self.state == "LEARNED" and not ok:
+                self._enter("WAIT_LEARNED", now, why, output)
+            elif (self.state == "WAIT_LEARNED" and ok and self.healthy_since is not None
+                  and now - self.healthy_since >= config.recover_after_sec):
+                self._enter("LEARNED", now, "learned planner ready", output)
+        elif config.mode == "learned":
             if self.state == "LEARNED" and not ok:
                 self._enter("FALLBACK_HOLD", now, why, output)
             elif self.state == "FALLBACK_HOLD" and now - self.state_since >= config.fallback_hold_sec:
@@ -135,7 +148,7 @@ class CommandArbiter:
         active = self.active
         if active == "stop":
             output.cmd = (0.0, 0.0)
-            if self.state == "STOP" and not self.stopped_published:
+            if self.state in {"STOP", "WAIT_LEARNED"} and not self.stopped_published:
                 output.statuses.append("STOPPED")
                 self.stopped_published = True
         elif output.transition is not None and output.cmd is not None:
