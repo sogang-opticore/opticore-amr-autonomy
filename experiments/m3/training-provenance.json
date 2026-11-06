@@ -1,0 +1,143 @@
+{
+  "training": {
+    "local_directory": ".cowork/transfer/local-m3.WpEZAAME/train-65536-r2",
+    "autonomy_commit": "a2d89e6ca213276f9901e5e728cfd5852172421c",
+    "source_sha256": "7f0e2e9a84df472eb0c193d46fe75eecaf1c514419a403c5b061ef40c835b032",
+    "seed": 7,
+    "worker_seeds": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "device": "cpu",
+    "cpu_threads": 1,
+    "dependencies": {
+      "numpy": "1.26.4",
+      "PyYAML": "6.0.3",
+      "torch": "2.7.1",
+      "matplotlib": "3.11.2",
+      "pytest": "8.4.2",
+      "gymnasium": "1.0.0",
+      "stable-baselines3": "2.4.1"
+    },
+    "policy_io_sha256": "7443f4d190452196fe5dd95e31e97778b38860bf98e04f67f73791f30ae01370",
+    "ppo_start_sha256": "888ea3d938aaacdd5eb56aef4463f0a940e772b59b62d4021ca34b275c742758",
+    "mission_manifest_sha256": "905bd935b6a384c885f0a771bc447e526303ab6e22fb26a84a3f1dca26a1e2c5",
+    "map_sha256": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+    "training_mission": "train-static",
+    "dynamics": {
+      "scan_period": 0.1,
+      "drive_delay_ticks": 0,
+      "drive_accel": 2.0,
+      "drive_decel": 2.0,
+      "drive_angular_accel": 1.5,
+      "scan_noise_std": 0.03
+    },
+    "normalization": {
+      "observations": "fixed_contract_scales",
+      "rewards": "none"
+    },
+    "requested_transitions": 65536,
+    "started_at_utc": "2026-11-22T16:50:16.158973+00:00",
+    "finished_at_utc": "2026-11-22T16:51:25.397041+00:00",
+    "total_timesteps": 65536,
+    "gymnasium_sb3_check_env": "passed",
+    "numpy_golden_samples": 64,
+    "numpy_max_abs_error": 1.4156103134155273e-07,
+    "artifacts_sha256": {
+      "resolved.json": "ae9124fcb3ed456b0b682c764a4d25e82b7c1da9b81435a132902a57fc2e3602",
+      "summary.json": "aea33ab4acb31a989de518b5451cafc9b934c614c76d7aaf9077695c562337ec",
+      "final.zip": "920e11262722010816993a2e7f21a1d45a59b998d9768a2a35c5358395acdbb6",
+      "episodes.jsonl": "89e4e9d10a9fa2b7dc041160aba50d9f5bfb710de833380a681ce7b20bb20c72",
+      "before-trace.jsonl": "e70778cf77de8f252aa1a71bd82cb1311262043655b004c37efbf13d1b6af3fd",
+      "after-trace.jsonl": "12e11dc4bba7ba952616d831df3902ee5a223c2a17b1f33d13351c344a8b0fb2",
+      "bundle/bundle.json": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+      "bundle/weights.npz": "7316f32334512722d1bac7c46a522a074bf861ceaac768889d5b13a872fc7a07",
+      "bundle/golden.npz": "14d76abc27409545d0921bd8e3a3a3111f6d8ed58b7c841477055be87f42e65d",
+      "step-008192.zip": "5511202cfc6630faa15c25340d2fe950e6f736da52df6a822e9d562f2eeef2cb",
+      "step-016384.zip": "8fecc1f541b824a29c193fa8e2d2577d1b718e768067f35ec2e5ccb956ad2fb3",
+      "step-024576.zip": "d6b8fe2dea1c113e8d6ce8c718e23bb06820aeea527ecd79b067bd2757c3f965",
+      "step-032768.zip": "e26085283537dc6dfd27ec2213f5bcd37a3f053ed0afc193f676d360d74a6489",
+      "step-040960.zip": "ac686a991fe79d6e687debc3190d86d0487e91d47b4d8dc4aa929f409245bb4e",
+      "step-049152.zip": "0508e78ab0268e825d0c8f9806c944aaed0002bcb42a42c2f4b83a98e459775d",
+      "step-057344.zip": "ec3fb4e959059da4c3ba20133631d90f42f5c95ab56cfd7841eeffd5be7222be"
+    }
+  },
+  "resume": {
+    "local_directory": ".cowork/transfer/local-m3.WpEZAAME/resume-1024",
+    "autonomy_commit": "a2d89e6ca213276f9901e5e728cfd5852172421c",
+    "source_sha256": "7f0e2e9a84df472eb0c193d46fe75eecaf1c514419a403c5b061ef40c835b032",
+    "seed": 7,
+    "worker_seeds": [
+      7,
+      8,
+      9,
+      10
+    ],
+    "device": "cpu",
+    "cpu_threads": 1,
+    "dependencies": {
+      "numpy": "1.26.4",
+      "PyYAML": "6.0.3",
+      "torch": "2.7.1",
+      "matplotlib": "3.11.2",
+      "pytest": "8.4.2",
+      "gymnasium": "1.0.0",
+      "stable-baselines3": "2.4.1"
+    },
+    "policy_io_sha256": "7443f4d190452196fe5dd95e31e97778b38860bf98e04f67f73791f30ae01370",
+    "ppo_start_sha256": "888ea3d938aaacdd5eb56aef4463f0a940e772b59b62d4021ca34b275c742758",
+    "mission_manifest_sha256": "905bd935b6a384c885f0a771bc447e526303ab6e22fb26a84a3f1dca26a1e2c5",
+    "map_sha256": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+    "training_mission": "train-static",
+    "dynamics": {
+      "scan_period": 0.1,
+      "drive_delay_ticks": 0,
+      "drive_accel": 2.0,
+      "drive_decel": 2.0,
+      "drive_angular_accel": 1.5,
+      "scan_noise_std": 0.03
+    },
+    "normalization": {
+      "observations": "fixed_contract_scales",
+      "rewards": "none"
+    },
+    "requested_transitions": 1024,
+    "started_at_utc": "2026-11-22T16:51:26.959772+00:00",
+    "finished_at_utc": "2026-11-22T16:51:48.579251+00:00",
+    "total_timesteps": 66560,
+    "gymnasium_sb3_check_env": "passed",
+    "numpy_golden_samples": 64,
+    "numpy_max_abs_error": 8.940696716308594e-08,
+    "artifacts_sha256": {
+      "resolved.json": "551532b6cde249255f6d5de59c55e5c75cf761345b4fe6ef696b0b7eaa3c898a",
+      "summary.json": "8a04cfea9f704031770bd6d65954b5e382f81061c95ce9e4e09c030c95ab0a5d",
+      "final.zip": "d1639f678c2e7eea836bf7d10697dd4d63c045e755f5d080b30cfe1c3ffa99c3",
+      "episodes.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before-trace.jsonl": "12e11dc4bba7ba952616d831df3902ee5a223c2a17b1f33d13351c344a8b0fb2",
+      "after-trace.jsonl": "a18e4faf83ab1ca6666c86260b881410c2a62049ff786b2f078b4a68b8d0edff",
+      "bundle/bundle.json": "a77a8b10ed8f7147124f146f5d15f9d94db8242454f88fdcb615d078d71e7611",
+      "bundle/weights.npz": "e7a8c92aff34b63d6a61eed2d43704704890338a97f44b6c8dcc0a3c47321e31",
+      "bundle/golden.npz": "ecca70930e5ef91de3fc79cca8c4b25a2e7d66f8dbd1c2e848ebfcdc0de7aefd",
+      "step-065536.zip": "96da05b54fb1eceb4a58754a800829addf52e5509877700cc138c5aef81e5ec0"
+    }
+  },
+  "resume_optimizer_check": {
+    "parent_checkpoint_sha256": "920e11262722010816993a2e7f21a1d45a59b998d9768a2a35c5358395acdbb6",
+    "timesteps": [
+      65536,
+      66560
+    ],
+    "ppo_updates": [
+      640,
+      650
+    ],
+    "adam_steps": [
+      10240,
+      10400
+    ],
+    "parameter_max_abs_change": 0.0734177976846695,
+    "environment_restarted": true
+  }
+}
