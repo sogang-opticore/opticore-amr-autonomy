@@ -23,8 +23,13 @@ def start(context):
     robot, planner, command = value("robot"), value("planner"), value("command")
     if not re.fullmatch(r"[a-zA-Z_][a-zA-Z_0-9]*", robot):
         raise ValueError("robot must be a single valid ROS namespace token")
-    if planner == "b0" and command == "stop":
-        raise ValueError("command:=stop requires planner:=b1, which owns the final command")
+    if planner == "b0" and command != "pass":
+        raise ValueError(f"command:={command} requires planner:=b1, which owns the final command")
+    m3 = command in {"shadow", "learned"}
+    bundle, trace = value("m3_bundle"), value("m3_trace")
+    if m3 and not (Path(bundle).is_absolute() and (Path(bundle) / "bundle.json").is_file()
+                   and Path(trace).is_absolute() and not Path(trace).exists()):
+        raise ValueError("M3 requires an absolute policy bundle directory and unused replay file")
     x, y = value("spawn_x"), value("spawn_y")
     if not all(math.isfinite(float(coord)) for coord in (x, y)):
         raise ValueError("spawn_x and spawn_y must be finite world coordinates")
@@ -69,14 +74,21 @@ def start(context):
                         namespace=robot, output="screen",
                         arguments=[f"/{robot}/m2/contacts@std_msgs/msg/String[ignition.msgs.StringMsg"]))
     if planner == "b1":
-        mode = "stop" if command == "stop" else "dwa"
+        mode = "dwa" if command == "pass" else command
+        settings = {"use_sim_time": True, "mode": mode}
+        if m3:
+            settings.update(fallback_enabled=False, recover_after_sec=0.25, state_period=0.2)
+            actions.append(Node(package="amr_learned_planner", executable="m3_policy", name="m3_policy",
+                                namespace=robot, output="screen",
+                                parameters=[{"use_sim_time": True, "bundle_path": bundle, "replay_path": trace}],
+                                on_exit=Shutdown(reason="M3 policy exited")))
         actions.append(Node(package="amr_learned_planner", executable="cmd_arbiter", name="cmd_arbiter",
-                            namespace=robot, output="screen", parameters=[{"use_sim_time": True, "mode": mode}],
+                            namespace=robot, output="screen", parameters=[settings],
                             on_exit=Shutdown(reason="M2 command arbiter exited")))
     if csv:
         actions.append(Node(package="amr_learned_planner", executable="nav_episode_recorder",
                             name="nav_episode_recorder", namespace=robot, output="screen",
-                            parameters=[{"use_sim_time": True, "output_csv": csv, "label": planner,
+                            parameters=[{"use_sim_time": True, "output_csv": csv, "label": command if m3 else planner,
                                          "goal_pose_topic": "goal_pose", "pose_topic": "odometry/filtered",
                                          "path_topic": "global_path", "scan_topic": "lidar", "status_topic": "dwa/status",
                                          "scenario_id": ParameterValue(value("scenario_id"), value_type=str),
@@ -85,7 +97,10 @@ def start(context):
                                          "goal_tolerance": 0.4, "contact_topic": "m2/contacts",
                                          "timeout_sec": float(value("timeout_sec"))}]))
     if bag:
-        actions.append(ExecuteProcess(cmd=["ros2", "bag", "record", "-o", bag, *bag_topics(robot, planner)],
+        topics = bag_topics(robot, planner)
+        if m3:
+            topics.extend(f"/{robot}/learned_planner/{name}" for name in ("cmd_vel", "status", "health"))
+        actions.append(ExecuteProcess(cmd=["ros2", "bag", "record", "-o", bag, *topics],
                                       output="screen"))
     return actions
 
@@ -93,7 +108,9 @@ def start(context):
 def generate_launch_description():
     args = [
         DeclareLaunchArgument("planner", default_value="b0", choices=["b0", "b1"]),
-        DeclareLaunchArgument("command", default_value="pass", choices=["pass", "stop"]),
+        DeclareLaunchArgument("command", default_value="pass", choices=["pass", "stop", "shadow", "learned"]),
+        DeclareLaunchArgument("m3_bundle", default_value=""),
+        DeclareLaunchArgument("m3_trace", default_value=""),
         DeclareLaunchArgument("tuning", default_value="resolved", choices=["upstream", "resolved"]),
         DeclareLaunchArgument("robot", default_value="amr1"),
         DeclareLaunchArgument("spawn_x", default_value="3.0"),

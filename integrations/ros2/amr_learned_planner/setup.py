@@ -24,6 +24,7 @@ setup(
     entry_points={
         "console_scripts": [
             f"learned_planner = {PACKAGE}.learned_planner_node:main",
+            f"m3_policy = {PACKAGE}.m3_policy_node:main",
             f"cmd_arbiter = {PACKAGE}.cmd_arbiter_node:main",
             f"nav_episode_recorder = {PACKAGE}.nav_episode_recorder_node:main",
             f"goal_sequence_runner = {PACKAGE}.goal_sequence_runner_node:main",
