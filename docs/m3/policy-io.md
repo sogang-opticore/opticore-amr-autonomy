@@ -15,7 +15,7 @@
 
 ## 기록과 재생
 
-재생용 JSONL에 원시 LaserScan과 획득 시각, 적용된 위치·속도와 경로, 목표·경로 식별자, 네 스캔 시각, 관측 텐서와 물리 명령을 입력 순서대로 기록한다. 기록에서 Lite 공통 함수를 다시 실행해 관측 최대 절대 오차 1e−7 이하, 동일한 스캔 시각과 명령을 요구한다. 번들을 지정하면 NumPy 추론의 행동 오차도 1e−5 이하인지 확인한다.
+재생용 JSONL에 원시 LaserScan과 획득 시각, 적용된 위치·속도와 경로, 목표·경로 식별자, 네 스캔 시각, 관측 텐서와 물리 명령을 입력 순서대로 기록한다. 기록에서 Lite 공통 함수를 다시 실행해 스캔 시각의 일치와 관측·물리 목표·물리 명령의 최대 절대 오차 1e−7 이하를 확인한다. 서로 다른 NumPy 버전에서 float32 스칼라 연산이 반올림되는 차이를 허용하는 범위다. 번들을 지정하면 NumPy 추론의 행동 오차도 1e−5 이하인지 확인한다.
 
 ```sh
 PYTHONPATH=packages/amr_lite python -m amr_lite.learning.stamped_replay TRACE.jsonl --bundle BUNDLE_DIR

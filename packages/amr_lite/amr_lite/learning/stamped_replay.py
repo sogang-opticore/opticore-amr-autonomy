@@ -16,6 +16,7 @@ from amr_lite.envs.dynamics import RobotState
 from amr_lite.learning.stamped_io import M3_IO_ID, CommandSample, ObservationSample, StampedPolicyIO
 
 OBSERVATION_TOLERANCE = 1e-7
+COMMAND_TOLERANCE = 1e-7
 
 
 def _number(value: float) -> float | str:
@@ -30,6 +31,14 @@ def _action(action):
     if array.ndim == 0:
         return _number(array)
     return [_action(value) for value in array]
+
+
+def _pair_error(actual, expected) -> float:
+    if actual is None or expected is None:
+        return 0.0 if actual is expected else math.inf
+    if len(expected) != 2:
+        return math.inf
+    return max(abs(a - b) for a, b in zip(actual, expected))
 
 
 class ReplayTrace:
@@ -82,6 +91,7 @@ def replay(stream: TextIO, runtime: PolicyRuntime | None = None) -> dict:
     counts, faults = Counter(), Counter()
     max_observation_error = 0.0
     max_action_error = 0.0
+    max_target_error = max_command_error = 0.0
     for line_number, line in enumerate(stream, start=2):
         row = json.loads(line)
         event = row["event"]
@@ -127,11 +137,16 @@ def replay(stream: TextIO, runtime: PolicyRuntime | None = None) -> dict:
                     max_action_error = max(max_action_error, error)
                     counts["policy_prediction"] += 1
             if row["command"] is not None:
+                expected = row["command"]
                 result = sensor.actuate(action, robot, inference_ms=float(row["inference_ms"]),
                                         deadline_ms=float(row["deadline_ms"]))
-                encoded = json.loads(json.dumps(asdict(result)))
-                if encoded != row["command"]:
+                target_error = _pair_error(result.target, expected["target"])
+                command_error = _pair_error(result.command, expected["command"])
+                if (result.fault != expected["fault"] or not target_error <= COMMAND_TOLERANCE
+                        or not command_error <= COMMAND_TOLERANCE):
                     raise ValueError(f"line {line_number} has a different physical command")
+                max_target_error = max(max_target_error, target_error)
+                max_command_error = max(max_command_error, command_error)
                 counts["physical_command"] += 1
                 if result.fault:
                     faults[result.fault] += 1
@@ -142,7 +157,8 @@ def replay(stream: TextIO, runtime: PolicyRuntime | None = None) -> dict:
     if runtime is not None and not counts["policy_prediction"]:
         raise ValueError("replay did not exercise a bundle prediction")
     return {"contract": M3_IO_ID, "counts": dict(counts), "faults": dict(faults),
-            "max_observation_error": max_observation_error,
+            "max_observation_error": max_observation_error, "max_target_error": max_target_error,
+            "max_command_error": max_command_error,
             "max_action_error": max_action_error if runtime is not None else None}
 
 
