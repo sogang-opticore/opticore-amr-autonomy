@@ -1,0 +1,57 @@
+{
+  "speed_threshold_mps": 0.05,
+  "runs": [
+    {
+      "trial": "train-static-b0-0",
+      "autonomy_commit": "661ebc815d3ad78d9f8ea728389ec57b3554790c",
+      "bag_sha256": "d4d4438bab131ac18d3e91be7c8bcc75536c76dcc59d2ae4c07d32c2287b1411",
+      "lidar_period_s": 0.10000000000000142,
+      "ground_truth_period_s": 0.01999999999999602,
+      "clock_period_s": 0.004000000000000448,
+      "scan_beams": 720,
+      "forward_response_s": 0.08799999999999741,
+      "forward_ramp_mps2": 0.23284313725490186,
+      "approach_peak_deceleration_mps2": 3.051287478929541,
+      "stationary_range_noise_std_m": 0.029717814007838243
+    },
+    {
+      "trial": "train-static-b0-1",
+      "autonomy_commit": "661ebc815d3ad78d9f8ea728389ec57b3554790c",
+      "bag_sha256": "9d86a13c52a61863e4cd6c5437cad892a38c718b2257516ee262f214ce029913",
+      "lidar_period_s": 0.10000000000000142,
+      "ground_truth_period_s": 0.019999999999999574,
+      "clock_period_s": 0.0039999999999995595,
+      "scan_beams": 720,
+      "forward_response_s": 0.11199999999999832,
+      "forward_ramp_mps2": 0.22727272727272727,
+      "approach_peak_deceleration_mps2": 5.374957477285111,
+      "stationary_range_noise_std_m": 0.030010950607587572
+    },
+    {
+      "trial": "train-static-b1-0",
+      "autonomy_commit": "661ebc815d3ad78d9f8ea728389ec57b3554790c",
+      "bag_sha256": "b7930409f6a6bd913b230118fa7d0039e2e7a6d7a1b35456f553b9dc3b3c561a",
+      "lidar_period_s": 0.10000000000000142,
+      "ground_truth_period_s": 0.01999999999999602,
+      "clock_period_s": 0.004000000000000448,
+      "scan_beams": 720,
+      "forward_response_s": 0.06400000000000006,
+      "forward_ramp_mps2": 0.22093023255813948,
+      "approach_peak_deceleration_mps2": 1.0237250354884528,
+      "stationary_range_noise_std_m": 0.030138592338302815
+    },
+    {
+      "trial": "train-static-b1-1",
+      "autonomy_commit": "661ebc815d3ad78d9f8ea728389ec57b3554790c",
+      "bag_sha256": "ff891a71f4b0b1a6e42ea40cdfb63d9e0fb76d56bb04e9949fa796289d29db4b",
+      "lidar_period_s": 0.10000000000000142,
+      "ground_truth_period_s": 0.019999999999999574,
+      "clock_period_s": 0.0039999999999995595,
+      "scan_beams": 720,
+      "forward_response_s": 0.1280000000000001,
+      "forward_ramp_mps2": 0.23170731707317063,
+      "approach_peak_deceleration_mps2": 3.9306825738305675,
+      "stationary_range_noise_std_m": 0.030149152758032826
+    }
+  ]
+}
