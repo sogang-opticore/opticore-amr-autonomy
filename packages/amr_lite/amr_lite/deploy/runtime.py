@@ -36,6 +36,8 @@ def _activation(name: str, value: np.ndarray) -> np.ndarray:
         return np.tanh(value)
     if name == "relu":
         return np.maximum(value, 0.0)
+    if name == "clip":
+        return np.clip(value, -1.0, 1.0)
     if name == "identity":
         return value
     raise BundleError("BUNDLE_LOAD_FAILED", f"unknown activation {name!r}")
