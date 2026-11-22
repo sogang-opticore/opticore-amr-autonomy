@@ -1,0 +1,158 @@
+{
+  "profile_seed": 20261123,
+  "bundle_sha256": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+  "runs": [
+    {
+      "profile_kind": "nominal",
+      "mission": "train-static",
+      "seed": 100,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 0,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.03
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 4.8159993611281235,
+      "min_clearance_m": 0.10626360353492514,
+      "shield_interventions": 1660,
+      "reward": 75.99999999999044
+    },
+    {
+      "profile_kind": "measured",
+      "mission": "train-static",
+      "seed": 100,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 2,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.02981836553488025
+      },
+      "result": "collision",
+      "elapsed_s": 39.79999999999839,
+      "goal_error_m": 5.026731145644426,
+      "min_clearance_m": -0.0005500318352054112,
+      "shield_interventions": 25,
+      "reward": 72.03999999999881
+    },
+    {
+      "profile_kind": "nominal",
+      "mission": "train-crossing",
+      "seed": 101,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 0,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.03
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 4.812680749231018,
+      "min_clearance_m": 0.10744771070350878,
+      "shield_interventions": 1667,
+      "reward": 75.99999999999069
+    },
+    {
+      "profile_kind": "measured",
+      "mission": "train-crossing",
+      "seed": 101,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 1,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.02973295060164409
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 4.8252783151877265,
+      "min_clearance_m": 0.1053640353157641,
+      "shield_interventions": 1662,
+      "reward": 75.9999999999907
+    },
+    {
+      "profile_kind": "nominal",
+      "mission": "train-headon",
+      "seed": 102,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 0,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.03
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 4.804952314874114,
+      "min_clearance_m": 0.08203089294718374,
+      "shield_interventions": 1656,
+      "reward": 75.99999999999065
+    },
+    {
+      "profile_kind": "measured",
+      "mission": "train-headon",
+      "seed": 102,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 2,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.030065848427295726
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 35.51770479757945,
+      "min_clearance_m": 0.0626947852203979,
+      "shield_interventions": 2170,
+      "reward": 5.11687610473164
+    },
+    {
+      "profile_kind": "nominal",
+      "mission": "train-blockage",
+      "seed": 103,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 0,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.03
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 14.351315446806675,
+      "min_clearance_m": 0.061395265966715684,
+      "shield_interventions": 2390,
+      "reward": -23.667630623936166
+    },
+    {
+      "profile_kind": "measured",
+      "mission": "train-blockage",
+      "seed": 103,
+      "profile": {
+        "scan_period": 0.1,
+        "drive_delay_ticks": 1,
+        "drive_accel": 2.0,
+        "drive_decel": 2.0,
+        "drive_angular_accel": 1.5,
+        "scan_noise_std": 0.029958088355294114
+      },
+      "result": "timeout",
+      "elapsed_s": 119.99999999999744,
+      "goal_error_m": 14.338530014847837,
+      "min_clearance_m": 0.07234880909795621,
+      "shield_interventions": 2384,
+      "reward": -23.64461911479645
+    }
+  ]
+}
