@@ -91,6 +91,7 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
   Shield OFF 성공률 85.4%(95% CI 84.0–86.5%)로 Rule baseline 86.2%보다 우월하다는
   증거가 없었다.
 - **Post-M1 계획의 M2 완료.** 로컬 Gazebo에서 개발 조건 4종을 두 번씩 비교했다. 16회 모두 유효했고 무충돌 도착은 B0 2/8, B1 1/8이었다. 정면 접근은 네 번 모두 충돌했다. [M2 판정과 원시 증거 안내](docs/m2/README.md)
+- **Post-M1 계획의 M3 완료.** Lite에서 PPO 학습·재개를 검증했고, 같은 NumPy 정책으로 Gazebo 단일 로봇의 무충돌 도착과 정지·복귀를 기록했다. [M3 결과와 재현 절차](docs/m3/README.md)
 - **2026-10-14 스파이크 로드맵 현황.** 당시 M2–M6 코드가 구현되어 학습·실기동을 기다리고 있었다. Gazebo 로봇과 같은 LiDAR·동역학 profile,
   센서 randomization, LiDAR 기반 Safety Shield, 절차적·창고 지도 시나리오, PPO v2와
   DAgger, sweep과 G4 gate, torch 없는 policy bundle, opticore-amr ROS2 통합 패키지가
