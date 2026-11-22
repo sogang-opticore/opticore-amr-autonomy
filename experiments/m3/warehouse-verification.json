@@ -1,0 +1,451 @@
+{
+  "autonomy_commit": "c8b0a6e2de7facbdca9b1bb2de4118c091c14238",
+  "upstream_commit": "e8c9197ac2801c2770c83a7ee696b2b992d473b8",
+  "ros": "Humble",
+  "gazebo": "Fortress",
+  "renderer": "llvmpipe",
+  "container_source_sha256": "4e20b4e246028764273fa9d1202fd6875459a249445a5be6c2b352bff4e590c8",
+  "contact_calibration": "2/2 passed",
+  "serial_thread_environment": {
+    "OPENBLAS_NUM_THREADS": 1,
+    "OMP_NUM_THREADS": 1,
+    "MKL_NUM_THREADS": 1
+  },
+  "container_libblas": "/usr/lib/aarch64-linux-gnu/openblas-pthread/libblas.so.3",
+  "results": [
+    {
+      "directory": ".cowork/transfer/local-m3.WpEZAAME/shadow-train-serial",
+      "started_kst": "2026-11-23T01:54:19.994+09:00",
+      "finished_kst": "2026-11-23T01:54:51.165+09:00",
+      "runtime": "serial-single-thread-blas",
+      "latency": {
+        "count": 117,
+        "deadline_ms": 25.0,
+        "median_ms": 0.030125000193947926,
+        "max_ms": 0.0563749999855645,
+        "deadline_misses": 0
+      },
+      "control_witness": {
+        "shadow_motion": {
+          "stamp": 18.224,
+          "x_delta_m": 0.15343416345251004,
+          "speed_mps": 0.2373170372197756
+        }
+      },
+      "bundle_sha256": {
+        "bundle.json": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+        "weights.npz": "7316f32334512722d1bac7c46a522a074bf861ceaac768889d5b13a872fc7a07",
+        "golden.npz": "14d76abc27409545d0921bd8e3a3a3111f6d8ed58b7c841477055be87f42e65d"
+      },
+      "effective_parameter_sha256": {
+        "/amr1/astar_planner": "64d35e1e6e39b0248909e343bf4d3b7dd8d03347f83d4e37f496c0297423439f",
+        "/amr1/dwa_planner": "784611e3ed73b76c82061dbfe767519900f56dde6872a97e4072db3ad0133fef",
+        "/amr1/amcl": "d81d72ccafd908c239adadc899e1f51f33dcb831f9f2280f91a131ab5cf5290b",
+        "/amr1/nav_episode_recorder": "6c51e6cea6e8b7ad6787acf54488365fc10288752a7672950a510d0ca7a4c090",
+        "/amr1/cmd_arbiter": "2156eac2de1ed5e74152462f39ef525ab6c9aaddbc4f66ac58593e565e5ac323",
+        "/amr1/m3_policy": "cb25b48393a19c417d3c7f1bafa7a4b7061e4de2f6c5361c0a3b2e78fa7c612d"
+      },
+      "host_replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 50,
+          "physical_command": 117,
+          "policy_prediction": 117,
+          "reset": 2,
+          "scan": 244,
+          "tick": 411,
+          "valid_observation": 148
+        },
+        "faults": {
+          "PATH_UNAVAILABLE": 255,
+          "SCAN_WARMUP": 8
+        },
+        "max_action_error": 1.7881393432617188e-07,
+        "max_command_error": 0.0,
+        "max_observation_error": 0.0,
+        "max_target_error": 2.9802322387695312e-08
+      },
+      "active_source_matches": 119,
+      "arbiter_states": {
+        "dwa": 38
+      },
+      "autonomy_commit": "c8b0a6e2de7facbdca9b1bb2de4118c091c14238",
+      "closed_loop": {},
+      "contact_samples": 150,
+      "elapsed_sim_s": 7.276,
+      "evidence_sha256": {
+        "bag/bag_0.db3": "59f0c732ab511f7529f18f333754df67e9c1d6c3f91a66bf6a61b8af32a12643",
+        "bag/metadata.yaml": "559af4a6fcc70bdc9cd10f5d70957ea5763b4787df2f3754a2f80af8a09be9b4",
+        "control.jsonl": "6b5869b4b6e5539e0ba9a265608ac2242a5c05e4750e046c3896a3c9b0f37720",
+        "episodes.csv": "8fc2d6a7943a184a600659a5d5d9579ac7bd056d5ed5b7d83d8b810f699d51fe",
+        "episodes.events.jsonl": "044c6992103fbd7d8ab920cd58ac66211b6221db5d92c35e8bdde80867743f2f",
+        "launch.log": "4e2c24155ff7a73daf0546e2a73d11a826e176df0d986075f68a8a1c884f1d6a",
+        "replay.jsonl": "0b9bb1caacecec7fe43d9fd5dd398a6fe9dcc384caefd6e7a7b53bacf91f4d3c",
+        "run.json": "b3e6376adf7f15db1285aa202927875c1be07e9037dff00221cbfda65394b4a0"
+      },
+      "final_map_goal_error_m": 0.3650503870330586,
+      "healthy_commands": 117,
+      "mode": "shadow",
+      "moving_commands": 119,
+      "replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 50,
+          "physical_command": 117,
+          "policy_prediction": 117,
+          "reset": 2,
+          "scan": 244,
+          "tick": 411,
+          "valid_observation": 148
+        },
+        "faults": {
+          "PATH_UNAVAILABLE": 255,
+          "SCAN_WARMUP": 8
+        },
+        "max_action_error": 0.0,
+        "max_observation_error": 0.0
+      },
+      "run_id": "70edaf63d4eb41c4bf2f89825eba351a",
+      "source_scan_comparison": {
+        "matched_raw_bag_acquisitions": 62,
+        "unique_policy_acquisitions": 62
+      },
+      "termination": "ARRIVED"
+    },
+    {
+      "directory": ".cowork/transfer/local-m3.WpEZAAME/learned-train-serial",
+      "started_kst": "2026-11-23T01:53:38.880+09:00",
+      "finished_kst": "2026-11-23T01:54:18.987+09:00",
+      "runtime": "serial-single-thread-blas",
+      "latency": {
+        "count": 227,
+        "deadline_ms": 25.0,
+        "median_ms": 0.03095800002483884,
+        "max_ms": 0.11262499992881203,
+        "deadline_misses": 0
+      },
+      "control_witness": {
+        "learned_motion": {
+          "stamp": 19.984,
+          "x_delta_m": 0.15004193266761323,
+          "speed_mps": 0.24569984970501912
+        },
+        "verified_stop": {
+          "stamp": 20.484,
+          "x_delta_m": 0.15987164488277905,
+          "speed_mps": 0.0,
+          "dwell_s": 0.40000000000000213
+        },
+        "resumed_motion": {
+          "stamp": 22.104000000000003,
+          "x_delta_m": 0.10251537206714456,
+          "speed_mps": 0.18821224080061302
+        }
+      },
+      "bundle_sha256": {
+        "bundle.json": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+        "weights.npz": "7316f32334512722d1bac7c46a522a074bf861ceaac768889d5b13a872fc7a07",
+        "golden.npz": "14d76abc27409545d0921bd8e3a3a3111f6d8ed58b7c841477055be87f42e65d"
+      },
+      "effective_parameter_sha256": {
+        "/amr1/astar_planner": "64d35e1e6e39b0248909e343bf4d3b7dd8d03347f83d4e37f496c0297423439f",
+        "/amr1/dwa_planner": "784611e3ed73b76c82061dbfe767519900f56dde6872a97e4072db3ad0133fef",
+        "/amr1/amcl": "d81d72ccafd908c239adadc899e1f51f33dcb831f9f2280f91a131ab5cf5290b",
+        "/amr1/nav_episode_recorder": "d159505d9503537cb9c4de2216ca15fd6a80ba7599a88d24cc8aee3dff05dd7e",
+        "/amr1/cmd_arbiter": "acc276cf3d55ab4cf0248fa17faae6e4b8a1eae647d9b0987441711ab629e191",
+        "/amr1/m3_policy": "a78e6b5f286c3f9646271fbfda1bdb365304ed1bf7537f4b4991bdd01f42b499"
+      },
+      "host_replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 57,
+          "physical_command": 227,
+          "policy_prediction": 227,
+          "reset": 4,
+          "scan": 309,
+          "tick": 532,
+          "valid_observation": 233
+        },
+        "faults": {
+          "PATH_UNAVAILABLE": 284,
+          "SCAN_WARMUP": 15
+        },
+        "max_action_error": 1.341104507446289e-07,
+        "max_command_error": 7.450580596923828e-09,
+        "max_observation_error": 0.0,
+        "max_target_error": 2.9802322387695312e-08
+      },
+      "active_source_matches": 217,
+      "arbiter_states": {
+        "learned": 56,
+        "stop": 11
+      },
+      "autonomy_commit": "c8b0a6e2de7facbdca9b1bb2de4118c091c14238",
+      "closed_loop": {
+        "after_release_m": 3.814157419495059,
+        "before_hold_m": 0.15004193266761323,
+        "stop_coverage_s": 0.360000000000003,
+        "stop_speed_max_mps": 0.0
+      },
+      "contact_samples": 252,
+      "elapsed_sim_s": 12.608000000000004,
+      "evidence_sha256": {
+        "bag/bag_0.db3": "3ddd8cc2f1a260598c3ac77973a022f8e7338f27a42e18adcfefced65fb7de7e",
+        "bag/metadata.yaml": "58fc2336081953ed6482368617a15de65fa3a6a76fd6c916db656abbfbdc0791",
+        "control.jsonl": "b4a64db513282013057753d3019dd506eb891f10616201b620be66a7c3219e9a",
+        "episodes.csv": "b79774bb9f7fcc76da2c881db45d7b681cef4da07773891e17485701455367ad",
+        "episodes.events.jsonl": "179841a67cd3ae1f005df5fc0c990bf56553324dfc3bb47b2766d1f6ea81b243",
+        "launch.log": "1c503c4e1f2159c0ab68b67353ca92937bd89f9298334f9227b49d6263eee1e1",
+        "replay.jsonl": "e40025e3a7a78854998d11e1a527b4abac4dcbc335bc74325cb20f7f3e7d60b0",
+        "run.json": "3a07a30227ed3b429ea6cd7f1d529d3466893b423f42fa9407e4aa88aabf3939"
+      },
+      "final_map_goal_error_m": 0.3886414123761214,
+      "healthy_commands": 227,
+      "mode": "learned",
+      "moving_commands": 217,
+      "replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 57,
+          "physical_command": 227,
+          "policy_prediction": 227,
+          "reset": 4,
+          "scan": 309,
+          "tick": 532,
+          "valid_observation": 233
+        },
+        "faults": {
+          "PATH_UNAVAILABLE": 284,
+          "SCAN_WARMUP": 15
+        },
+        "max_action_error": 0.0,
+        "max_observation_error": 0.0
+      },
+      "run_id": "c4e10d8755be4669a211936bb2c03018",
+      "source_scan_comparison": {
+        "matched_raw_bag_acquisitions": 120,
+        "unique_policy_acquisitions": 120
+      },
+      "termination": "ARRIVED"
+    },
+    {
+      "directory": ".cowork/transfer/local-m3.WpEZAAME/shadow-train",
+      "started_kst": "2026-11-23T01:52:02.652+09:00",
+      "finished_kst": "2026-11-23T01:53:16.461+09:00",
+      "runtime": "overlapping-default-blas",
+      "latency": {
+        "count": 115,
+        "deadline_ms": 25.0,
+        "median_ms": 20.892375000130414,
+        "max_ms": 103.45000000006621,
+        "deadline_misses": 45
+      },
+      "control_witness": {
+        "shadow_motion": {
+          "stamp": 5.1000000000000005,
+          "x_delta_m": 0.15128406501022873,
+          "speed_mps": 0.23461128848641005
+        }
+      },
+      "bundle_sha256": {
+        "bundle.json": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+        "weights.npz": "7316f32334512722d1bac7c46a522a074bf861ceaac768889d5b13a872fc7a07",
+        "golden.npz": "14d76abc27409545d0921bd8e3a3a3111f6d8ed58b7c841477055be87f42e65d"
+      },
+      "effective_parameter_sha256": {
+        "/amr1/astar_planner": "64d35e1e6e39b0248909e343bf4d3b7dd8d03347f83d4e37f496c0297423439f",
+        "/amr1/dwa_planner": "784611e3ed73b76c82061dbfe767519900f56dde6872a97e4072db3ad0133fef",
+        "/amr1/amcl": "d81d72ccafd908c239adadc899e1f51f33dcb831f9f2280f91a131ab5cf5290b",
+        "/amr1/nav_episode_recorder": "11be8631a96460a62001e2c02d79f6c5968262c071ed6a4011f2b9cf015dae9c",
+        "/amr1/cmd_arbiter": "2156eac2de1ed5e74152462f39ef525ab6c9aaddbc4f66ac58593e565e5ac323",
+        "/amr1/m3_policy": "cc7331f80469763b2a6a0540d26b38464ddb64e837cc962edfd8c42a259b5140"
+      },
+      "host_replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 50,
+          "physical_command": 115,
+          "policy_prediction": 115,
+          "reset": 2,
+          "scan": 105,
+          "tick": 192,
+          "valid_observation": 130
+        },
+        "faults": {
+          "INFERENCE_DEADLINE": 45,
+          "PATH_UNAVAILABLE": 55,
+          "SCAN_WARMUP": 7
+        },
+        "max_action_error": 1.4901161193847656e-07,
+        "max_command_error": 0.0,
+        "max_observation_error": 0.0,
+        "max_target_error": 2.9802322387695312e-08
+      },
+      "active_source_matches": 115,
+      "arbiter_states": {
+        "dwa": 37
+      },
+      "autonomy_commit": "c8b0a6e2de7facbdca9b1bb2de4118c091c14238",
+      "closed_loop": {},
+      "contact_samples": 144,
+      "elapsed_sim_s": 7.0,
+      "evidence_sha256": {
+        "bag/bag_0.db3": "50fbb7c1d1cc237bd826fe4d1955b528f2e688b177e6ed9bd79c54696f811bb2",
+        "bag/metadata.yaml": "6c59a226945e69110023e9c04d47b1ce47888702382fc249a31a1ed9b037dd85",
+        "control.jsonl": "fc25796a5f639440e0c8cefb9b1ba523d8db27bd0f6d3d4ac6087523c2543c3c",
+        "episodes.csv": "fc7619f74d5dc5283c1290347704d67b54b68c286fc0567d4e0141451755cef3",
+        "episodes.events.jsonl": "bcf30d5c1666eeeba18080f3bef3c5b1b4134a86c291a352891559c686684805",
+        "launch.log": "0afa32cb47d7817e112a80aba7b0be37867f9e035b0a7392822297a1262f1458",
+        "replay.jsonl": "8af8387f0793f8aecea6421ee65c4368a204b03eaf9e609b839221fce18c51ce",
+        "run.json": "8e7966c165d04235f37502096d17dffb1bfcfe023d2a377ce26159a8b36e462e"
+      },
+      "final_map_goal_error_m": 0.3579476831587765,
+      "healthy_commands": 70,
+      "mode": "shadow",
+      "moving_commands": 115,
+      "replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 50,
+          "physical_command": 115,
+          "policy_prediction": 115,
+          "reset": 2,
+          "scan": 105,
+          "tick": 192,
+          "valid_observation": 130
+        },
+        "faults": {
+          "INFERENCE_DEADLINE": 45,
+          "PATH_UNAVAILABLE": 55,
+          "SCAN_WARMUP": 7
+        },
+        "max_action_error": 0.0,
+        "max_observation_error": 0.0
+      },
+      "run_id": "d5f227ee8fe54735ab8ca428f28f82fb",
+      "source_scan_comparison": {
+        "matched_raw_bag_acquisitions": 60,
+        "unique_policy_acquisitions": 60
+      },
+      "termination": "ARRIVED"
+    },
+    {
+      "directory": ".cowork/transfer/local-m3.WpEZAAME/learned-train",
+      "started_kst": "2026-11-23T01:51:43.017+09:00",
+      "finished_kst": "2026-11-23T01:53:38.480+09:00",
+      "runtime": "overlapping-default-blas",
+      "latency": {
+        "count": 441,
+        "deadline_ms": 25.0,
+        "median_ms": 7.0752910000919655,
+        "max_ms": 176.79279200001474,
+        "deadline_misses": 100
+      },
+      "control_witness": {
+        "learned_motion": {
+          "stamp": 18.272000000000002,
+          "x_delta_m": 0.1545276648531111,
+          "speed_mps": 0.24688214122528926
+        },
+        "verified_stop": {
+          "stamp": 18.772000000000002,
+          "x_delta_m": 0.16783960846830404,
+          "speed_mps": 0.0,
+          "dwell_s": 0.40000000000000213
+        },
+        "resumed_motion": {
+          "stamp": 20.392000000000003,
+          "x_delta_m": 0.10191312756830051,
+          "speed_mps": 0.18976254972896026
+        }
+      },
+      "bundle_sha256": {
+        "bundle.json": "bafb9321b3704f7b6fa7c4ff03a8d46bea6483d38f71ed024a495ceef776ef7c",
+        "weights.npz": "7316f32334512722d1bac7c46a522a074bf861ceaac768889d5b13a872fc7a07",
+        "golden.npz": "14d76abc27409545d0921bd8e3a3a3111f6d8ed58b7c841477055be87f42e65d"
+      },
+      "effective_parameter_sha256": {
+        "/amr1/astar_planner": "64d35e1e6e39b0248909e343bf4d3b7dd8d03347f83d4e37f496c0297423439f",
+        "/amr1/dwa_planner": "784611e3ed73b76c82061dbfe767519900f56dde6872a97e4072db3ad0133fef",
+        "/amr1/amcl": "d81d72ccafd908c239adadc899e1f51f33dcb831f9f2280f91a131ab5cf5290b",
+        "/amr1/nav_episode_recorder": "8e097f913119f2659fa9c06c204e6b00d4b189bdbcb67bc4034ff048b236b593",
+        "/amr1/cmd_arbiter": "acc276cf3d55ab4cf0248fa17faae6e4b8a1eae647d9b0987441711ab629e191",
+        "/amr1/m3_policy": "4512c01c93e6b4ff5435d97c7f31743110f0b8394af9fc8211f9d1fb192a2201"
+      },
+      "host_replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 51,
+          "physical_command": 441,
+          "policy_prediction": 441,
+          "reset": 4,
+          "scan": 278,
+          "tick": 525,
+          "valid_observation": 443
+        },
+        "faults": {
+          "INFERENCE_DEADLINE": 100,
+          "PATH_UNAVAILABLE": 69,
+          "SCAN_WARMUP": 13
+        },
+        "max_action_error": 1.341104507446289e-07,
+        "max_command_error": 7.450580596923828e-09,
+        "max_observation_error": 0.0,
+        "max_target_error": 2.9802322387695312e-08
+      },
+      "active_source_matches": 220,
+      "arbiter_states": {
+        "learned": 58,
+        "stop": 73
+      },
+      "autonomy_commit": "c8b0a6e2de7facbdca9b1bb2de4118c091c14238",
+      "closed_loop": {
+        "after_release_m": 3.7839750147484956,
+        "before_hold_m": 0.1545276648531111,
+        "stop_coverage_s": 0.35999999999999943,
+        "stop_speed_max_mps": 0.0
+      },
+      "contact_samples": 470,
+      "elapsed_sim_s": 24.152,
+      "evidence_sha256": {
+        "bag/bag_0.db3": "d2c37ffa1ea2892826a7e1c68af960c8403e567a94497053aa35dc6a5bebe327",
+        "bag/metadata.yaml": "5e0a77dc3afb1b2d0784d5b4ac65d278009be60b4dbe1bae75542c6621af5837",
+        "control.jsonl": "e0e9c636615999ef1e2739a12321e6179bcf20a21c0d7320399d42d4a6f8e6e1",
+        "episodes.csv": "0456d55379ea0df12b43a0fd85c70a2a63d4fda5ca9ec4a572817d21c0ef5739",
+        "episodes.events.jsonl": "6123634f26329cb41083b4e0c68a194ba308dd3c25356c548510ddbdab4ba156",
+        "launch.log": "58c20d601bb847218877bb7b3de487ce40b69152a01401b04aa32d9d9160826f",
+        "replay.jsonl": "f9abb554dfea99d36ac22f85a9b7d417bbcd384220422ca6ec0b9b97dcdbfe6c",
+        "run.json": "d342fa39057c49acbe2e3608679612506ebb654866afe368343a7abdcbb98145"
+      },
+      "final_map_goal_error_m": 0.3856068459037094,
+      "healthy_commands": 341,
+      "mode": "learned",
+      "moving_commands": 220,
+      "replay": {
+        "contract": "post-m1-policy-io-v1",
+        "counts": {
+          "path": 51,
+          "physical_command": 441,
+          "policy_prediction": 441,
+          "reset": 4,
+          "scan": 278,
+          "tick": 525,
+          "valid_observation": 443
+        },
+        "faults": {
+          "INFERENCE_DEADLINE": 100,
+          "PATH_UNAVAILABLE": 69,
+          "SCAN_WARMUP": 13
+        },
+        "max_action_error": 0.0,
+        "max_observation_error": 0.0
+      },
+      "run_id": "18b99ecd01a54bf6bad7db70698004e7",
+      "source_scan_comparison": {
+        "matched_raw_bag_acquisitions": 226,
+        "unique_policy_acquisitions": 226
+      },
+      "termination": "ARRIVED"
+    }
+  ]
+}
