@@ -55,9 +55,9 @@ def seconds(stamp):
     return stamp.sec + stamp.nanosec * 1e-9
 
 
-def ownership_error(node, planner):
+def ownership_error(node, planner, driver="/m2_mission_driver"):
     expected = {"/amr1/cmd_vel": "/amr1/" + ("dwa_planner" if planner == "b0" else "cmd_arbiter"),
-                "/amr1/goal_pose": "/m2_mission_driver"}
+                "/amr1/goal_pose": driver}
     for topic, owner in expected.items():
         pubs = node.get_publishers_info_by_topic(topic)
         names = [e.node_namespace.rstrip("/") + "/" + e.node_name for e in pubs]
@@ -83,7 +83,7 @@ def parameter_response(node, service, name, request):
         node.destroy_client(client)
 
 
-def capture_params(node, out, planner):
+def capture_params(node, out, planner, extra_nodes=()):
     from rcl_interfaces.srv import GetParameters, ListParameters
     from ros2param.api import get_value
     import yaml
@@ -91,6 +91,7 @@ def capture_params(node, out, planner):
     nodes = ["astar_planner", "dwa_planner", "amcl", "nav_episode_recorder"]
     if planner == "b1":
         nodes.append("cmd_arbiter")
+    nodes.extend(extra_nodes)
     target = out / "parameters"
     target.mkdir()
     hashes = {}
