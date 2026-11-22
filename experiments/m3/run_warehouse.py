@@ -153,7 +153,7 @@ def run_world(out, args, case, run, stack):
     msg = PoseStamped()
     msg.header.frame_id = "map"
     msg.header.stamp = node.get_clock().now().to_msg()
-    msg.pose.position.x, msg.pose.position.y = case["goal"]
+    msg.pose.position.x, msg.pose.position.y = map(float, case["goal"])
     msg.pose.orientation.w = 1.0
     started = seconds(msg.header.stamp)
     run["goal_stamp"] = started
