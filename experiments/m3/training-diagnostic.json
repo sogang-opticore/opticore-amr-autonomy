@@ -1,0 +1,208 @@
+{
+  "total_timesteps": 65536,
+  "training_seconds": 52.4566559586674,
+  "transitions_per_second": 1249.3362148673434,
+  "completed_training_episodes": 25,
+  "invalid_training_episodes": 0,
+  "diagnostics": {
+    "before": [
+      {
+        "mission_id": "train-static",
+        "seed": 100,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 6.966622956112063,
+        "min_clearance": 0.13586345931675453,
+        "shield_interventions": 942,
+        "reward": 75.99999999999349,
+        "reward_totals": {
+          "progress": 100.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 4.492844749150942
+      },
+      {
+        "mission_id": "train-crossing",
+        "seed": 101,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 6.967086971571995,
+        "min_clearance": 0.1256659285822595,
+        "shield_interventions": 943,
+        "reward": 75.99999999999349,
+        "reward_totals": {
+          "progress": 100.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 4.478035322032234
+      },
+      {
+        "mission_id": "train-headon",
+        "seed": 102,
+        "ticks": 327,
+        "disposition": "collision",
+        "elapsed": 16.319999999999798,
+        "goal_error": 39.346864249090856,
+        "min_clearance": -0.003383786347486706,
+        "shield_interventions": 52,
+        "reward": -1.9632324273047885,
+        "reward_totals": {
+          "progress": 21.30676757269528,
+          "time": -3.2699999999999743,
+          "goal": 0.0,
+          "collision": -20.0
+        },
+        "nearest_goal_m": 39.346864249090856
+      },
+      {
+        "mission_id": "train-blockage",
+        "seed": 103,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 17.89370427025122,
+        "min_clearance": 0.09631174635178691,
+        "shield_interventions": 2146,
+        "reward": -24.000000000000952,
+        "reward_totals": {
+          "progress": 0.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 14.5
+      }
+    ],
+    "after": [
+      {
+        "mission_id": "train-static",
+        "seed": 100,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 4.808184360948627,
+        "min_clearance": 0.10876961680894026,
+        "shield_interventions": 1660,
+        "reward": 75.99999999999044,
+        "reward_totals": {
+          "progress": 100.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 0.8708307997094002
+      },
+      {
+        "mission_id": "train-crossing",
+        "seed": 101,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 4.812699952312766,
+        "min_clearance": 0.10742928361341142,
+        "shield_interventions": 1667,
+        "reward": 75.99999999999069,
+        "reward_totals": {
+          "progress": 100.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 0.8711044488928111
+      },
+      {
+        "mission_id": "train-headon",
+        "seed": 102,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 4.807565479818763,
+        "min_clearance": 0.08202954320205086,
+        "shield_interventions": 1656,
+        "reward": 75.99999999999065,
+        "reward_totals": {
+          "progress": 100.0,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 0.873420430153
+      },
+      {
+        "mission_id": "train-blockage",
+        "seed": 103,
+        "ticks": 2400,
+        "disposition": "timeout",
+        "elapsed": 119.99999999999744,
+        "goal_error": 14.351315452123615,
+        "min_clearance": 0.06139526663204359,
+        "shield_interventions": 2390,
+        "reward": -23.66763063420932,
+        "reward_totals": {
+          "progress": 0.33236936579158893,
+          "time": -24.000000000000952,
+          "goal": 0.0,
+          "collision": 0.0
+        },
+        "nearest_goal_m": 14.351315452123615
+      }
+    ]
+  },
+  "learning_curve": [
+    {
+      "through_step": 16384,
+      "dispositions": {
+        "timeout": 4
+      },
+      "mean_episode_reward": -19.44201425,
+      "mean_episode_steps": 2400
+    },
+    {
+      "through_step": 24576,
+      "dispositions": {
+        "timeout": 4
+      },
+      "mean_episode_reward": -18.26006525,
+      "mean_episode_steps": 2400
+    },
+    {
+      "through_step": 32768,
+      "dispositions": {
+        "timeout": 4
+      },
+      "mean_episode_reward": 17.996484000000002,
+      "mean_episode_steps": 2400
+    },
+    {
+      "through_step": 40960,
+      "dispositions": {
+        "timeout": 4
+      },
+      "mean_episode_reward": 20.607424249999998,
+      "mean_episode_steps": 2400
+    },
+    {
+      "through_step": 49152,
+      "dispositions": {
+        "timeout": 4
+      },
+      "mean_episode_reward": 49.48101225,
+      "mean_episode_steps": 2400
+    },
+    {
+      "through_step": 65536,
+      "dispositions": {
+        "timeout": 4,
+        "collision": 1
+      },
+      "mean_episode_reward": 62.6250902,
+      "mean_episode_steps": 2305.4
+    }
+  ]
+}
