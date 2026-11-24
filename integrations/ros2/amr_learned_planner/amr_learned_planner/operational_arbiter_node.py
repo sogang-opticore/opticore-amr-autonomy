@@ -132,7 +132,13 @@ class OperationalArbiter(Node):
         sensors_fresh = (r and 0 <= now - self.report_stamp <= self.params["report_timeout"]
                          and all(finite_number(r.get(k)) and 0 <= now - r[k] <= 0.5
                                  for k in ("odom_stamp", "shield_scan_stamp")))
-        if sensors_fresh and r.get("faults") == ["PATH_UNAVAILABLE"] and r.get("path_waiting") is True:
+        awaiting_requested_path = (r and self.request_stamp is not None
+                                   and finite_number(r.get("path_stamp")) and r["path_stamp"] <= self.request_stamp)
+        missing_route = r and r.get("faults") == ["PATH_UNAVAILABLE"] and r.get("path_waiting") is True
+        unusable_route = r and r.get("support_ready") is True and (
+            r.get("faults") == ["OUTSIDE_DEVELOPMENT_CORRIDOR"] or
+            (self.no_path_since is not None and awaiting_requested_path))
+        if sensors_fresh and (missing_route or unusable_route):
             self.fallback_since = self.healthy_since = None
             self.dwa = Source()
             if self.no_path_since is None:
@@ -141,6 +147,8 @@ class OperationalArbiter(Node):
             if elapsed >= self.params["blocked_timeout_sec"]:
                 self.terminal = "PATH_TIMEOUT"
             replan = elapsed >= self.params["replan_after_sec"] and self.terminal is None
+            if replan and self.request_stamp is None:
+                self.request_stamp = now
             self.emit(self.terminal or ("WAIT_REPLAN" if replan else "WAIT_PATH"),
                       "DYNAMIC_BLOCKED" if replan else "STOPPED")
             return
@@ -149,7 +157,7 @@ class OperationalArbiter(Node):
                 and numeric_pair(r.get("odom_xy")) and numeric_pair(r.get("command"))):
             self.fallback_since = self.healthy_since = None
             self.dwa = Source()
-            self.anchor = self.anchor_stamp = self.request_stamp = None
+            self.anchor = self.anchor_stamp = None
             self.emit("WAIT_INPUT", "STOPPED")
             return
         healthy = r.get("healthy") is True and r.get("faults") == []
@@ -158,7 +166,7 @@ class OperationalArbiter(Node):
         if not healthy and not policy_fault:
             self.fallback_since = self.healthy_since = None
             self.dwa = Source()
-            self.anchor = self.anchor_stamp = self.request_stamp = None
+            self.anchor = self.anchor_stamp = None
             self.emit("WAIT_INPUT", "STOPPED")
             return
         if healthy and r.get("status") == "REACHED":
@@ -167,9 +175,12 @@ class OperationalArbiter(Node):
             return
 
         position = r["odom_xy"]
-        if self.anchor is None or math.dist(self.anchor, position) >= self.params["stall_distance_m"]:
+        # Coasting or odometry jitter while stopped cannot acknowledge an A* request.
+        if not awaiting_requested_path and (self.anchor is None
+                                            or math.dist(self.anchor, position) >= self.params["stall_distance_m"]):
             self.anchor, self.anchor_stamp, self.request_stamp = position, now, None
-        elapsed = now - self.anchor_stamp
+        since = self.anchor_stamp if self.anchor_stamp is not None else self.request_stamp
+        elapsed = now - since
         if elapsed >= self.params["blocked_timeout_sec"]:
             self.terminal = "BLOCKED_TIMEOUT"
             self.emit(self.terminal, "STOPPED")

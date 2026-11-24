@@ -68,6 +68,12 @@ class M3PolicyNode(Node):
     def __init__(self):
         super().__init__("m3_policy")
         self.params = declare_parameters(self, DEFAULTS)
+        if self.params["operational"]:
+            self.params.update(declare_parameters(self, {
+                "diagnostic_drop_scans": False, "diagnostic_inference_delay_ms": 0.0,
+            }))
+            if not 0 <= self.params["diagnostic_inference_delay_ms"] <= 100.0:
+                raise ValueError("diagnostic_inference_delay_ms must be within 0..100 ms")
         self.runtime = load_policy(self.params["bundle_path"], operational=self.params["operational"])
         self.speed_cap = float(self.params["speed_cap"])
         self.yaw_cap = float(self.params["yaw_rate_cap"])
@@ -104,7 +110,7 @@ class M3PolicyNode(Node):
         self.status = self.create_publisher(String, "learned_planner/status", 10)
         self.health = self.create_publisher(String, "learned_planner/health", 10)
         self.create_timer(0.05, self.control)
-        self.add_on_set_parameters_callback(self.set_parameters)
+        self.add_on_set_parameters_callback(self.update_diagnostics)
 
     def reset_history(self):
         self.io.reset()
@@ -114,11 +120,19 @@ class M3PolicyNode(Node):
         if self.trace:
             self.trace.reset()
 
-    def set_parameters(self, parameters):
-        if any(p.name != "hold" or not isinstance(p.value, bool) for p in parameters):
-            return SetParametersResult(successful=False, reason="only the M3 diagnostic hold is writable")
+    def update_diagnostics(self, parameters):
         for parameter in parameters:
-            if self.hold != parameter.value:
+            if parameter.name == "hold" and type(parameter.value) is bool:
+                continue
+            if self.params["operational"] and parameter.name == "diagnostic_drop_scans" and type(parameter.value) is bool:
+                continue
+            if (self.params["operational"] and parameter.name == "diagnostic_inference_delay_ms"
+                    and type(parameter.value) is float and 0.0 <= parameter.value <= 100.0):
+                continue
+            return SetParametersResult(successful=False, reason=f"unsupported diagnostic setting: {parameter.name}")
+        for parameter in parameters:
+            self.params[parameter.name] = parameter.value
+            if parameter.name == "hold" and self.hold != parameter.value:
                 self.hold = parameter.value
                 self.reset_history()
         return SetParametersResult(successful=True)
@@ -135,6 +149,8 @@ class M3PolicyNode(Node):
                         yaw_from_quaternion(pose.orientation), twist.linear.x, twist.angular.z)))
 
     def receive_scan(self, msg):
+        if self.params.get("diagnostic_drop_scans", False):
+            return
         frame = msg.header.frame_id
         if frame not in self.scan_frames:
             self.reset_history()
@@ -288,6 +304,8 @@ class M3PolicyNode(Node):
             else:
                 started = time.perf_counter()
                 try:
+                    if self.params.get("diagnostic_inference_delay_ms", 0.0) > 0:
+                        time.sleep(self.params["diagnostic_inference_delay_ms"] / 1000.0)
                     action = self.runtime.predict(observation.tensor)
                 except (ValueError, RuntimeError, FloatingPointError):
                     action = np.full(2, np.nan, dtype=np.float32)

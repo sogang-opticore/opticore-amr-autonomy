@@ -202,7 +202,8 @@ def install() -> bool:
     module("std_msgs")
     module("std_msgs.msg", String=String)
     module("rcl_interfaces")
-    module("rcl_interfaces.msg", SetParametersResult=lambda successful=True: SimpleNamespace(successful=successful))
+    module("rcl_interfaces.msg", SetParametersResult=lambda successful=True, reason="":
+           SimpleNamespace(successful=successful, reason=reason))
     module("tf2_ros", Buffer=Buffer, TransformListener=lambda buffer, node: None,
            TransformException=TransformException)
     return True

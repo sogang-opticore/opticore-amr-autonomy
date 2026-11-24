@@ -146,6 +146,57 @@ def test_missing_route_requests_astar_and_ends_when_unresolved(node):
     assert tick(node, 16.2, **invalid_path)[0] == "PATH_TIMEOUT"
 
 
+@pytest.mark.parametrize("mismatch", [
+    dict(faults=["PATH_UNAVAILABLE"], path_waiting=True, support_ready=False),
+    dict(faults=["OUTSIDE_DEVELOPMENT_CORRIDOR"], support_ready=True),
+])
+def test_missing_or_unusable_route_requires_a_post_request_path(node, mismatch):
+    goal(node, 1.)
+    assert tick(node, 1.1, healthy=False, **mismatch)[0] == "WAIT_PATH"
+    assert tick(node, 4.2, healthy=False, **mismatch)[0] == "WAIT_REPLAN"
+    assert tick(node, 4.3, path_stamp=4.0)[0] == "WAIT_REPLAN"
+    assert tick(node, 4.4, path_stamp=4.35)[0] == "LEARNED"
+
+
+def test_sensor_glitch_and_odometry_drift_cannot_acknowledge_pending_replan(node):
+    goal(node, 1.)
+    tick(node, 1.1)
+    assert tick(node, 4.2)[0] == "WAIT_REPLAN"
+    assert tick(node, 4.3, odom_xy=[0.2, 0.0])[0] == "WAIT_REPLAN"
+    assert tick(node, 4.4, healthy=False, faults=["SCAN_STALE"], shield_scan_stamp=2.)[0] == "WAIT_INPUT"
+    assert tick(node, 4.5, odom_xy=[0.2, 0.0])[0] == "WAIT_REPLAN"
+    assert tick(node, 4.6, odom_xy=[0.2, 0.0], path_stamp=4.55)[0] == "LEARNED"
+
+
+def test_operational_fault_controls_reject_partial_updates_and_allow_recovery():
+    from collections import deque
+    from types import SimpleNamespace
+    from amr_learned_planner.m3_policy_node import M3PolicyNode
+
+    policy = M3PolicyNode.__new__(M3PolicyNode)
+    policy.params = {"operational": False}
+    policy.pending_scans = deque()
+    policy.namespace = "amr1"
+    policy.scan_frames = ("amr1/lidar_link",)
+    def setting(name, value):
+        return SimpleNamespace(name=name, value=value)
+
+    drop = setting("diagnostic_drop_scans", True)
+    latency = setting("diagnostic_inference_delay_ms", 35.0)
+    assert not policy.update_diagnostics([drop]).successful
+    policy.params["operational"] = True
+    assert not policy.update_diagnostics([drop, setting(latency.name, float("nan"))]).successful
+    assert drop.name not in policy.params
+    assert policy.update_diagnostics([drop, latency]).successful
+    scan = fake_ros.LaserScan()
+    scan.header.frame_id = "amr1/lidar_link"
+    policy.receive_scan(scan)
+    assert not policy.pending_scans
+    assert policy.update_diagnostics([setting(drop.name, False), setting(latency.name, 0.0)]).successful
+    policy.receive_scan(scan)
+    assert len(policy.pending_scans) == 1
+
+
 def test_operational_and_policy_goals_share_clock_epoch_and_future_filter(node):
     from collections import deque
     from amr_learned_planner.m3_policy_node import M3PolicyNode
