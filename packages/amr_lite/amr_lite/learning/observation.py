@@ -19,6 +19,17 @@ OBSERVATION_TAIL = (
 )
 
 
+def repeat_latest_scan(observations: np.ndarray) -> np.ndarray:
+    """Keep the M3 tensor shape, repeating its newest 72 rays in all four slots."""
+    result = np.array(observations, copy=True)
+    if result.ndim < 1 or result.shape[-1] != OBSERVATION_SIZE:
+        raise ValueError("expected the 296-element stamped observation")
+    rays = (OBSERVATION_SIZE - len(OBSERVATION_TAIL)) // HISTORY_FRAMES
+    scans = result[..., :HISTORY_FRAMES * rays].reshape((*result.shape[:-1], HISTORY_FRAMES, rays))
+    scans[..., :-1, :] = scans[..., -1:, :]
+    return result
+
+
 def observation_contract(config: dict[str, Any]) -> dict[str, Any]:
     """Machine-checkable description of the observation contract (ARCHITECTURE §4)."""
     return {
