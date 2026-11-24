@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "frame": "map",
+  "map_sha256": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+  "stages": [
+    ["m4-train-short", "m4-train-turn-left", "m4-train-turn-right", "m4-train-rejoin"],
+    ["m4-train-short", "m4-train-rejoin", "m4-train-crossing", "m4-train-headon"],
+    ["m4-train-rejoin", "m4-train-multi", "m4-train-release", "train-static", "train-crossing", "train-headon", "train-blockage"]
+  ],
+  "scenes": {
+    "m4-train-short": {
+      "start": [2, 22], "yaw": 0, "goal": [6, 22], "timeout": 24, "actors": []
+    },
+    "m4-train-turn-left": {
+      "start": [10, 22], "yaw": -1.5707963267948966, "goal": [14, 22], "timeout": 24, "actors": []
+    },
+    "m4-train-turn-right": {
+      "start": [10, 22], "yaw": 1.5707963267948966, "goal": [14, 22], "timeout": 24, "actors": []
+    },
+    "m4-train-rejoin": {
+      "start": [4, 23], "yaw": 0, "goal": [12, 22], "timeout": 32,
+      "initial_via": [9, 23], "route_update_at": 2.0, "replacement_from": [4, 22],
+      "rejoin_tolerance": 0.4, "actors": []
+    },
+    "m4-train-crossing": {
+      "start": [8, 22], "yaw": 0, "goal": [17, 22], "timeout": 34,
+      "actors": [{"size": [0.5, 0.5, 1.3], "knots": [[0, 12, 20], [1, 12, 20], [7, 12, 24]]}]
+    },
+    "m4-train-headon": {
+      "start": [8, 22], "yaw": 0, "goal": [18, 22], "timeout": 36,
+      "actors": [{"size": [0.5, 0.5, 1.3], "knots": [[0, 16, 22], [1, 16, 22], [11, 8, 22]]}]
+    },
+    "m4-train-multi": {
+      "start": [8, 22], "yaw": 0, "goal": [23, 22], "timeout": 48,
+      "actors": [
+        {"size": [0.5, 0.5, 1.3], "knots": [[0, 12, 20], [1, 12, 20], [7, 12, 24]]},
+        {"size": [0.6, 0.5, 1.3], "knots": [[0, 21, 22], [3, 21, 22], [15, 14, 22]]}
+      ]
+    },
+    "m4-train-release": {
+      "start": [46.5, -2.5], "yaw": 1.5707963267948966, "goal": [46.5, 3.5], "timeout": 32,
+      "actors": [{"size": [1.8, 0.6, 1.0], "knots": [[0, 46.5, 0]], "remove_at": 7}]
+    }
+  }
+}

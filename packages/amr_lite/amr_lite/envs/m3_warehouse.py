@@ -107,15 +107,19 @@ class _ScanGeometry:
         self.box = (x - width / 2, y - depth / 2, x + width / 2, y + depth / 2)
 
     def clearance(self, x, y, radius):
-        distance = self.grid.clearance(x, y, radius)
+        return min(self.grid.clearance(x, y, radius), self.actor_clearance(x, y, radius))
+
+    def actor_clearance(self, x, y, radius):
         if self.box is None:
-            return distance
+            return math.inf
         x_min, y_min, x_max, y_max = self.box
-        return min(distance, math.hypot(max(x_min - x, x - x_max, 0),
-                                        max(y_min - y, y - y_max, 0)) - radius)
+        return math.hypot(max(x_min - x, x - x_max, 0), max(y_min - y, y - y_max, 0)) - radius
 
     def ray_distances(self, ox, oy, dx, dy, max_range):
         static = self.grid.ray_distances(ox, oy, dx, dy, max_range)
+        return self.clip_actor_rays(static, ox, oy, dx, dy, max_range)
+
+    def clip_actor_rays(self, static, ox, oy, dx, dy, max_range):
         if self.box is None:
             return static
         x_min, y_min, x_max, y_max = self.box
@@ -142,8 +146,6 @@ class M3WarehouseEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, mission_id="train-static", dynamics=None):
-        if mission_id not in development_missions():
-            raise ValueError(f"expected a train mission, received {mission_id!r}")
         super().__init__()
         self.mission_id = mission_id
         self.dynamics = dynamics or DynamicsProfile()
@@ -155,15 +157,24 @@ class M3WarehouseEnv(gym.Env):
         self.raw_spec = RawLidarSpec.from_env_config(self.config)
         self.shield = ScanSafetyShield(self.config)
         self.tracker = ScanObstacleTracker(self.config.get("scan_tracker"))
+        self.radius = float(self.config["robot_radius"])
+        self.start_yaw = float(_manifest()["start_yaw_rad"])
+        self._configure_mission(mission_id)
+
+    def _configure_mission(self, mission_id):
+        if mission_id not in development_missions():
+            raise ValueError(f"expected a train mission, received {mission_id!r}")
         case, grid, self.start, self.goal, self.path = _route(mission_id)
         self.geometry = _ScanGeometry(grid, case["actor"])
-        self.radius = float(self.config["robot_radius"])
+
+    def _remaining_distance(self, state):
+        return remaining_path_distance(self.path, state)
 
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self.io.reset()
         self.tracker.reset()
-        self.robot = RobotState(*self.start, float(_manifest()["start_yaw_rad"]))
+        self.robot = RobotState(*self.start, self.start_yaw)
         self.warmup = self.dynamics.scan_period * 3
         self.geometry.set_time(0.0)
         if self.geometry.clearance(self.robot.x, self.robot.y, self.radius) <= 0:
@@ -184,7 +195,7 @@ class M3WarehouseEnv(gym.Env):
             raise RuntimeError(f"unavailable reset observation: {sample.fault}")
         self.last_observation = sample.tensor
         self.last_stamps = sample.stamps
-        self.remaining = remaining_path_distance(self.path, sample.path)
+        self.remaining = self._remaining_distance(sample.path)
         return sample.tensor.copy(), self._info()
 
     def _scan(self, stamp):
@@ -267,7 +278,7 @@ class M3WarehouseEnv(gym.Env):
         if sample.tensor is None or sample.path is None:
             return self._invalid(sample.fault)
         self.last_observation, self.last_stamps = sample.tensor, sample.stamps
-        remaining = remaining_path_distance(self.path, sample.path)
+        remaining = self._remaining_distance(sample.path)
         self.done = collision or arrived or self.steps * _TICK >= self.timeout
         disposition = "collision" if collision else "success" if arrived else "timeout" if self.done else "running"
         reward = {"progress": self.config["reward_progress"] * (self.remaining - remaining),
