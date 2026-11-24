@@ -25,7 +25,7 @@ def start(context):
         raise ValueError("robot must be a single valid ROS namespace token")
     if planner == "b0" and command != "pass":
         raise ValueError(f"command:={command} requires planner:=b1, which owns the final command")
-    m3 = command in {"shadow", "learned"}
+    m3 = command in {"shadow", "learned", "operational"}
     bundle, trace = value("m3_bundle"), value("m3_trace")
     if m3 and not (Path(bundle).is_absolute() and (Path(bundle) / "bundle.json").is_file()
                    and Path(trace).is_absolute() and not Path(trace).exists()):
@@ -80,9 +80,13 @@ def start(context):
             settings.update(fallback_enabled=False, recover_after_sec=0.25, state_period=0.2)
             actions.append(Node(package="amr_learned_planner", executable="m3_policy", name="m3_policy",
                                 namespace=robot, output="screen",
-                                parameters=[{"use_sim_time": True, "bundle_path": bundle, "replay_path": trace}],
+                                parameters=[{"use_sim_time": True, "bundle_path": bundle, "replay_path": trace,
+                                             "operational": command == "operational"}],
                                 on_exit=Shutdown(reason="M3 policy exited")))
-        actions.append(Node(package="amr_learned_planner", executable="cmd_arbiter", name="cmd_arbiter",
+        arbiter = "operational_arbiter" if command == "operational" else "cmd_arbiter"
+        if command == "operational":
+            settings = {"use_sim_time": True}
+        actions.append(Node(package="amr_learned_planner", executable=arbiter, name="cmd_arbiter",
                             namespace=robot, output="screen", parameters=[settings],
                             on_exit=Shutdown(reason="M2 command arbiter exited")))
     if csv:
@@ -100,6 +104,8 @@ def start(context):
         topics = bag_topics(robot, planner)
         if m3:
             topics.extend(f"/{robot}/learned_planner/{name}" for name in ("cmd_vel", "status", "health"))
+        if command == "operational":
+            topics.append(f"/{robot}/cancel_goal")
         actions.append(ExecuteProcess(cmd=["ros2", "bag", "record", "-o", bag, *topics],
                                       output="screen"))
     return actions
@@ -108,7 +114,7 @@ def start(context):
 def generate_launch_description():
     args = [
         DeclareLaunchArgument("planner", default_value="b0", choices=["b0", "b1"]),
-        DeclareLaunchArgument("command", default_value="pass", choices=["pass", "stop", "shadow", "learned"]),
+        DeclareLaunchArgument("command", default_value="pass", choices=["pass", "stop", "shadow", "learned", "operational"]),
         DeclareLaunchArgument("m3_bundle", default_value=""),
         DeclareLaunchArgument("m3_trace", default_value=""),
         DeclareLaunchArgument("tuning", default_value="resolved", choices=["upstream", "resolved"]),

@@ -32,23 +32,28 @@ from amr_learned_planner.ros_common import (
 DEFAULTS = {
     "bundle_path": "",
     "replay_path": "",
+    "operational": False,
     "hold": False,
     "speed_cap": 0.45,
     "yaw_rate_cap": 0.6,
 }
 
 
-def load_policy(path):
+def load_policy(path, *, operational=False):
     runtime = PolicyRuntime.load(path)
     manifest = runtime.manifest
     profile = manifest["robot_profile"]
     observation = manifest["observation_contract"]
+    history_spec = (observation.get("history_mode"), manifest["policy"].get("input_transform"))
+    allowed_history = {("stack", None)}
+    if operational:
+        allowed_history.add(("newest", "repeat_latest_scan"))
     nominal = {"policy_dt": 0.05, "v_max": 1.5, "w_max": 1.5, "accel_max": 1.0,
                "decel_max": 2.0, "angular_accel_max": 1.5, "robot_radius": 0.36}
     if (manifest["policy"]["kind"] != "sb3_ppo"
             or runtime.mode != "direct"
             or observation.get("acquisition_contract") != M3_IO_ID
-            or observation.get("history_mode") != "stack"
+            or history_spec not in allowed_history
             or runtime.action_limits != (1.5, 1.5)
             or profile.get("name") != "opticore_gazebo"
             or any(profile["values"].get(key) != value for key, value in nominal.items())
@@ -63,7 +68,7 @@ class M3PolicyNode(Node):
     def __init__(self):
         super().__init__("m3_policy")
         self.params = declare_parameters(self, DEFAULTS)
-        self.runtime = load_policy(self.params["bundle_path"])
+        self.runtime = load_policy(self.params["bundle_path"], operational=self.params["operational"])
         self.speed_cap = float(self.params["speed_cap"])
         self.yaw_cap = float(self.params["yaw_rate_cap"])
         if not 0 < self.speed_cap <= 0.45 or not 0 < self.yaw_cap <= 0.6:
@@ -163,12 +168,10 @@ class M3PolicyNode(Node):
             self.shield_scan = stamp, pose, points
 
     def receive_goal(self, msg):
+        now = self.clock_time()
         stamp = stamp_seconds(msg.header.stamp)
         point = msg.pose.position.x, msg.pose.position.y
-        if msg.header.frame_id != "map" or not all(map(math.isfinite, point)):
-            self.goal = None
-            self.path = None
-            self.reset_history()
+        if msg.header.frame_id != "map" or not all(map(math.isfinite, point)) or not 0 <= stamp <= now + 0.25:
             return
         if self.goal is None or stamp > self.goal[0]:
             goal_id = f"map:{msg.header.stamp.sec}.{msg.header.stamp.nanosec:09d}"
@@ -177,8 +180,9 @@ class M3PolicyNode(Node):
             self.reset_history()
 
     def receive_path(self, msg):
+        now = self.clock_time()
         stamp = stamp_seconds(msg.header.stamp)
-        if self.path is not None and stamp < self.path[0]:
+        if not 0 <= stamp <= now + 0.25 or (self.path is not None and stamp < self.path[0]):
             return
         points = tuple((p.pose.position.x, p.pose.position.y) for p in msg.poses)
         if msg.header.frame_id != "map" or not all(math.isfinite(v) for pair in points for v in pair):
@@ -186,16 +190,22 @@ class M3PolicyNode(Node):
         self.path = stamp, points
         self.path_revision += 1
 
-    def active_route(self, now):
+    def path_matches_goal(self, now):
         if self.goal is None or self.path is None:
-            return None
+            return False
         goal_stamp, goal, _ = self.goal
         path_stamp, points = self.path
         # Reject empty and unrelated replans. Path and goal use distinct DDS publishers.
-        if not goal_stamp <= path_stamp <= now or not points or math.dist(points[-1], goal) > 0.4:
+        return goal_stamp <= path_stamp <= now and len(points) >= 2 and math.dist(points[-1], goal) <= 0.4
+
+    def active_route(self, now):
+        if not self.path_matches_goal(now):
             return None
         try:
-            transform = self.buffer.lookup_transform(self.local_frame, "map", Time()).transform
+            # Operational authority requires TF at the pose acquisition. A cached
+            # latest transform from a stopped localization node must not permit fallback.
+            query = Time(nanoseconds=round(self.odom[0] * 1e9)) if self.params["operational"] else Time()
+            transform = self.buffer.lookup_transform(self.local_frame, "map", query).transform
         except TransformException:
             return None
         translation, yaw = transform.translation, yaw_from_quaternion(transform.rotation)
@@ -203,7 +213,7 @@ class M3PolicyNode(Node):
         def to_local(pair):
             x, y = pair
             return translation.x + c * x - s * y, translation.y + s * x + c * y
-        return [to_local(p) for p in points], to_local(goal)
+        return [to_local(p) for p in self.path[1]], to_local(self.goal[1])
 
     def publish(self, now, status, fault=None, observation=None, action=None, target=None,
                 command=(0.0, 0.0), inference_ms=None, shield=None):
@@ -217,6 +227,13 @@ class M3PolicyNode(Node):
             "goal_id": self.goal[2] if self.goal else None, "path_revision": self.path_revision,
             "scan_stamps": list(observation.stamps) if observation is not None else [],
             "odom_stamp": self.odom[0] if self.odom else None,
+            "odom_xy": [self.odom[1].x, self.odom[1].y] if self.odom else None,
+            "path_stamp": self.path[0] if self.path else None,
+            "path_waiting": not self.path_matches_goal(now),
+            "shield_scan_stamp": self.shield_scan[0] if self.shield_scan else None,
+            "support_ready": bool(observation is not None and observation.tensor is not None
+                                  and observation.fault is None and self.shield_scan is not None
+                                  and self.shield_scan[0] == observation.stamps[-1]),
             "action": action.tolist() if action is not None and np.isfinite(action).all() else None,
             "target": target, "command": command, "inference_ms": inference_ms,
             "shield_mode": shield.mode if shield else None, "risk": shield.risk_source if shield else None,
@@ -236,7 +253,7 @@ class M3PolicyNode(Node):
         limited = max(0.0, min(v, self.speed_cap)), max(-self.yaw_cap, min(w, self.yaw_cap))
         return None, limited, shield
 
-    def control(self):
+    def clock_time(self):
         now = now_seconds(self)
         if self.last_clock is not None and now < self.last_clock:
             self.goal = self.path = self.odom = None
@@ -244,6 +261,10 @@ class M3PolicyNode(Node):
             self.odom_history.clear()
             self.reset_history()
         self.last_clock = now
+        return now
+
+    def control(self):
+        now = self.clock_time()
         self.consume_scans(now)
         if self.hold:
             self.publish(now, "STOPPED", "DIAGNOSTIC_HOLD")

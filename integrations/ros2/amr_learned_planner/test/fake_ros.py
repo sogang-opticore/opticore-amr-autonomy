@@ -170,8 +170,8 @@ class Buffer:
 def install() -> bool:
     """Install the fakes unless real rclpy is importable. Returns True if installed."""
     try:
-        import rclpy  # noqa: F401
-        return False
+        from rclpy.node import Node as InstalledNode
+        return InstalledNode is Node
     except ImportError:
         pass
 

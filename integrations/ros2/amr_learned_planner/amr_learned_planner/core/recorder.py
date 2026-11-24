@@ -52,6 +52,7 @@ class _Episode:
     fallback_since: float | None = None
     fallback_time: float = 0.0
     max_inference_ms: float = 0.0
+    last_health_stamp: float = -math.inf
     deadline_misses_at_start: int | None = None
     deadline_misses: int = 0
     faults: set[str] = field(default_factory=set)
@@ -220,7 +221,12 @@ class EpisodeRecorder:
         if not isinstance(snapshot, dict) or not all(isinstance(snapshot.get(k), str) for k in ("state", "mode")):
             self.event(now, "malformed_arbiter")
             return
+        if "goal_id" in snapshot and snapshot["goal_id"] != e.goal_id:
+            return
         self.event(now, "arbiter", state=snapshot["state"], mode=snapshot["mode"])
+        if snapshot["state"] in {"CANCELLED", "BLOCKED_TIMEOUT", "PATH_TIMEOUT"} and e.arrived_at is None:
+            self.finish(now, snapshot["state"])
+            return
         fallback = snapshot.get("state") in {"FALLBACK_HOLD", "FALLBACK"} and snapshot.get("mode") == "learned"
         if fallback and e.fallback_since is None:
             e.fallbacks += 1
@@ -236,10 +242,17 @@ class EpisodeRecorder:
         if not isinstance(report, dict):
             self.event(now, "malformed_health")
             return
-        duration = report.get("inference_ms", 0.0)
+        if "goal_id" in report:
+            stamp = report.get("stamp")
+            if (report["goal_id"] != e.goal_id or type(stamp) not in (int, float) or not math.isfinite(stamp)
+                    or not e.started <= stamp <= now + 0.25 or stamp <= e.last_health_stamp):
+                return
+            e.last_health_stamp = stamp
+        duration = report.get("inference_ms")
+
         misses = report.get("deadline_misses", 0)
         faults = report.get("faults", [])
-        if (type(duration) not in (int, float) or not math.isfinite(duration) or duration < 0
+        if ((duration is not None and (type(duration) not in (int, float) or not math.isfinite(duration) or duration < 0))
                 or type(misses) is not int or misses < 0 or not isinstance(faults, list)
                 or not all(isinstance(fault, str) for fault in faults)
                 or not isinstance(report.get("shield_mode", "PASS"), (str, type(None)))):
@@ -247,13 +260,17 @@ class EpisodeRecorder:
             return
         e.ticks += 1
         e.shield_ticks += int(report.get("shield_mode", "PASS") not in {"PASS", None})
-        e.max_inference_ms = max(e.max_inference_ms, duration)
-        if e.deadline_misses_at_start is None:
-            e.deadline_misses_at_start = misses
-        e.deadline_misses = max(0, misses - e.deadline_misses_at_start)
+        if duration is not None:
+            e.max_inference_ms = max(e.max_inference_ms, duration)
+        if "deadline_misses" in report:
+            if e.deadline_misses_at_start is None:
+                e.deadline_misses_at_start = misses
+            e.deadline_misses = max(0, misses - e.deadline_misses_at_start)
+        elif "INFERENCE_DEADLINE" in faults:
+            e.deadline_misses += 1
         e.faults.update(faults)
         self.event(now, "health", shield=report.get("shield_mode"), faults=report.get("faults", []),
-                   deadline_misses=misses, inference_ms=duration)
+                   deadline_misses=e.deadline_misses, inference_ms=duration)
 
     def tick(self, now: float) -> dict[str, Any] | None:
         e = self.current
