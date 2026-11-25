@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 
 from amr_lite.learning.action import ACTION_CONTRACT_VERSION
-from amr_lite.learning.observation import OBSERVATION_CONTRACT_VERSION, OBSERVATION_SIZE
+from amr_lite.learning.observation import OBSERVATION_CONTRACT_VERSION, OBSERVATION_SIZE, repeat_latest_scan
 
 SUPPORTED_FORMAT = ("opticore-learned-planner-bundle", 1)
 GOLDEN_TOLERANCE = 1e-5
@@ -54,6 +54,9 @@ class PolicyRuntime:
         self.manifest, self.weights, self.directory = manifest, weights, directory
         policy = manifest["policy"]
         self.network = policy["network"]
+        self.input_transform = policy.get("input_transform")
+        if self.input_transform not in (None, "repeat_latest_scan"):
+            raise BundleError("CONTRACT_MISMATCH", f"unknown input transform {self.input_transform!r}")
         self.mode = policy["mode"]
         self.residual_scale = float(policy.get("residual_scale", 0.5))
         self.base = None
@@ -116,6 +119,8 @@ class PolicyRuntime:
     def policy_actions(self, observations: np.ndarray) -> np.ndarray:
         """Raw network output in ``[-1, 1]`` (before any residual combination)."""
         value = np.asarray(observations, dtype=np.float32).reshape(-1, OBSERVATION_SIZE)
+        if self.input_transform == "repeat_latest_scan":
+            value = repeat_latest_scan(value)
         network = self.network
         if network["type"] == "scan_cnn":
             frames, rays = int(network["frames"]), int(network["rays"])
