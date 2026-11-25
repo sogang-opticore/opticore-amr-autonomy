@@ -1,0 +1,55 @@
+{
+  "schema": "opticore-m4-scene-freeze-v1",
+  "frame": "map",
+  "partition": "train",
+  "environment_revision": "0a23c4f",
+  "sha256": {
+    "experiments/m4/curriculum.json": "bc238aa7d901ef53aaf47964baa82db77dc65e2229982b1e87da5fe4ee8ebef2",
+    "experiments/m2/missions.json": "905bd935b6a384c885f0a771bc447e526303ab6e22fb26a84a3f1dca26a1e2c5",
+    "packages/amr_lite/assets/maps/opticore_warehouse/warehouse_map.pgm": "9c05eb3ca202e7d370830ef1abf9c86a8757a12e4606bb4b3096a289d5ddc7ea",
+    "packages/amr_lite/assets/maps/opticore_warehouse/warehouse_map.yaml": "6c8c41a2579f6c84284d5556d6ff1ff195cfd97e81a02f55b2ff67667682c363",
+    "packages/amr_lite/configs/env.yaml": "15bcf140ae55d9ff8a1d0223b810de7191524e3e01232f11cdf055e5d1fa84b8",
+    "packages/amr_lite/configs/m2/ppo_start.yaml": "888ea3d938aaacdd5eb56aef4463f0a940e772b59b62d4021ca34b275c742758",
+    "packages/amr_lite/configs/robot_profiles/opticore_gazebo.yaml": "86548cb4d4fc5572c0124dbaace8668bb1180b07302281ee3c5f930d57608b55",
+    "packages/amr_lite/amr_lite/envs/m3_warehouse.py": "c5b86c47ff3542bf61b00427177c2d655ab1784034eb8c9af2f2bda4ce1b2e32",
+    "packages/amr_lite/amr_lite/envs/m4_curriculum.py": "039328bad572f6385c5bcf0ad81bba2f0afb3cb67a9bfb7045f0afb4183bec04",
+    "packages/amr_lite/amr_lite/envs/m3_variation.py": "0083023d876d42010afb5a02c1c3322b17100486b9c63d85795f57bf58d9fe74",
+    "packages/amr_lite/amr_lite/learning/stamped_io.py": "17360abdd67dde24374d4ec73bf9a0b27d3deb59c541dc38da469767b31bc99d",
+    "packages/amr_lite/amr_lite/learning/observation.py": "50b8d49819743de9e90718d4d372d2588a8d9028f06213ddc0046bcef0c34667"
+  },
+  "reward_progress": "2 * (previous distance - current distance), using remaining route arc plus Euclidean distance to its projection. A path replacement rebases distance on the new path after scoring the physical transition on the old path.",
+  "arrival": {
+    "radius_m": 0.4,
+    "collision_precedence": true,
+    "primary_deadline_s": 120
+  },
+  "route_rejoin": "At t=2.0 s, replace the path through (9,23) with the line from (4,22) to (12,22). First entry within 0.4 m after observing a pose outside that corridor is rejoin. Report delay from replacement.",
+  "dynamics": {
+    "control_hz": 20,
+    "nominal_lidar_hz": 10,
+    "nominal_scan_noise_std_m": 0.03,
+    "nominal_drive_delay_ticks": 0,
+    "varied_scan_noise_std_m": [
+      0.0297,
+      0.0302
+    ],
+    "varied_drive_delay_ticks": [
+      1,
+      2
+    ]
+  },
+  "regression": {
+    "command": "python -m pytest -q packages/amr_lite/tests/test_m4_curriculum.py packages/amr_lite/tests/test_m3_warehouse.py",
+    "pythonpath": "packages/amr_lite",
+    "passed": 15,
+    "checks": [
+      "positive spawn clearance and path for every training ID",
+      "equivalent M3 transitions on all four original train conditions",
+      "near-box occlusion, far-box visibility and separate actor contacts",
+      "scheduled release changes collision and range, followed by forward motion",
+      "zero stationary reward during path replacement, immediate observation change, physical reacquisition",
+      "nonzero terminal distance for lateral error and overshoot",
+      "scan outage flushes pending commands before a physics tick"
+    ]
+  }
+}
