@@ -80,14 +80,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("runs", type=Path)
     parser.add_argument("out", type=Path)
+    parser.add_argument("--mixed-score", type=Path, help="score report for the three mixed-profile actors")
     args = parser.parse_args()
     root = REPOSITORY_ROOT / "experiments/m4/development"
     profiles = {"nominal": DynamicsProfile(), "measured": measured_variation(np.random.default_rng(PROFILE_SEED))}
     rows = []
-    for variant, mission in (("full", "train-static"), ("no_randomization", "train-headon")):
+    mixed_score = json.loads(args.mixed_score.read_text()) if args.mixed_score else None
+    headon_variant = "full" if mixed_score else "no_randomization"
+    for variant, mission in (("full", "train-static"), (headon_variant, "train-headon")):
         for seed in TRAIN_SEEDS:
-            bundle = args.runs / variant / str(seed) / "bundle"
-            reference = json.loads((root / f"primary-{variant}-{seed}.json").read_text())
+            name = f"primary-{variant}-{seed}.json"
+            if mixed_score:
+                bundle = args.runs / str(seed) / "bundle"
+                reference = mixed_score["reports"][name]
+            else:
+                bundle = args.runs / variant / str(seed) / "bundle"
+                reference = json.loads((root / name).read_text())
             if reference["bundle_sha256"] != sha256_file(bundle / "bundle.json"):
                 raise ValueError("replay bundle does not match recorded actor")
             policy = PolicyRuntime.load(bundle)
