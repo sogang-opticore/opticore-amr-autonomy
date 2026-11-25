@@ -11,6 +11,7 @@ from amr_lite.envs.m3_warehouse import (
     MAP_ASSET, M3WarehouseEnv, _ScanGeometry, development_missions, environment_config,
 )
 from amr_lite.experiments.manifest import sha256_file
+from amr_lite.learning.observation import repeat_latest_scan
 from amr_lite.planning.astar import astar
 from amr_lite.planning.path_utils import nearest_segment
 
@@ -114,7 +115,6 @@ class M4WarehouseEnv(M3WarehouseEnv):
     def _policy_input(self, observation):
         if self.history:
             return observation
-        from amr_lite.learning.observation import repeat_latest_scan
         return repeat_latest_scan(observation)
 
     def reset(self, *, seed=None, options=None):
@@ -127,6 +127,14 @@ class M4WarehouseEnv(M3WarehouseEnv):
         return self._policy_input(observation), info
 
     def step(self, action):
+        # A lost or invalid acquisition may be known before an inference tick.
+        # Discard pending commands before advancing simulation in that case.
+        frames = self.io.frames
+        if not self.done and (self.io.scan_invalid or len(frames) < frames.maxlen
+                              or self.clock - frames[-1][0] > 0.5 + 1e-9):
+            sample = self.io.observe(self.clock, self.clock, self.robot, self.path)
+            observation, reward, terminated, truncated, info = self._invalid(sample.fault)
+            return self._policy_input(observation), reward, terminated, truncated, info
         observation, reward, terminated, truncated, info = super().step(action)
         if self.route_update_at is not None and info["disposition"] != "invalid":
             if not self.replacement_active and self.elapsed + 1e-9 >= self.route_update_at:
@@ -146,7 +154,7 @@ class M4WarehouseEnv(M3WarehouseEnv):
                 if error > self.scene["rejoin_tolerance"]:
                     self.was_off_replacement = True
                 elif self.was_off_replacement:
-                    self.route_rejoin_s = self.elapsed - self.route_update_at
+                    self.route_rejoin_s = max(0.0, self.elapsed - self.route_update_at)
             info.update(route_rejoined=self.route_rejoin_s is not None, route_rejoin_s=self.route_rejoin_s)
         return self._policy_input(observation), reward, terminated, truncated, info
 
