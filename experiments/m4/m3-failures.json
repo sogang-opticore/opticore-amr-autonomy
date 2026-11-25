@@ -1,0 +1,124 @@
+{
+  "m3_training_commit": "a2d89e6ca213276f9901e5e728cfd5852172421c",
+  "training_seed": 7,
+  "input_sha256": {
+    "after-trace.jsonl": "12e11dc4bba7ba952616d831df3902ee5a223c2a17b1f33d13351c344a8b0fb2",
+    "resolved.json": "ae9124fcb3ed456b0b682c764a4d25e82b7c1da9b81435a132902a57fc2e3602",
+    "final.zip": "920e11262722010816993a2e7f21a1d45a59b998d9768a2a35c5358395acdbb6",
+    "experiments/m2/missions.json": "905bd935b6a384c885f0a771bc447e526303ab6e22fb26a84a3f1dca26a1e2c5"
+  },
+  "goal_tolerance_m": 0.4,
+  "maximum_linear_velocity_m_s": 1.5,
+  "missions": [
+    {
+      "mission": "train-static",
+      "evaluation_seed": 100,
+      "ticks": 2400,
+      "start_goal_distance_m": 50.0,
+      "start_goal_bearing_minus_yaw_deg": 0.0,
+      "closest": {
+        "time_s": 34.05,
+        "goal_error_m": 0.870831,
+        "linear_velocity_m_s": 1.5,
+        "shield_mode": "PASS"
+      },
+      "final": {
+        "time_s": 120.0,
+        "disposition": "timeout",
+        "goal_error_m": 4.808184,
+        "linear_velocity_m_s": 0.0,
+        "progress_reward": 100.0
+      },
+      "shield_mode_ticks": {
+        "CLAMP": 45,
+        "PASS": 740,
+        "STOP": 1615
+      },
+      "shield_intervention_ticks": 1660
+    },
+    {
+      "mission": "train-crossing",
+      "evaluation_seed": 101,
+      "ticks": 2400,
+      "start_goal_distance_m": 50.0,
+      "start_goal_bearing_minus_yaw_deg": 0.0,
+      "closest": {
+        "time_s": 37.25,
+        "goal_error_m": 0.871104,
+        "linear_velocity_m_s": 1.5,
+        "shield_mode": "PASS"
+      },
+      "final": {
+        "time_s": 120.0,
+        "disposition": "timeout",
+        "goal_error_m": 4.8127,
+        "linear_velocity_m_s": 0.0,
+        "progress_reward": 100.0
+      },
+      "shield_mode_ticks": {
+        "CLAMP": 109,
+        "PASS": 733,
+        "STOP": 1558
+      },
+      "shield_intervention_ticks": 1667
+    },
+    {
+      "mission": "train-headon",
+      "evaluation_seed": 102,
+      "ticks": 2400,
+      "start_goal_distance_m": 50.0,
+      "start_goal_bearing_minus_yaw_deg": 0.0,
+      "closest": {
+        "time_s": 36.7,
+        "goal_error_m": 0.87342,
+        "linear_velocity_m_s": 1.5,
+        "shield_mode": "PASS"
+      },
+      "final": {
+        "time_s": 120.0,
+        "disposition": "timeout",
+        "goal_error_m": 4.807565,
+        "linear_velocity_m_s": 0.0,
+        "progress_reward": 100.0
+      },
+      "shield_mode_ticks": {
+        "CLAMP": 101,
+        "PASS": 744,
+        "STOP": 1555
+      },
+      "shield_intervention_ticks": 1656
+    },
+    {
+      "mission": "train-blockage",
+      "evaluation_seed": 103,
+      "ticks": 2400,
+      "start_goal_distance_m": 14.5,
+      "start_goal_bearing_minus_yaw_deg": 90.0,
+      "closest": {
+        "time_s": 95.6,
+        "goal_error_m": 14.351315,
+        "linear_velocity_m_s": 0.0,
+        "shield_mode": "STOP"
+      },
+      "final": {
+        "time_s": 120.0,
+        "disposition": "timeout",
+        "goal_error_m": 14.351315,
+        "linear_velocity_m_s": 0.0,
+        "progress_reward": 0.332369
+      },
+      "shield_mode_ticks": {
+        "CLAMP": 51,
+        "PASS": 10,
+        "STOP": 2339
+      },
+      "shield_intervention_ticks": 2390,
+      "after_actor_removal": {
+        "removal_time_s": 20,
+        "ticks": 2001,
+        "shield_intervention_ticks": 2001,
+        "closest_goal_error_m": 14.351315
+      }
+    }
+  ]
+}
