@@ -92,7 +92,7 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
   증거가 없었다.
 - **Post-M1 계획의 M2 완료.** 로컬 Gazebo에서 개발 조건 4종을 두 번씩 비교했다. 16회 모두 유효했고 무충돌 도착은 B0 2/8, B1 1/8이었다. 정면 접근은 네 번 모두 충돌했다. [M2 판정과 원시 증거 안내](docs/m2/README.md)
 - **Post-M1 계획의 M3 완료.** Lite에서 PPO 학습·재개를 검증했고, 같은 NumPy 정책으로 Gazebo 단일 로봇의 무충돌 도착과 정지·복귀를 기록했다. [M3 결과와 재현 절차](docs/m3/README.md)
-- **Post-M1 M4 개발 실험 종료, 후보 선정 보류.** PPO 9회, 개발 임무 평가 312회를 수행했다. 동적 임무 완료율은 높아졌지만 세 구성 모두 정적 시간 초과율 또는 접촉률 기준을 넘었다. M5의 목표 취소·전환·재계획 경로는 오프라인에서 검증했다. [M4 결과](docs/m4/README.md) · [M5 운용 코드](docs/m5/operations.md)
+- **Post-M1 M4 개발 후보 선정.** 1차 실험 이후 명목·실측 동역학을 섞어 세 seed를 다시 학습했다. Lite 기본 임무 48회 중 24회 무충돌 완료, 9회 접촉으로 M3 대비 사전 선정 기준을 통과했다. 일시 차단은 0/12, 복수 장애물은 0/12였다. M5는 단일 로봇 반복 운송과 고장 복구 검증부터 진행한다. [M4 후속 결과](docs/m4/followup.md) · [M5 운용 코드](docs/m5/operations.md)
 - **2026-10-14 스파이크 로드맵 현황.** 당시 M2–M6 코드가 구현되어 학습·실기동을 기다리고 있었다. Gazebo 로봇과 같은 LiDAR·동역학 profile,
   센서 randomization, LiDAR 기반 Safety Shield, 절차적·창고 지도 시나리오, PPO v2와
   DAgger, sweep과 G4 gate, torch 없는 policy bundle, opticore-amr ROS2 통합 패키지가
@@ -100,5 +100,5 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
 - **2026-10-14 인수인계 검토.** 테스트(119 + 26)와 학습·배포 smoke가 다시 통과했다.
   G4 gate가 Shield OFF rule baseline과 비교하도록 정의돼 있어 학습 전에 배포 구성
   (Shield ON) 기준으로 고칠 것을 제안했다 (claude 제안사항). 상세는 [검증 현황](docs/handover/VERIFICATION_STATUS.md) §4.
-- 다음 작업은 [2주 계획](docs/handover/DIRECTION_OPTIONS.md)에 따른 결정·G3 동결, E1–E6 학습,
+- 당시 스파이크의 [2주 계획](docs/handover/DIRECTION_OPTIONS.md)은 결정·G3 동결, E1–E6 학습,
   M5 ROS2 실기동, M6 Gazebo paired 검증이다 (claude 제안사항).
