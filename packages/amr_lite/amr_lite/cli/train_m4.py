@@ -32,11 +32,14 @@ VARIANTS = ("full", "no_history", "no_randomization")
 class CurriculumWorker(gym.Wrapper):
     """Cycle through a stage's train missions with paired, per-episode RNG streams."""
 
-    def __init__(self, missions, rank: int, variant: str):
+    def __init__(self, missions, rank: int, variant: str, mix_profiles: bool = False):
+        if mix_profiles and variant != "full":
+            raise ValueError("mixed profiles require the full-history development configuration")
         self.missions = missions
         self.rank = rank
         self.history = variant != "no_history"
         self.randomize = variant != "no_randomization"
+        self.mix_profiles = mix_profiles
         self.worker_seed = None
         self.episode = 0
         super().__init__(M4WarehouseEnv(missions[rank % len(missions)]))
@@ -47,9 +50,10 @@ class CurriculumWorker(gym.Wrapper):
             self.episode = 0
         if self.worker_seed is None:
             raise ValueError("the vector runner must seed each new curriculum worker")
-        sensor_seed, profile_seed = map(int, np.random.SeedSequence(
-            [self.worker_seed, self.episode]).generate_state(2))
-        dynamics = measured_variation(np.random.default_rng(profile_seed)) if self.randomize else DynamicsProfile()
+        sensor_seed, profile_seed, mixture_draw = map(int, np.random.SeedSequence(
+            [self.worker_seed, self.episode]).generate_state(3))
+        measured = self.randomize and (not self.mix_profiles or mixture_draw % 2 == 1)
+        dynamics = measured_variation(np.random.default_rng(profile_seed)) if measured else DynamicsProfile()
         mission = self.missions[(self.rank + self.episode) % len(self.missions)]
         self.env.close()
         self.env = M4WarehouseEnv(mission, dynamics, history=self.history, shield=True)
@@ -90,9 +94,11 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2, allow_nan=False) + "\n")
 
 
-def train(output: Path, variant: str, seed: int, stage_steps: int):
+def train(output: Path, variant: str, seed: int, stage_steps: int, mix_profiles: bool = False):
     if variant not in VARIANTS or seed < 0:
         raise ValueError("choose a valid training variant and nonnegative seed")
+    if mix_profiles and variant != "full":
+        raise ValueError("mixed profiles require the full-history development configuration")
     ppo = load_config("m2/ppo_start")
     dependencies = dependency_snapshot()
     for name, version in ppo["versions"].items():
@@ -121,7 +127,8 @@ def train(output: Path, variant: str, seed: int, stage_steps: int):
         "mission_manifest_sha256": sha256_file(MANIFEST), "map_sha256": sha256_file(MAP_ASSET),
         "curriculum_manifest_sha256": sha256_file(CURRICULUM_MANIFEST),
         "ppo": ppo, "environment": config, "curriculum_stages": stages, "stage_steps": stage_steps,
-        "randomization": "measured_variation" if variant != "no_randomization" else "nominal",
+        "randomization": ("nominal_measured_50_50" if mix_profiles else
+                          "measured_variation" if variant != "no_randomization" else "nominal"),
         "worker_seeds_by_stage": [[seed + 10000 * index + rank for rank in range(workers)]
                                   for index in range(len(stages))],
     }
@@ -130,7 +137,7 @@ def train(output: Path, variant: str, seed: int, stage_steps: int):
     model = None
     start = time.monotonic()
     for index, missions in enumerate(stages):
-        vec = DummyVecEnv([lambda rank=rank: Monitor(CurriculumWorker(missions, rank, variant))
+        vec = DummyVecEnv([lambda rank=rank: Monitor(CurriculumWorker(missions, rank, variant, mix_profiles))
                            for rank in range(workers)])
         stage = index + 1
         stage_start = time.monotonic()
@@ -168,6 +175,7 @@ def train(output: Path, variant: str, seed: int, stage_steps: int):
                                   restored.predict(samples, deterministic=True)[0])
     error = export_sb3(restored, checkpoint, output / "bundle", config, raw, {
         "seed": seed, "variant": variant, "total_timesteps": model.num_timesteps,
+        "randomization": settings["randomization"],
         "settings_sha256": sha256_file(output / "resolved.json"), "git_commit": settings["git"]["commit"],
         "source_sha256": settings["source"]["sha256"], "curriculum_sha256": settings["curriculum_manifest_sha256"],
     })
@@ -187,8 +195,10 @@ def main():
     parser.add_argument("--variant", choices=VARIANTS, required=True)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--stage-steps", type=int, default=65536, help="transitions per stage, across all workers")
+    parser.add_argument("--mix-profiles", action="store_true",
+                        help="sample nominal or measured dynamics with equal probability per full-policy episode")
     args = parser.parse_args()
-    train(args.out, args.variant, args.seed, args.stage_steps)
+    train(args.out, args.variant, args.seed, args.stage_steps, args.mix_profiles)
 
 
 if __name__ == "__main__":

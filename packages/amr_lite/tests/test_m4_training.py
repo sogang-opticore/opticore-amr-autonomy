@@ -27,6 +27,26 @@ def test_variants_share_mission_and_sensor_draws_at_each_worker_episode():
         assert nominal.env.dynamics.drive_delay_ticks == 0
 
 
+def test_mixed_profiles_reuse_paired_sensor_seeds_and_both_original_dynamics():
+    missions = curriculum_stages()[0]
+    full = CurriculumWorker(missions, 0, "full")
+    mixed = CurriculumWorker(missions, 0, "full", mix_profiles=True)
+    delays = []
+    for episode in range(12):
+        seed = 7 if episode == 0 else None
+        mixed.reset(seed=seed)
+        full.reset(seed=seed)
+        assert mixed.env.mission_id == full.env.mission_id
+        assert mixed.episode_spec["sensor_seed"] == full.episode_spec["sensor_seed"]
+        profile = mixed.env.dynamics
+        delays.append(profile.drive_delay_ticks)
+        if profile.drive_delay_ticks:
+            assert profile == full.env.dynamics
+        else:
+            assert profile.scan_noise_std == 0.03
+    assert 0 in delays and max(delays) > 0
+
+
 def test_no_history_runtime_uses_raw_unequal_frames_and_preserves_tail():
     raw = np.linspace(-0.1, 0.1, 296 * 2, dtype=np.float32).reshape(2, 296)
     original = raw.copy()
