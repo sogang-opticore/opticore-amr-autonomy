@@ -95,12 +95,14 @@ def verify_stage(root, stats, settings, index):
         require(row["worker_seed"] == settings["worker_seeds_by_stage"][index][rank]
                 and row["mission_id"] == expected_mission
                 and count - STAGE_STEPS < row["step"] <= count, "episode outside declared training assignment")
-        sensor, profile = np.random.SeedSequence([row["worker_seed"], episode_index[rank]]).generate_state(2)
+        sensor, profile, mixture = np.random.SeedSequence([row["worker_seed"], episode_index[rank]]).generate_state(3)
         require((row["sensor_seed"], row["profile_seed"]) == (sensor, profile), "episode seed streams changed")
         delay = row["dynamics"]["drive_delay_ticks"]
         noise = row["dynamics"]["scan_noise_std"]
-        if settings["variant"] == "no_randomization":
-            require(delay == 0 and noise == 0.03, "non-nominal profile in no_randomization")
+        nominal = settings["randomization"] == "nominal" or (
+            settings["randomization"] == "nominal_measured_50_50" and int(mixture) % 2 == 0)
+        if nominal:
+            require(delay == 0 and noise == 0.03, "non-nominal dynamics in a nominal episode")
         else:
             require(delay in (1, 2) and 0.0297 <= noise <= 0.0302, "profile outside measured envelope")
         require(row["disposition"] in OUTCOMES, "unknown training outcome")
@@ -116,7 +118,7 @@ def verify_stage(root, stats, settings, index):
     }
 
 
-def verify_run(root, variant, seed, common, source):
+def verify_run(root, variant, seed, common, source, *, mixed=False):
     settings = read_json(root / "resolved.json")
     summary = read_json(root / "summary.json")
     bundle = read_json(root / "bundle/bundle.json")
@@ -130,9 +132,14 @@ def verify_run(root, variant, seed, common, source):
     require(settings["worker_seeds_by_stage"] == [[seed + 10000 * i + rank for rank in range(WORKERS)]
                                                   for i in range(3)], "worker seeds mismatch")
     history = "newest" if variant == "no_history" else "stack"
+    mode = "nominal" if variant == "no_randomization" else "measured_variation"
+    if mixed:
+        mode = "nominal_measured_50_50"
+        require(variant == "full" and provenance.get("randomization") == mode,
+                "mixed actor does not identify its training distribution")
     require(settings["environment"]["history_mode"] == bundle["observation_contract"]["history_mode"] == history
             and settings["environment"]["shield_enabled"] is True
-            and settings["randomization"] == ("nominal" if variant == "no_randomization" else "measured_variation"),
+            and settings["randomization"] == mode,
             "training variant contract mismatch")
     require(bundle["policy"].get("input_transform") == ("repeat_latest_scan" if variant == "no_history" else None),
             "exported preprocessing mismatch")
