@@ -34,6 +34,7 @@ DEFAULTS = {
     "replay_path": "",
     "operational": False,
     "hold": False,
+    "goal_tolerance_m": 0.4,
     "speed_cap": 0.45,
     "yaw_rate_cap": 0.6,
 }
@@ -75,6 +76,9 @@ class M3PolicyNode(Node):
             if not 0 <= self.params["diagnostic_inference_delay_ms"] <= 100.0:
                 raise ValueError("diagnostic_inference_delay_ms must be within 0..100 ms")
         self.runtime = load_policy(self.params["bundle_path"], operational=self.params["operational"])
+        self.goal_tolerance_m = float(self.params["goal_tolerance_m"])
+        if not math.isfinite(self.goal_tolerance_m) or self.goal_tolerance_m <= 0:
+            raise ValueError("goal_tolerance_m must be positive and finite")
         self.speed_cap = float(self.params["speed_cap"])
         self.yaw_cap = float(self.params["yaw_rate_cap"])
         if not 0 < self.speed_cap <= 0.45 or not 0 < self.yaw_cap <= 0.6:
@@ -296,7 +300,7 @@ class M3PolicyNode(Node):
         action = command = None
         inference_ms = 0.0
         if observation.tensor is not None and observation.fault is None:
-            if self.reached or math.dist((robot.x, robot.y), goal) <= 0.4:
+            if self.reached or math.dist((robot.x, robot.y), goal) <= self.goal_tolerance_m:
                 self.reached = True
                 self.publish(now, "REACHED", observation=observation)
             elif observation.path is not None and abs(observation.path.cross_track_error) > 1.0:

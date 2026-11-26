@@ -42,7 +42,7 @@ def warehouse_server(bringup, robots, models_dir):
 def operational_nodes(robot, bundle, trace):
     return [
         Node(package="amr_learned_planner", executable="m3_policy", name="m3_policy", namespace=robot,
-             output="screen", parameters=[{"use_sim_time": True, "operational": True,
+             output="screen", parameters=[{"use_sim_time": True, "operational": True, "goal_tolerance_m": 0.25,
                                             "bundle_path": str(bundle), "replay_path": str(trace)}],
              on_exit=Shutdown(reason=f"{robot} operational policy exited")),
         Node(package="amr_learned_planner", executable="operational_arbiter", name="cmd_arbiter",
