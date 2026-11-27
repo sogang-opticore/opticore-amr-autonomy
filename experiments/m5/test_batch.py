@@ -37,7 +37,7 @@ def test_paired_suite_and_full_batch_share_the_same_candidates():
     seed_set = {7, 19, 31}
     assert set(run_batch.cases("paired")) == {(case, seed) for case in ("baseline", "blockage") for seed in seed_set}
     assert set(run_batch.cases("all")) == (
-        {(case, seed) for case in run_batch.SINGLE_CASES for seed in seed_set} | {("pair", 7)})
+        {(case, seed) for case in run_batch.SINGLE_CASES for seed in seed_set} | {("pair", 7), ("fleet", 7)})
     assert len(run_batch.cases("all")) == len(set(run_batch.cases("all")))
 
 

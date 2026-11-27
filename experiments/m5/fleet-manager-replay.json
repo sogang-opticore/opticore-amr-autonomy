@@ -1,0 +1,154 @@
+{
+  "scope": "upstream callbacks with scripted TF, odometry, status and ROS clock",
+  "upstream_revision": "e8c9197ac2801c2770c83a7ee696b2b992d473b8",
+  "source_sha256": "62ad7e3142c8469a806e6ef9d17d6c855c5c9390e4cd600ede5f41a085893692",
+  "duration_s": 12,
+  "manager_parameters": {
+    "robots": [
+      "amr1:6.6:37.0",
+      "amr2:5.0:37.0"
+    ],
+    "x_hold": 20.0
+  },
+  "fixture": {
+    "amr1": {
+      "start": [
+        3.6,
+        22.0
+      ],
+      "mission_at_s": 6.0,
+      "goal": [
+        10.0,
+        22.0
+      ],
+      "move_at_s": 6.0,
+      "east_mps": 0.45
+    },
+    "amr2": {
+      "start": [
+        2.0,
+        22.0
+      ],
+      "mission_at_s": 0.0,
+      "goal": [
+        8.0,
+        22.0
+      ],
+      "move_at_s": 9.5,
+      "east_mps": 0.35
+    }
+  },
+  "fsm_samples_at_transitions": [
+    {
+      "t": 0.0,
+      "amr2": "NORMAL",
+      "blocker": null
+    },
+    {
+      "t": 3.5,
+      "amr2": "HOLD",
+      "blocker": "amr1"
+    },
+    {
+      "t": 7.0,
+      "amr2": "RESUMING",
+      "blocker": null
+    },
+    {
+      "t": 10.0,
+      "amr2": "NORMAL",
+      "blocker": null
+    }
+  ],
+  "manager_goal_publications": [
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 3.4,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 4.0,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 4.6,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 5.2,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 5.8,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 6.4,
+      "xy": [
+        2.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 7.2,
+      "xy": [
+        8.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 7.8,
+      "xy": [
+        8.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 8.4,
+      "xy": [
+        8.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 9.0,
+      "xy": [
+        8.0,
+        22.0
+      ]
+    },
+    {
+      "topic": "/amr2/goal_pose",
+      "stamp": 9.6,
+      "xy": [
+        8.0,
+        22.0
+      ]
+    }
+  ],
+  "status": "verified"
+}

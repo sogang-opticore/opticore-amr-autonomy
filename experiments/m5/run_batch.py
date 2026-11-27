@@ -16,11 +16,13 @@ FAULT_EVENTS = {"drop_scans", "stale_stop", "restored_scans_motion", "fallback_m
 
 
 def cases(suite):
-    names = SINGLE_CASES if suite == "all" else ("baseline", "blockage") if suite == "paired" else (suite,)
-    jobs = [(case, seed) for case in names if case != "pair" for seed in SEEDS]
-    if suite in ("all", "pair"):
-        jobs.append(("pair", SEEDS[0]))
-    return jobs
+    if suite == "all":
+        names = (*SINGLE_CASES, "pair", "fleet")
+    elif suite == "paired":
+        names = ("baseline", "blockage")
+    else:
+        names = (suite,)
+    return [(case, seed) for case in names for seed in ((7,) if case in ("pair", "fleet") else SEEDS)]
 
 
 def assess_single(report, case):
@@ -51,10 +53,11 @@ def assess_single(report, case):
 
 def run_case(folder, candidates, case, seed, index):
     here = Path(__file__).resolve().parent
-    command = [sys.executable, str(here / ("run_pair.py" if case == "pair" else "run_single.py")),
+    two_robots = case in ("pair", "fleet")
+    command = [sys.executable, str(here / (f"run_{case}.py" if two_robots else "run_single.py")),
                "--bundle", str(candidates / str(seed) / "bundle"), "--out", str(folder),
                "--domain", str(70 + index)]
-    if case != "pair":
+    if not two_robots:
         command.extend(("--case", case))
     with folder.with_suffix(".log").open("x") as log:
         rc = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT).returncode
@@ -64,11 +67,11 @@ def run_case(folder, candidates, case, seed, index):
         return {**result, "status": "invalid", "error": "missing run.json"}
     try:
         report = json.loads(path.read_text())
-        if case != "pair" and rc == 0 and report["status"] == "recorded":
+        if not two_robots and rc == 0 and report["status"] == "recorded":
             return {**result, "status": "recorded", **assess_single(report, case)}
-        if case == "pair" and rc == 0 and report["status"] == "verified":
+        if two_robots and rc == 0 and report["status"] == "verified":
             return {**result, "status": "recorded", "passed": True}
-        if case == "pair" and rc != 0 and report["status"] == "failed":
+        if two_robots and rc != 0 and report["status"] == "failed":
             return {**result, "status": "recorded", "passed": False, "phase": report.get("phase"),
                     "error": report.get("error")}
     except (OSError, TypeError, KeyError, ValueError, AttributeError) as exc:
@@ -88,7 +91,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidates", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
-    parser.add_argument("--suite", choices=("all", "paired", "faults", "transport", "sequence", "pair"), default="all")
+    parser.add_argument("--suite", choices=("all", "paired", "faults", "transport", "sequence", "pair", "fleet"), default="all")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     output = args.out.resolve()
