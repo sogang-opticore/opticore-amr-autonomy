@@ -233,7 +233,7 @@ def test_stamped_goal_and_path_arrive_before_local_clock_tick(tmp_path):
     node.deliver("/goal_pose", goal)
     node.deliver("/dwa/status", _string("NORMAL"))
     node.deliver("/dwa/status", _string("REACHED"))
-    assert node.recorder.current is episode and episode.arrived_at == pytest.approx(10.1)
+    assert node.recorder.current is episode and episode.terminal_at == pytest.approx(10.1)
     fake_ros.Clock.time = 10.5
     node.fire(0.5)
     assert len(node.recorder.rows) == 1 and node.recorder.rows[0]["arrived"] == 1

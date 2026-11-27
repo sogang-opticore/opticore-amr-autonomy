@@ -127,11 +127,15 @@ def test_shared_input_failures_stop_both_sources(node, bad):
 def test_recorder_finishes_only_matching_terminal():
     from amr_learned_planner.core.recorder import EpisodeRecorder
     recorder = EpisodeRecorder()
+    recorder.on_contact(0.99, False, "gazebo_contacts", count=0, epoch=0)
     recorder.start(1., (1., 0.), goal_id="map:1.000000000")
     snapshot = {"state":"CANCELLED", "mode":"learned", "goal_id":"map:0.000000000"}
     recorder.on_arbiter(1.05, snapshot)
     assert not recorder.rows
     recorder.on_arbiter(1.1, {**snapshot, "goal_id":"map:1.000000000"})
+    assert not recorder.rows
+    recorder.on_contact(1.12, False, "gazebo_contacts", count=0, epoch=0)
+    assert recorder.rows[-1]["ended"] == 1.1 and recorder.rows[-1]["collision_known"] == 1
     assert recorder.rows[-1]["termination_reason"] == "CANCELLED"
     assert recorder.rows[-1]["success"] == 0
 
@@ -232,6 +236,7 @@ def test_operational_and_policy_goals_share_clock_epoch_and_future_filter(node):
 def test_goal_scoped_health_counts_each_missed_deadline_and_stale_input_fault():
     from amr_learned_planner.core.recorder import EpisodeRecorder
     recorder = EpisodeRecorder()
+    recorder.on_contact(0.99, False, "gazebo_contacts", count=0, epoch=0)
     recorder.start(1., (1., 0.), goal_id="map:1.000000000")
     fault = {"goal_id":"map:1.000000000", "stamp":1.05,
              "faults":["INFERENCE_DEADLINE"], "inference_ms":29.25}

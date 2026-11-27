@@ -4,7 +4,7 @@ set -euo pipefail
 repo=$(cd "$(dirname "$0")/../.." && pwd -P)
 suite=${1:-all}
 [[ $# -le 1 ]] || { echo "Expected at most one suite name." >&2; exit 2; }
-case "$suite" in paired|all|faults|pair|fleet|transport|sequence) ;; *) echo "Usage: $0 [paired|all|faults|pair|fleet|transport|sequence]" >&2; exit 2;; esac
+case "$suite" in paired|baseline|blockage|all|faults|pair|fleet|transport|sequence) ;; *) echo "Usage: $0 [paired|baseline|blockage|all|faults|pair|fleet|transport|sequence]" >&2; exit 2;; esac
 kit=${M5_PILOT_KIT:-"$repo/.cowork/m5/input/kit.tgz"}
 candidates=${M5_RUNS:-"$repo/.cowork/m4-mixed/runs"}
 image=${M5_IMAGE:-opticore-m2-local:humble-fortress}

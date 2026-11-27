@@ -135,3 +135,9 @@ def test_retry_one_candidate_preserves_domain_and_finishes_subset(tmp_path, monk
     report = json.loads((output / "summary.json").read_text())
     assert report["expected_trials"] == report["finished_trials"] == 1
     assert report["suite_verdict"] == "failed" and report["finished_at_utc"]
+
+
+def test_cancel_without_contact_coverage_requires_new_measurement(tmp_path, monkeypatch):
+    report = trial([leg("CANCELLED", known="0"), leg()])
+    result = drive(tmp_path, monkeypatch, "faults", json.dumps(report), 0)
+    assert result["status"] == "invalid" and result["leg_outcomes"] == ["CANCELLED", "ARRIVED"]

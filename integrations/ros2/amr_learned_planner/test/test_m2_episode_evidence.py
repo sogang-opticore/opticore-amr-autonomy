@@ -22,13 +22,13 @@ def test_preempted_goal_latched_status_wrong_path_far_pose_and_old_pose():
     rec.on_path(2, (0, 0), "map")
     rec.on_status(2, "NORMAL")
     rec.on_status(2.1, "REACHED")
-    assert not rec.current.armed and rec.current.arrived_at is None
+    assert not rec.current.armed and rec.current.terminal_at is None
     rec.on_path(2.2, (1, 0), "map")
     rec.on_status(2.3, "NORMAL")
     rec.on_pose(2.4, 0, 0)
     rec.on_pose(2.4, 1, 0, frame="odom")
     rec.on_status(2.5, "REACHED")
-    assert rec.current.arrived_at is None
+    assert rec.current.terminal_at is None
     rec.on_pose(2.6, 1, 0)
     rec.on_status(3.2, "REACHED")
     rec.on_pose(7.0, 1, 0)

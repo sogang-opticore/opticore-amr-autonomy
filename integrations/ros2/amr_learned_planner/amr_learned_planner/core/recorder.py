@@ -45,7 +45,8 @@ class _Episode:
     coverage_epoch: int | None = None
     contact_gap: bool = False
     contacted: bool = False
-    arrived_at: float | None = None
+    terminal_at: float | None = None
+    terminal_reason: str = ""
     shield_ticks: int = 0
     ticks: int = 0
     fallbacks: int = 0
@@ -96,7 +97,10 @@ class EpisodeRecorder:
         if goal_id in self.goal_ids:
             return
         if self.current is not None:
-            self.finish(now, "PREEMPTED")
+            if self.current.terminal_at is not None:
+                self.finish(self.current.terminal_at, self.current.terminal_reason)
+            else:
+                self.finish(now, "PREEMPTED")
         self.goal_ids.add(goal_id)
         self.current = e = _Episode(scenario_id or f"goal_{len(self.rows):03d}", int(seed), tuple(goal), now,
                                     goal_id, episode_id, frame, arrival)
@@ -185,7 +189,7 @@ class EpisodeRecorder:
         prior_stamp = e.contact_end
         e.contact_count, e.contact_end, e.contact_source, e.coverage_epoch = count, stamp, source, epoch
         self.event(stamp, "contact", collision=hit, source=source, pairs=pairs, collision_events=count, coverage_epoch=epoch)
-        until = e.arrived_at if e.arrived_at is not None else e.started + self.timeout_sec
+        until = e.terminal_at if e.terminal_at is not None else e.started + self.timeout_sec
         # A counter step spanning a trial boundary cannot locate the impact on either side.
         if increased and (prior_stamp is None or prior_stamp < e.started or stamp > until):
             e.contact_gap = True
@@ -196,12 +200,12 @@ class EpisodeRecorder:
         if hit and stamp <= until:
             e.contacted = True
             self.finish(stamp, "COLLISION")
-        elif e.arrived_at is not None and stamp >= e.arrived_at:
-            self.finish(e.arrived_at, "ARRIVED")
+        elif e.terminal_at is not None and stamp >= e.terminal_at:
+            self.finish(e.terminal_at, e.terminal_reason)
 
     def on_status(self, now: float, status: str) -> None:
         e = self.current
-        if e is None or now < e.started or e.arrived_at is not None:
+        if e is None or now < e.started or e.terminal_at is not None:
             return
         self.event(now, "status", value=status)
         if now >= e.started + self.timeout_sec or e.path_stamp is None or now < e.path_stamp:
@@ -210,9 +214,12 @@ class EpisodeRecorder:
             e.armed = True
         if (status in SUCCESS_STATES and e.armed and e.pose is not None and
                 0 <= now - e.pose_stamp <= self.max_pose_age and math.dist(e.pose, e.goal) <= self.goal_tolerance):
-            e.arrived_at = now
-            if e.contact_end is not None and e.contact_end >= now:
-                self.finish(now, "ARRIVED")
+            self.await_terminal_contact(e, now, "ARRIVED")
+
+    def await_terminal_contact(self, e: _Episode, now: float, reason: str) -> None:
+        e.terminal_at, e.terminal_reason = now, reason
+        if e.contact_end is not None and e.contact_end >= now:
+            self.finish(now, reason)
 
     def on_arbiter(self, now: float, snapshot: dict[str, Any]) -> None:
         e = self.current
@@ -224,8 +231,8 @@ class EpisodeRecorder:
         if "goal_id" in snapshot and snapshot["goal_id"] != e.goal_id:
             return
         self.event(now, "arbiter", state=snapshot["state"], mode=snapshot["mode"])
-        if snapshot["state"] in {"CANCELLED", "BLOCKED_TIMEOUT", "PATH_TIMEOUT"} and e.arrived_at is None:
-            self.finish(now, snapshot["state"])
+        if snapshot["state"] in {"CANCELLED", "BLOCKED_TIMEOUT", "PATH_TIMEOUT"} and e.terminal_at is None:
+            self.await_terminal_contact(e, now, snapshot["state"])
             return
         fallback = snapshot.get("state") in {"FALLBACK_HOLD", "FALLBACK"} and snapshot.get("mode") == "learned"
         if fallback and e.fallback_since is None:
@@ -280,9 +287,9 @@ class EpisodeRecorder:
             self.last_contact = None
             return self.finish(max(e.started, e.last_clock), "CLOCK_RESET")
         e.last_clock = now
-        if e.arrived_at is not None:
-            if now - e.arrived_at >= self.contact_max_gap:
-                return self.finish(e.arrived_at, "ARRIVED")
+        if e.terminal_at is not None:
+            if now - e.terminal_at >= self.contact_max_gap:
+                return self.finish(e.terminal_at, e.terminal_reason)
         else:
             end = e.started + self.timeout_sec
             if now >= end and ((e.contact_end is not None and e.contact_end >= end) or now >= end + self.contact_max_gap):

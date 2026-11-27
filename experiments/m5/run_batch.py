@@ -68,7 +68,10 @@ def run_case(folder, candidates, case, seed, index):
     try:
         report = json.loads(path.read_text())
         if not two_robots and rc == 0 and report["status"] == "recorded":
-            return {**result, "status": "recorded", **assess_single(report, case)}
+            assessment = assess_single(report, case)
+            if not report["legs"] or any(leg["row"]["collision_known"] != "1" for leg in report["legs"]):
+                return {**result, **assessment, "status": "invalid", "error": "incomplete contact coverage"}
+            return {**result, "status": "recorded", **assessment}
         if two_robots and rc == 0 and report["status"] == "verified":
             return {**result, "status": "recorded", "passed": True}
         if two_robots and rc != 0 and report["status"] == "failed":
@@ -91,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidates", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
-    parser.add_argument("--suite", choices=("all", "paired", "faults", "transport", "sequence", "pair", "fleet"), default="all")
+    parser.add_argument("--suite", choices=("all", "paired", *SINGLE_CASES, "pair", "fleet"), default="all")
     parser.add_argument("--seed", choices=SEEDS, type=int, help="rerun only this candidate")
     args = parser.parse_args()
     jobs = [(i, case, seed) for i, (case, seed) in enumerate(cases(args.suite))

@@ -2,14 +2,14 @@
 # Build and calibrate once, then run serially in isolated ROS domains and Gazebo partitions.
 set -eo pipefail
 if [[ $# != 4 ]]; then
-  echo "Usage: $0 UPSTREAM CANDIDATES NEW_RESULTS {all|paired|faults|pair|fleet|transport|sequence}" >&2
+  echo "Usage: $0 UPSTREAM CANDIDATES NEW_RESULTS {all|paired|baseline|blockage|faults|pair|fleet|transport|sequence}" >&2
   exit 2
 fi
 repo=$(cd "$(dirname "$0")/../.." && pwd -P)
 upstream=$(cd "$1" && pwd -P)
 candidates=$(cd "$2" && pwd -P)
 suite=$4
-case "$suite" in all|paired|faults|pair|fleet|transport|sequence) ;; *) exit 2;; esac
+case "$suite" in all|paired|baseline|blockage|faults|pair|fleet|transport|sequence) ;; *) exit 2;; esac
 mkdir -p "$(dirname "$3")"
 mkdir "$3"
 out=$(cd "$3" && pwd -P)
