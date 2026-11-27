@@ -195,9 +195,13 @@ class M3PolicyNode(Node):
             return
         if self.goal is None or stamp > self.goal[0]:
             goal_id = f"map:{msg.header.stamp.sec}.{msg.header.stamp.nanosec:09d}"
+            # The fleet manager refreshes the same destination while waiting for motion.
+            # Keep current sensor samples, but require a path scoped to the new timestamp.
+            same_destination = self.goal is not None and point == self.goal[1] and self.params["operational"]
             self.goal = stamp, point, goal_id
             self.reached = False
-            self.reset_history()
+            if not same_destination:
+                self.reset_history()
 
     def receive_path(self, msg):
         now = self.clock_time()

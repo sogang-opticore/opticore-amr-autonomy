@@ -247,3 +247,26 @@ def test_goal_scoped_health_counts_each_missed_deadline_and_stale_input_fault():
     row = recorder.finish(1.2, "INTERRUPTED")
     assert row["deadline_misses"] == 1 and row["max_inference_ms"] == 29.25
     assert row["faults"] == "INFERENCE_DEADLINE;ODOM_STALE"
+
+
+def test_refresh_same_destination_keeps_scans_but_requires_a_new_path():
+    from unittest.mock import Mock
+    from amr_learned_planner.m3_policy_node import M3PolicyNode
+
+    policy = M3PolicyNode.__new__(M3PolicyNode)
+    policy.params = {"operational": True}
+    policy.clock_time = lambda: 2.
+    policy.goal = (1., (3., 0.), "map:1.000000000")
+    policy.path = (1.5, [(2., 0.), (3., 0.)])
+    policy.reset_history = Mock()
+    msg = fake_ros.PoseStamped()
+    msg.header.frame_id = "map"
+    msg.header.stamp.sec = 2
+    msg.pose.position.x = 3.
+    policy.receive_goal(msg)
+    assert policy.goal[2] == "map:2.000000000" and not policy.path_matches_goal(2.)
+    policy.reset_history.assert_not_called()
+    msg.header.stamp.nanosec = 1
+    msg.pose.position.x = 4.
+    policy.receive_goal(msg)
+    policy.reset_history.assert_called_once()
