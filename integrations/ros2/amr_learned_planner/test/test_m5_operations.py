@@ -270,3 +270,19 @@ def test_refresh_same_destination_keeps_scans_but_requires_a_new_path():
     msg.pose.position.x = 4.
     policy.receive_goal(msg)
     policy.reset_history.assert_called_once()
+
+
+@pytest.mark.parametrize("hit", [False, True])
+def test_contact_samples_straddle_a_late_goal_callback(hit):
+    from amr_learned_planner.core.recorder import EpisodeRecorder
+
+    recorder = EpisodeRecorder()
+    recorder.on_contact(.98, False, "gazebo_contacts", count=0, epoch=0)
+    recorder.on_contact(1.03, hit, "gazebo_contacts", count=int(hit), epoch=0)
+    recorder.start(1., (2., 0.), goal_id="g", received_at=1.04)
+    if not hit:
+        recorder.on_arbiter(1.05, {"goal_id":"g", "state":"CANCELLED", "mode":"learned"})
+        recorder.on_contact(1.08, False, "gazebo_contacts", count=0, epoch=0)
+    row, = recorder.rows
+    assert row["collision_known"] == 1
+    assert row["termination_reason"] == ("COLLISION" if hit else "CANCELLED")

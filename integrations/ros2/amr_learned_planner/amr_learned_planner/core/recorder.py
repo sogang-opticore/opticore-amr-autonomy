@@ -8,6 +8,7 @@ import os
 import tempfile
 import time
 import uuid
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -72,13 +73,20 @@ class EpisodeRecorder:
         self.run_id = run_id or uuid.uuid4().hex
         self.current: _Episode | None = None
         self.rows: list[dict[str, Any]] = []
-        self.last_contact: tuple[float, bool, str, int | None, int | None] | None = None
+        self.recent_contacts: deque = deque(maxlen=256)
         self.goal_ids: set[str] = set()
         self.events = None
         if events_path is not None:
             path = Path(events_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             self.events = path.open("x", encoding="utf-8", buffering=1)
+
+    @property
+    def last_contact(self):
+        if self.recent_contacts:
+            stamp, hit, source, _, count, epoch = self.recent_contacts[-1]
+            return stamp, hit, source, count, epoch
+        return None
 
     def event(self, now: float, kind: str, **data: Any) -> None:
         if self.events is not None:
@@ -107,8 +115,10 @@ class EpisodeRecorder:
         self.event(now, "goal", received_at=arrival, frame=frame, x=goal[0], y=goal[1], scenario_id=e.scenario_id, seed=seed,
                    contact_max_gap=self.contact_max_gap, goal_tolerance=self.goal_tolerance,
                    max_pose_age=self.max_pose_age, timeout_sec=self.timeout_sec)
-        if self.last_contact is not None:
-            stamp, hit, source, count, epoch = self.last_contact
+        # A later contact can arrive before the goal callback on its separate DDS topic.
+        before = next((sample for sample in reversed(self.recent_contacts) if sample[0] <= now), None)
+        if before is not None:
+            stamp, hit, source, _, count, epoch = before
             if 0 <= now - stamp <= self.contact_max_gap:
                 e.contact_start = e.contact_end = stamp
                 e.contact_source, e.contact_count, e.coverage_epoch = source, count, epoch
@@ -120,6 +130,10 @@ class EpisodeRecorder:
                 self.event(now, "initial_contact", stamp=stamp, collision=hit, source=source, collision_events=count, coverage_epoch=epoch)
                 if e.contacted:
                     self.finish(stamp, "COLLISION")
+
+        for sample in self.recent_contacts:
+            if sample[0] > now and self.current is not None:
+                self._apply_contact(*sample)
 
     def on_pose(self, stamp: float, x: float, y: float, *, frame: str = "map") -> None:
         e = self.current
@@ -171,9 +185,14 @@ class EpisodeRecorder:
             return
         if source == "gazebo_contacts" and (count is None or epoch is None):
             return
-        if self.last_contact is not None and stamp <= self.last_contact[0]:
+        if self.recent_contacts and stamp <= self.recent_contacts[-1][0]:
             return
-        self.last_contact = (stamp, hit, source, count, epoch)
+        while self.recent_contacts and stamp - self.recent_contacts[0][0] > 2 * self.contact_max_gap:
+            self.recent_contacts.popleft()
+        self.recent_contacts.append((stamp, hit, source, pairs, count, epoch))
+        self._apply_contact(stamp, hit, source, pairs, count, epoch)
+
+    def _apply_contact(self, stamp, hit, source, pairs, count, epoch):
         e = self.current
         if e is None or stamp < e.started:
             return
@@ -284,7 +303,7 @@ class EpisodeRecorder:
         if e is None:
             return None
         if now < e.last_clock:
-            self.last_contact = None
+            self.recent_contacts.clear()
             return self.finish(max(e.started, e.last_clock), "CLOCK_RESET")
         e.last_clock = now
         if e.terminal_at is not None:
