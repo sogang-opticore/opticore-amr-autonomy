@@ -1,19 +1,17 @@
 """Launch one complete, freshly spawned M2 warehouse with a B0 or B1 controller."""
-import atexit
 import math
-import os
 from pathlib import Path
 import re
-import tempfile
 
-from ament_index_python.packages import get_package_prefix, get_package_share_directory
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction, Shutdown, TimerAction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
-from amr_learned_planner.m2_bringup import bag_topics, instrument_world, robot_nodes
+from amr_learned_planner.m2_bringup import bag_topics, robot_nodes
+from amr_learned_planner.warehouse_launch import operational_nodes, warehouse_server
 
 
 def start(context):
@@ -39,30 +37,7 @@ def start(context):
     if csv and (not Path(csv).is_absolute() or Path(csv).exists()):
         raise ValueError("record_csv must be an unused absolute file path")
     bringup = Path(get_package_share_directory("amr_bringup"))
-    plugin_dir = Path(get_package_prefix("amr_m2_contact_monitor")) / "lib"
-    if not (plugin_dir / "libm2_contact_monitor.so").is_file():
-        raise RuntimeError(f"M2 contact monitor is missing from {plugin_dir}")
-
-    # Gazebo must reopen the SDF by name after launch evaluates this function.
-    scratch = tempfile.TemporaryDirectory(prefix="opticore-m2-world-")
-    atexit.register(scratch.cleanup)
-    world = Path(scratch.name) / "warehouse.world"
-    instrument_world(bringup / "worlds" / "warehouse.world", world, robot)
-    # The pinned amr_bringup installs its worlds but omits its models directory.
-    candidates = [Path(value("models_dir"))] if value("models_dir") else [
-        bringup / "models", *[p / "src" / "amr_bringup" / "models" for p in bringup.parents],
-        *[Path(p) for p in os.environ.get("IGN_GAZEBO_RESOURCE_PATH", "").split(os.pathsep) if p]]
-    model_dir = next((d for d in candidates if all((d / name / "model.config").is_file()
-                      for name in ("pickup", "standing_person"))), None)
-    if model_dir is None:
-        raise ValueError("set models_dir to the amr_bringup/models directory of the pinned checkout")
-    environment = {}
-    for key, directory in (("IGN_GAZEBO_RESOURCE_PATH", model_dir),
-                           ("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", plugin_dir)):
-        environment[key] = os.pathsep.join(filter(None, [str(directory), os.getenv(key)]))
-    # The stock world contains the fixtures. Only the per-mission driver moves its challenge actor.
-    simulator = ExecuteProcess(cmd=["ign", "gazebo", "-s", "-r", str(world)], additional_env=environment,
-                               output="screen", on_exit=Shutdown(reason="M2 Gazebo exited"))
+    simulator = warehouse_server(bringup, [robot], value("models_dir"))
     nodes = robot_nodes(bringup / "launch" / "multi_robot.launch.py", robot, x, y, planner, tuning=value("tuning"))
     actions = [simulator, *nodes]
     actions.append(TimerAction(period=10.0, actions=[
@@ -73,20 +48,18 @@ def start(context):
     actions.append(Node(package="ros_gz_bridge", executable="parameter_bridge", name="m2_contact_bridge",
                         namespace=robot, output="screen",
                         arguments=[f"/{robot}/m2/contacts@std_msgs/msg/String[ignition.msgs.StringMsg"]))
-    if planner == "b1":
+    if command == "operational":
+        actions.extend(operational_nodes(robot, bundle, trace))
+    elif planner == "b1":
         mode = "dwa" if command == "pass" else command
         settings = {"use_sim_time": True, "mode": mode}
         if m3:
             settings.update(fallback_enabled=False, recover_after_sec=0.25, state_period=0.2)
             actions.append(Node(package="amr_learned_planner", executable="m3_policy", name="m3_policy",
                                 namespace=robot, output="screen",
-                                parameters=[{"use_sim_time": True, "bundle_path": bundle, "replay_path": trace,
-                                             "operational": command == "operational"}],
+                                parameters=[{"use_sim_time": True, "bundle_path": bundle, "replay_path": trace}],
                                 on_exit=Shutdown(reason="M3 policy exited")))
-        arbiter = "operational_arbiter" if command == "operational" else "cmd_arbiter"
-        if command == "operational":
-            settings = {"use_sim_time": True}
-        actions.append(Node(package="amr_learned_planner", executable=arbiter, name="cmd_arbiter",
+        actions.append(Node(package="amr_learned_planner", executable="cmd_arbiter", name="cmd_arbiter",
                             namespace=robot, output="screen", parameters=[settings],
                             on_exit=Shutdown(reason="M2 command arbiter exited")))
     if csv:

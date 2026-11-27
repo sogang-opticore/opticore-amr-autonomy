@@ -28,11 +28,11 @@ def test_world_instrumentation_preserves_authored_world(tmp_path):
     source, target = tmp_path / "stock.sdf", tmp_path / "measured.sdf"
     contents = '<sdf><world name="warehouse"><model name="ground_plane"/><include><uri>model://standing_person</uri></include></world></sdf>'
     source.write_text(contents)
-    instrument_world(source, target, "amr2")
+    instrument_world(source, target, "amr2", "amr1")
     assert source.read_text() == contents
     world = ET.parse(target).find("world")
     assert world.findtext("include/uri") == "model://standing_person"
-    assert world.findtext("plugin/robot") == "amr2"
+    assert [p.findtext("robot") for p in world.findall("plugin")] == ["amr2", "amr1"]
     assert world.findtext("plugin/floor_model") == "ground_plane"
 
 
@@ -47,7 +47,12 @@ def factory(tmp_path):
             return kwargs
 
         def make_robot_nodes(robot, x, y):
-            result = [Node(name="bridge"), Node(name="spawn", position=[x, y])]
+            result = [
+                Node(name="ros_gz_bridge", namespace=robot, arguments=[
+                    "/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
+                    f"/{robot}/cmd_vel@geometry_msgs/msg/Twist]ignition.msgs.Twist"]),
+                Node(name="spawn", position=[x, y]),
+            ]
             for name in ["amcl", "dwa_planner", "astar_planner"]:
                 params = [Path(__file__).with_name(name + ".yaml"), {"use_sim_time": True, "cmd_vel_topic": "cmd_vel"}]
                 result.append(Node(name=name, namespace=robot, parameters=params,
@@ -81,3 +86,17 @@ def test_before_repair_retains_original_yaml_argument(factory):
     assert dwa["parameters"][1]["cmd_vel_topic"] == "cmd_vel"
     with pytest.raises(ValueError, match="B0 diagnostics"):
         robot_nodes(factory, "amr1", "3", "13", "b1", tuning="upstream")
+
+
+def test_two_robot_bridges_share_clock_and_keep_private_fallbacks(factory):
+    first = robot_nodes(factory, "amr1", "5", "37", "b1")
+    second = robot_nodes(factory, "amr2", "5", "31", "b1", bridge_clock=False)
+    clock = "/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock"
+    for robot, nodes in (("amr1", first), ("amr2", second)):
+        bridge = next(n for n in nodes if n["name"] == "ros_gz_bridge")
+        assert bridge["arguments"].count(clock) == (robot == "amr1")
+        assert f"/{robot}/cmd_vel@geometry_msgs/msg/Twist]ignition.msgs.Twist" in bridge["arguments"]
+        dwa = next(n for n in nodes if n["name"] == "dwa_planner")
+        assert dwa["namespace"] == robot
+        assert dwa["parameters"][0]["cmd_vel_topic"] == "dwa_fallback/cmd_vel"
+        assert dict(dwa["remappings"])["/dwa/status"] == f"/{robot}/dwa_fallback/status"

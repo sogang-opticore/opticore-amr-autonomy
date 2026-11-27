@@ -1,0 +1,19 @@
+# M5-R3 · 창고 두 대의 HOLD/RESUME 호환 시험
+
+Humble·Fortress 환경에서 아래 명령은 한 창고에 M4 선정 번들을 탑재한 `amr1`과 `amr2`를 띄운다. 두 목표는 평행한 통로의 개발 좌표를 사용한다. 실행기는 지정한 ROS 도메인을 잠그고 매회 새 Gazebo 파티션을 만든다. 출력 디렉터리는 새 경로를 지정한다.
+
+```sh
+python3 experiments/m5/run_pair.py \
+  --bundle "$CANDIDATES/7/bundle" --out "$RESULTS/pair-7" --domain 90
+```
+
+| 단계 | 통과 조건 |
+|---|---|
+| 기동 | 로봇별 A*가 지도를 받는다. 독립된 TF와 LiDAR, ground truth, 충돌 계측이 준비되고 두 로봇은 시계 하나를 공유한다. 최종 `cmd_vel`과 `dwa/status`는 각 로봇의 arbiter만 발행한다. |
+| 개별 목표 | `amr2`에 먼저 목표를 주면 `amr1`은 미할당·정지를 유지한다. 이어 `amr1`에도 목표를 주면 두 정책이 learned 모드에서 각각 0.12m 이상 이동한다. |
+| HOLD | `amr1/goal_pose`에 현재 지도 위치를 새 시각으로 보낸다. `amr1`의 정지 명령·실제 정지를 확인한 뒤 최소 1초간 변위를 0.05m 이내로 유지하고 그동안 `amr2`는 기존 목표를 유지하며 0.12m 이상 이동해야 한다. |
+| RESUME | `amr1`에 원래 목적지를 새 시각으로 보낸다. `amr2`의 목표 ID가 유지되는 동안 `amr1`이 learned 모드에서 다시 0.12m 이상 이동해야 한다. |
+
+`run.json`에 시드·지도·번들 해시, 단계별 결과, 발행자·구독자, 정지 시간과 변위를 남긴다. `witness.jsonl`에는 목표와 각 로봇의 정책 상태, 최종 명령, 위치, 충돌 관측이 기록된다. `policies/`에는 로봇별 정책 replay를 보존한다. 물리 충돌, 잘못 수신한 목표, HOLD 중 움직임, 정상 계측 중 시뮬레이션 기한 초과는 `failed`로 기록한다. 계측 단절이나 기동 실패는 `unverified`, 모든 단계 통과는 `verified`로 기록한다.
+
+이 시험에서는 실행기가 upstream fleet의 목표 교체 메시지를 발행한다. 실제 `amr_fleet/deadlock_manager.py`의 우선순위 판단, 정면 교행 상황의 후퇴·복귀, 다음 임무 완료율은 별도의 실환경 시험 항목이다.
