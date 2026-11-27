@@ -18,7 +18,7 @@ ros2 launch amr_learned_planner m2_baseline.launch.py \
 | 지속 정체·경로 누락 | odom 기준 0.12m 미만 이동이 3초간 지속되거나 경로가 3초간 비면 정지하고 `dwa/status=DYNAMIC_BLOCKED`를 발행한다. 기존 A*가 재계획한다. 요청 시각 이후 같은 목표에 대응하는 경로가 와야 다시 진행한다. 15초 정체는 `BLOCKED_TIMEOUT`, 15초 경로 미수신은 `PATH_TIMEOUT`으로 기록한다. |
 | 결과 계측 | `cmd_arbiter/state`에 목표 ID, 시각, 상태, 명령 출처를 기록한다. recorder는 같은 목표의 취소·차단 종료 및 정책 이상·추론 지연을 집계한다. |
 
-위 시간·거리 값은 개발용 기본 설정이다. M5-R1 검증은 ROS 메시지 콜백과 기록기를 통과하는 오프라인 회귀시험이다. 실제 Gazebo 임무에서 감속·정지 거리, DWA 전환, 경로 재수신, 2대 호환을 측정하는 작업은 M5-R2/R3에 남아 있다.
+위 시간·거리 값은 개발용 기본 설정이다. M5 운용 모드는 추정 위치의 목표 오차 0.25m 이내에서 도착을 선언한다. 기록기는 취소·정체·경로 시간 초과에도 종료 시각을 덮는 접촉 표본을 기다리고, 표본이 빠지면 접촉 미확정으로 남긴다. 실제 Gazebo 정지·전환·도착 결과는 시행별 판정표에 기록했다. [M5 결과](README.md)
 
 ```sh
 python -m pytest -q integrations/ros2/amr_learned_planner/test/test_m5_operations.py

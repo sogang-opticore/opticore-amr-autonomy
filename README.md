@@ -92,8 +92,8 @@ cd ../.. && python -m pytest -q integrations/ros2/amr_learned_planner/test  # RO
   증거가 없었다.
 - **Post-M1 계획의 M2 완료.** 로컬 Gazebo에서 개발 조건 4종을 두 번씩 비교했다. 16회 모두 유효했고 무충돌 도착은 B0 2/8, B1 1/8이었다. 정면 접근은 네 번 모두 충돌했다. [M2 판정과 원시 증거 안내](docs/m2/README.md)
 - **Post-M1 계획의 M3 완료.** Lite에서 PPO 학습·재개를 검증했고, 같은 NumPy 정책으로 Gazebo 단일 로봇의 무충돌 도착과 정지·복귀를 기록했다. [M3 결과와 재현 절차](docs/m3/README.md)
-- **Post-M1 M4 개발 후보 선정.** 1차 실험 이후 명목·실측 동역학을 섞어 세 seed를 다시 학습했다. Lite 기본 임무 48회 중 24회 무충돌 완료, 9회 접촉으로 M3 대비 사전 선정 기준을 통과했다. 일시 차단은 0/12, 복수 장애물은 0/12였다. M5는 단일 로봇 반복 운송과 고장 복구 검증부터 진행한다. [M4 후속 결과](docs/m4/followup.md) · [M5 운용 코드](docs/m5/operations.md)
-- **Post-M1 M5 진행 중.** 기존 Gazebo 기록에 M4 후보 3개를 적용해 1,032회 추론했다. CPU 재생에서 25ms 초과는 0회였다. 새 창고 주행에서 반복 운송·고장 복구·두 로봇 연동을 검증하는 단계다. [M5 실측 결과와 실행 방법](docs/m5/README.md)
+- **Post-M1 M4 개발 후보 선정.** 1차 실험 이후 명목·실측 동역학을 섞어 세 seed를 다시 학습했다. Lite 기본 임무 48회 중 24회 무충돌 완료, 9회 접촉으로 M3 대비 사전 선정 기준을 통과했다. 일시 차단은 0/12, 복수 장애물은 0/12였다. 세 후보를 M5 창고 주행에서 평가했다. [M4 후속 결과](docs/m4/followup.md) · [M5 운용 코드](docs/m5/operations.md)
+- **Post-M1 M5 미통과.** 새 Gazebo 개발 시험 17개 조건 중 4개를 통과했고 접촉은 0회였다. seed 31의 기준 주행·고장 복구와 두 로봇의 개별 제어·fleet 대기 및 재개를 확인했다. 차단 후 도착과 반복 운송은 세 후보 모두 미달했다. [M5 실측 결과와 실행 방법](docs/m5/README.md)
 - **2026-10-14 스파이크 로드맵 현황.** 당시 M2–M6 코드가 구현되어 학습·실기동을 기다리고 있었다. Gazebo 로봇과 같은 LiDAR·동역학 profile,
   센서 randomization, LiDAR 기반 Safety Shield, 절차적·창고 지도 시나리오, PPO v2와
   DAgger, sweep과 G4 gate, torch 없는 policy bundle, opticore-amr ROS2 통합 패키지가
