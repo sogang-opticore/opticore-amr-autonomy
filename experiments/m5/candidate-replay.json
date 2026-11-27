@@ -1,0 +1,130 @@
+{
+  "scope": "Offline policy inference on fixed historical M3 train trajectories",
+  "finished_at_utc": "2026-11-28T02:27:16.559664+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "numpy": "1.26.4",
+  "torch": "2.7.1",
+  "blas_environment": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "prediction_deadlines_ms": [
+    25.0
+  ],
+  "traces": {
+    "shadow": {
+      "run_id": "70edaf63d4eb41c4bf2f89825eba351a",
+      "replay_sha256": "0b9bb1caacecec7fe43d9fd5dd398a6fe9dcc384caefd6e7a7b53bacf91f4d3c",
+      "bag_sha256": "59f0c732ab511f7529f18f333754df67e9c1d6c3f91a66bf6a61b8af32a12643",
+      "ticks": 411,
+      "valid_observations": 148,
+      "max_observation_error": 0.0,
+      "policy_inference_ticks": 117
+    },
+    "learned": {
+      "run_id": "c4e10d8755be4669a211936bb2c03018",
+      "replay_sha256": "e40025e3a7a78854998d11e1a527b4abac4dcbc335bc74325cb20f7f3e7d60b0",
+      "bag_sha256": "3ddd8cc2f1a260598c3ac77973a022f8e7338f27a42e18adcfefced65fb7de7e",
+      "ticks": 532,
+      "valid_observations": 233,
+      "max_observation_error": 0.0,
+      "policy_inference_ticks": 227
+    }
+  },
+  "actors": [
+    {
+      "seed": 7,
+      "bundle_sha256": "f38425b2143df04edaebae46c7917b71349c8ce57a1da3ae028acf9b5634ef43",
+      "checkpoint_sha256": "d8b47976de44ecd0b55c4dbb351c6b4ea3cdab1dbad068696da6acb16426cd08",
+      "traces": {
+        "shadow": {
+          "predictions": 117,
+          "sb3_max_abs_error": 1.6391277313232422e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "35f1e8b465a8b5e36967f9c72cbb1012ebc14de1f03f075ae62f0f5398c112e7",
+          "host_predict_ms": {
+            "median": 0.007709,
+            "p95": 0.010008799999999998,
+            "maximum": 0.058542
+          },
+          "deadline_misses": 0
+        },
+        "learned": {
+          "predictions": 227,
+          "sb3_max_abs_error": 2.682209014892578e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "19c71fb99a5faa0ad40a3c629f84f9b3be6d99fd3054712720cf5abf5b6fd77a",
+          "host_predict_ms": {
+            "median": 0.007792,
+            "p95": 0.0104625,
+            "maximum": 0.01775
+          },
+          "deadline_misses": 0
+        }
+      }
+    },
+    {
+      "seed": 19,
+      "bundle_sha256": "93316698a120af48752e5268a787aafa736dbfc6600625c35cf8d0352ff4ca78",
+      "checkpoint_sha256": "a57ace6f5afcc192ce47d754241c247f5eda351efffd2dc863a2c343a2f35d83",
+      "traces": {
+        "shadow": {
+          "predictions": 117,
+          "sb3_max_abs_error": 4.172325134277344e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "077a44e3777bb0ee33997f9ead967e922528b996f946d7e8f1d84cfab461949e",
+          "host_predict_ms": {
+            "median": 0.007875,
+            "p95": 0.008125,
+            "maximum": 0.027917
+          },
+          "deadline_misses": 0
+        },
+        "learned": {
+          "predictions": 227,
+          "sb3_max_abs_error": 3.5762786865234375e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "81487b4df32434e2379815e8661fb72931d3aa43c3b2a3040adea71d9ab2cb5c",
+          "host_predict_ms": {
+            "median": 0.007833,
+            "p95": 0.0092374,
+            "maximum": 0.010875
+          },
+          "deadline_misses": 0
+        }
+      }
+    },
+    {
+      "seed": 31,
+      "bundle_sha256": "3e1c49176569d28ce753d6beb5d1dbdf077fbe3ace3acc579d1e6cc61765a533",
+      "checkpoint_sha256": "5b3d9f261f764f20fe32676d7f0662cbc267acedd1a9e85125748bc9f81a83fa",
+      "traces": {
+        "shadow": {
+          "predictions": 117,
+          "sb3_max_abs_error": 2.384185791015625e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "1e02e7ae3d01dcacca179723d9b650786cac6debc5a718b66af6b493d6d4731d",
+          "host_predict_ms": {
+            "median": 0.008042,
+            "p95": 0.008733,
+            "maximum": 0.028625
+          },
+          "deadline_misses": 0
+        },
+        "learned": {
+          "predictions": 227,
+          "sb3_max_abs_error": 4.172325134277344e-07,
+          "repeat_max_abs_error": 0.0,
+          "actions_float32_le_sha256": "e1295120013d2e568fa8375c9f41dde26fa95f951ae7e926b62010ec2cf70caa",
+          "host_predict_ms": {
+            "median": 0.008,
+            "p95": 0.011516799999999999,
+            "maximum": 0.018167
+          },
+          "deadline_misses": 0
+        }
+      }
+    }
+  ]
+}
