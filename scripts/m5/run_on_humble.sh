@@ -59,5 +59,7 @@ PY
 ctest --test-dir "$monitor" --output-on-failure --no-tests=error -R '^m2_(physics_contact_samples|fortress_contact_calibration)$' | tee "$out/contact-calibration.log"
 phase=trials
 cd "$repo"
-python3 experiments/m5/run_batch.py --candidates "$candidates" --out "$out/development" --suite "$suite"
+candidate_args=()
+if [[ -n ${M5_SEED:-} ]]; then candidate_args+=(--seed "$M5_SEED"); fi
+python3 experiments/m5/run_batch.py --candidates "$candidates" --out "$out/development" --suite "$suite" "${candidate_args[@]}"
 phase=complete

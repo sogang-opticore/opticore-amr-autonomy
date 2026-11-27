@@ -338,9 +338,13 @@ def run_world(args, case, run, stack):
                 elif phase == "cancel":
                     dwell = None
 
-            if csv_path.is_file() and row is None:
-                with csv_path.open(newline="") as stream:
-                    rows = list(csv.DictReader(stream))
+            if row is None:
+                try:
+                    with csv_path.open(newline="") as stream:
+                        rows = list(csv.DictReader(stream))
+                except FileNotFoundError:
+                    # A Docker bind mount can briefly hide the CSV during atomic replacement.
+                    rows = []
                 if len(rows) > index:
                     if len(rows) != index+1 or rows[-1]["goal_id"] != gid or rows[-1]["run_id"] != run["run_id"]:
                         raise RuntimeError("recorder row belongs to a different goal or run")

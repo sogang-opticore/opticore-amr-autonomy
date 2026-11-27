@@ -120,3 +120,18 @@ def test_pair_uses_pair_driver_verdict(tmp_path, monkeypatch, driver_status, exi
     result = drive(tmp_path, monkeypatch, "pair", json.dumps({"status": driver_status}), exit_code)
     assert result["status"] == expected
     assert result.get("passed") is passed
+
+
+def test_retry_one_candidate_preserves_domain_and_finishes_subset(tmp_path, monkeypatch):
+    output = tmp_path / "retry"
+    monkeypatch.setattr(run_batch.sys, "argv", ["run_batch", "--suite", "sequence", "--seed", "31",
+                                                "--out", str(output), "--candidates", str(tmp_path)])
+    def record(folder, candidates, case, seed, index):
+        assert (folder.name, case, seed, index) == ("03-sequence-31", "sequence", 31, 2)
+        return {"status": "recorded", "passed": False}
+
+    monkeypatch.setattr(run_batch, "run_case", record)
+    assert run_batch.main() == 3
+    report = json.loads((output / "summary.json").read_text())
+    assert report["expected_trials"] == report["finished_trials"] == 1
+    assert report["suite_verdict"] == "failed" and report["finished_at_utc"]

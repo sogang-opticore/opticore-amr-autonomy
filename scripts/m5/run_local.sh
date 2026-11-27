@@ -44,7 +44,7 @@ docker run --rm --init --shm-size=1g \
   --mount "type=bind,source=$kit,target=/pilot.tgz,readonly" \
   --mount "type=bind,source=$run/input,target=/input,readonly" \
   --mount "type=bind,source=$run/output,target=/results" \
-  -e LIBGL_ALWAYS_SOFTWARE=1 -e GALLIUM_DRIVER=llvmpipe \
+  -e M5_SEED="${M5_SEED:-}" -e LIBGL_ALWAYS_SOFTWARE=1 -e GALLIUM_DRIVER=llvmpipe \
   "$image_id" bash -ec '
     cd /tmp
     tar -xzf /pilot.tgz

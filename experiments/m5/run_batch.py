@@ -92,19 +92,23 @@ def main():
     parser.add_argument("--candidates", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--suite", choices=("all", "paired", "faults", "transport", "sequence", "pair", "fleet"), default="all")
+    parser.add_argument("--seed", choices=SEEDS, type=int, help="rerun only this candidate")
     args = parser.parse_args()
+    jobs = [(i, case, seed) for i, (case, seed) in enumerate(cases(args.suite))
+            if args.seed is None or seed == args.seed]
+    if not jobs:
+        parser.error("this suite has no trial for the requested seed")
     args.out.mkdir(parents=True, exist_ok=False)
     output = args.out.resolve()
-    jobs = cases(args.suite)
     report = {"suite": args.suite, "expected_trials": len(jobs), "started_at_utc": datetime.now(timezone.utc).isoformat(),
               "results": []}
-    for index, (case, seed) in enumerate(jobs):
+    for index, case, seed in jobs:
         name = f"{index+1:02d}-{case}-{seed}"
         print(f"Starting {name}", flush=True)
         result = run_case(output / name, args.candidates.resolve(), case, seed, index)
         report["results"].append(result)
         report["finished_trials"] = len(report["results"])
-        report["finished_at_utc"] = datetime.now(timezone.utc).isoformat() if index + 1 == len(jobs) else None
+        report["finished_at_utc"] = datetime.now(timezone.utc).isoformat() if len(report["results"]) == len(jobs) else None
         report["suite_verdict"] = verdict(report["results"])[0] if report["finished_at_utc"] else "running"
         pending = output / "summary.tmp"
         pending.write_text(json.dumps(report, indent=2) + "\n")
